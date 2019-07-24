@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS `#__cleantalk_sfw_logs` (
   PRIMARY KEY `ip` (`ip`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 UPDATE `#__extensions` SET params = '{"form_protection":["check_register","check_contact_forms","check_search"],"comments_and_messages":["jcomments_check_comments"]}' 
-WHERE element = 'antispam' AND folder = 'cleantalk';
+WHERE element = 'cleantalkantispam' AND folder = 'system';

@@ -37,7 +37,7 @@ jQuery(document).ready(function(){
 		jQuery('#attrib-connectionreports').append("<div id = 'connection_reports'></div>");	
 		jQuery('<br/><h3>'+ct_form_settings_title+'</h3><label id="jform_params_hr_spacer-lbl" class=""><hr></label>').insertBefore(jQuery('.control-group')[2]);
 		jQuery('#attrib-checkuserscomments').append("<center><div id ='spam_results'></div>");
-		jQuery('#attrib-checkuserscomments,#attrib-connectionreports').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/cleantalk/antispam/img/preloader.gif' />");
+		jQuery('#attrib-checkuserscomments,#attrib-connectionreports').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/cleantalkantispam/img/preloader.gif' />");
 		//dev
 		jQuery('#attrib-dev').append("<button class='btn btn-info' id='dev_btn_insert_spam_users' type='button'>insert 30 spam users</button><br/><br/>")
 	// Viewing button to access CP
@@ -73,7 +73,7 @@ jQuery(document).ready(function(){
 			.html('')
 			.append("<div id='key_buttons_wrapper'></div>").children()
 				.append("<button class='btn btn-success' id='ct_auto_button' type='button'>"+ct_autokey_label+"</button>")
-				.append("<img class='display_none' id='ct_preloader' src='../plugins/cleantalk/antispam/img/preloader.gif' />")
+				.append("<img class='display_none' id='ct_preloader' src='../plugins/system/cleantalkantispam/img/preloader.gif' />")
 				.append("<a target='_blank'></a>").children('a')
 					.attr('href', 'https://cleantalk.org/register?platform=joomla3&email=' + cleantalk_mail + '&website=' + cleantalk_domain)
 					.append("<button class='btn btn-success' id='ct_manual_button' type='button'>"+ct_manualkey_label+"</button>")
