@@ -19,10 +19,14 @@ jimport('joomla.application.component.helper');
 if(!defined('DS'))
     define('DS', DIRECTORY_SEPARATOR);
 
-require_once(dirname(__FILE__) . DS . 'cleantalk.class.php');
+require_once(dirname(__FILE__) . DS . 'classes'. DS .'Cleantalk.php');
+require_once(dirname(__FILE__) . DS . 'classes'. DS .'CleantalkRequest.php');
+require_once(dirname(__FILE__) . DS . 'classes'. DS .'CleantalkResponse.php');
+require_once(dirname(__FILE__) . DS . 'classes'. DS .'CleantalkHelper.php');
+require_once(dirname(__FILE__) . DS . 'classes'. DS .'CleantalkSFW.php');
 require_once(dirname(__FILE__) . DS . 'custom_config.php');
 
-class plgSystemAntispambycleantalk extends JPlugin 
+class plgCleantalkAntispam extends JPlugin 
 {
     /**
      * Plugin version string for server
@@ -102,22 +106,16 @@ class plgSystemAntispambycleantalk extends JPlugin
 	private function getId()
 	{
 		$db=JFactory::getDBO();
-		if(!version_compare(JVERSION, '3', 'ge')){ //joomla 2.5
-		
-			$sql='SELECT extension_id FROM #__extensions WHERE folder ="'.$db->getEscaped('system').'" AND element ="'.$db->getEscaped('antispambycleantalk').'"';
-			$db->setQuery($sql);
 			
-		}else{
-			
-			$query = $db->getQuery(true);
-			$query
-				->select($db->quoteName('a.extension_id'))
-				->from($db->quoteName('#__extensions', 'a'))
-				->where($db->quoteName('a.element').' = '.$db->quote('antispambycleantalk'))
-				->where($db->quoteName('a.folder').' = '.$db->quote('system'));
-			$db->setQuery($query);
-			$db->execute();
-		}
+		$query = $db->getQuery(true);
+		$query
+			->select($db->quoteName('a.extension_id'))
+			->from($db->quoteName('#__extensions', 'a'))
+			->where($db->quoteName('a.element').' = '.$db->quote('antispam'))
+			->where($db->quoteName('a.folder').' = '.$db->quote('cleantalk'));
+		$db->setQuery($query);
+		$db->execute();
+
 		if(!($plg=$db->loadObject()))
 			return 0;
 		else
@@ -488,7 +486,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 				try {
 					$this->delete_users($spam_users);
 					$output['result']='success';
-					$output['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELDONE', count($_POST['ct_del_user_ids']));
+					$output['data']=JText::sprintf('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_USERS_DELDONE', count($_POST['ct_del_user_ids']));
 				}
 				catch (Exception $e){
 					$output['result']='error';
@@ -503,7 +501,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 				try {
 					$this->delete_comments($spam_comments);
 					$output['result']='success';
-					$output['data']=JText::sprintf('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($_POST['ct_del_comment_ids']));
+					$output['data']=JText::sprintf('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($_POST['ct_del_comment_ids']));
 				}
 				catch (Exception $e){
 					$output['result']='error';
@@ -737,35 +735,16 @@ class plgSystemAntispambycleantalk extends JPlugin
 		$app = JFactory::getApplication();	
 		$document = JFactory::getDocument();
 
-		// Version comparsion
-		if(!version_compare(JVERSION, '3', 'ge'))
-		{			
-			$buf=$document->getHeadData();
-			$is_jquery=false;
-			foreach($buf['scripts'] as $key=>$value )				
-				if(stripos($key,'jquery')!==false)
-					$is_jquery=true;				
-			if(!$is_jquery)
-				$document->addScript(Juri::root()."plugins/system/antispambycleantalk/jquery-1.11.2.min.js");
-			
-			$document->addScriptDeclaration("jQuery.noConflict();");
-			$document->addScriptDeclaration("var ct_joom25=true;");
-			
-		}
-		else
-		{
-			JHtml::_('jquery.framework');
-			$document->addScriptDeclaration("var ct_joom25=false;");
-		}	
+		JHtml::_('jquery.framework');
 
 		if ($app->isSite())
 		{			
 	        $this->sfw_check();			
 			$this->ct_cookie();	
-			$document->addScript(JURI::root(true)."/plugins/system/antispambycleantalk/js/ct-functions.js?".time());
+			$document->addScript(JURI::root(true)."/plugins/cleantalk/antispam/js/ct-functions.js?".time());
 			$document->addScriptDeclaration('ctSetCookie("ct_checkjs", "'.$this->cleantalk_get_checkjs_code().'", "0");');			
 			if (isset($config['form_protection']) && in_array('check_external', $config['form_protection']))
-				$document->addScript(JURI::root(true)."/plugins/system/antispambycleantalk/js/ct-external.js?".time());
+				$document->addScript(JURI::root(true)."/plugins/cleantalk/antispam/js/ct-external.js?".time());
 		}
 
     	if($user->get('isRoot'))
@@ -789,10 +768,10 @@ class plgSystemAntispambycleantalk extends JPlugin
 				$ct_account_name_ob = isset($config['account_name_ob']) ? $config['account_name_ob'] : '';
 				
 				if (!$ct_key_is_ok)
-					$notice = JText::_('PLG_SYSTEM_CLEANTALK_NOTICE_APIKEY');
+					$notice = JText::_('PLG_CLEANTALK_ANTISPAM_NOTICE_APIKEY');
 
 				if ($show_notice == 1 && $trial == 1)
-					$notice = JText::sprintf('PLG_SYSTEM_CLEANTALK_NOTICE_TRIAL', $config['user_token']);
+					$notice = JText::sprintf('PLG_CLEANTALK_ANTISPAM_NOTICE_TRIAL', $config['user_token']);
 
 				$connection_reports = isset($config['connection_reports']) ? json_decode(json_encode($config['connection_reports']),true) : array();
 				$adminmail=JFactory::getConfig()->get('mailfrom');
@@ -813,49 +792,49 @@ class plgSystemAntispambycleantalk extends JPlugin
 						ct_connection_reports_negative_report = "'.(isset($connection_reports['negative_report']) ? addslashes(json_encode($connection_reports['negative_report'])) : null).'",
 					
 					//Translation
-					    ct_autokey_label = "'    .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_AUTOKEY_LABEL').'",
-						ct_manualkey_label = "'  .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_MANUALKEY_LABEL').'",
-						ct_key_notice1 = "'      .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_NOTICE1').'",
-						ct_key_notice2 = "'      .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_NOTICE2').'",
-						ct_license_notice = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_LICENSE_NOTICE').'",
-						ct_statlink_label = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_STATLINK_LABEL').'",
-						ct_impspamcheck_label = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_IMPSPAMCHECK_LABEL').'",
-						ct_supportbtn_label = "'   .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SUPPORTBTN_LABEL').'",
-						ct_register_message="'   .JText::_('PLG_SYSTEM_CLEANTALK_REGISTER_MESSAGE').$adminmail.'",
-						ct_key_is_bad_notice = "' .JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_KEY_IS_BAD').'",
-						ct_register_error="'.addslashes(JText::_('PLG_SYSTEM_CLEANTALK_ERROR_AUTO_GET_KEY')).'",
-						ct_spamcheck_checksusers = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CHECKUSERS_LABEL').'",
-						ct_spamcheck_checkscomments = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CHECKCOMMENTS_LABEL').'",
-						ct_spamcheck_notice = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOTICE').'",
-						ct_spamcheck_delsel = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_DELSEL').'",
-						ct_spamcheck_delall = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_DELALL').'",
-						ct_spamcheck_table_username = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_USERNAME').'",
-						ct_spamcheck_table_joined = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_JOINED').'",
-						ct_spamcheck_table_email = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_EMAIL').'",
-						ct_spamcheck_table_lastvisit = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_LASTVISIT').'",
-						ct_spamcheck_table_date = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_DATE').'",
-						ct_spamcheck_table_text = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_TABLE_TEXT').'",
-						ct_spamcheck_users_delconfirm = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM').'",
-						ct_spamcheck_users_delconfirm_error = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM_ERROR').'",
-						ct_spamcheck_comments_delconfirm = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM').'",
-						ct_spamcheck_comments_delconfirm_error = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR').'",
-						ct_spamcheck_load_more_results = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_LOAD_MORE_RESULTS').'",
-						ct_connection_reports_no_reports = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_NO_REPORTS').'",
-						ct_connection_reports_send_report = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_SENDBUTTON_LABEL').'",
-						ct_connection_reports_table_date = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_TABLE_DATE').'",
-						ct_connection_reports_table_pageurl = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_TABLE_PAGEURL').'",
-						ct_connection_reports_table_libreport = "'.JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_CONNECTIONREPORTS_TABLE_LIBREPORT').'",
-						ct_account_name_label = "'.JText::_('PLG_SYSTEM_CLEANTALK_ACCOUNT_NAME_LABEL').'",
-						ct_form_settings_title = "'.JText::_('PLG_SYSTEM_CLEANTALK_SETTINGS_TITLE').'";																
+					    ct_autokey_label = "'    .JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_AUTOKEY_LABEL').'",
+						ct_manualkey_label = "'  .JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_MANUALKEY_LABEL').'",
+						ct_key_notice1 = "'      .JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_NOTICE1').'",
+						ct_key_notice2 = "'      .JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_NOTICE2').'",
+						ct_license_notice = "'   .JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_LICENSE_NOTICE').'",
+						ct_statlink_label = "'   .JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_STATLINK_LABEL').'",
+						ct_impspamcheck_label = "'   .JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_IMPSPAMCHECK_LABEL').'",
+						ct_supportbtn_label = "'   .JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SUPPORTBTN_LABEL').'",
+						ct_register_message="'   .JText::_('PLG_CLEANTALK_ANTISPAM_REGISTER_MESSAGE').$adminmail.'",
+						ct_key_is_bad_notice = "' .JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_KEY_IS_BAD').'",
+						ct_register_error="'.addslashes(JText::_('PLG_CLEANTALK_ANTISPAM_ERROR_AUTO_GET_KEY')).'",
+						ct_spamcheck_checksusers = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_CHECKUSERS_LABEL').'",
+						ct_spamcheck_checkscomments = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_CHECKCOMMENTS_LABEL').'",
+						ct_spamcheck_notice = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_NOTICE').'",
+						ct_spamcheck_delsel = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_DELSEL').'",
+						ct_spamcheck_delall = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_DELALL').'",
+						ct_spamcheck_table_username = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_TABLE_USERNAME').'",
+						ct_spamcheck_table_joined = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_TABLE_JOINED').'",
+						ct_spamcheck_table_email = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_TABLE_EMAIL').'",
+						ct_spamcheck_table_lastvisit = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_TABLE_LASTVISIT').'",
+						ct_spamcheck_table_date = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_TABLE_DATE').'",
+						ct_spamcheck_table_text = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_TABLE_TEXT').'",
+						ct_spamcheck_users_delconfirm = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM').'",
+						ct_spamcheck_users_delconfirm_error = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM_ERROR').'",
+						ct_spamcheck_comments_delconfirm = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM').'",
+						ct_spamcheck_comments_delconfirm_error = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR').'",
+						ct_spamcheck_load_more_results = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_LOAD_MORE_RESULTS').'",
+						ct_connection_reports_no_reports = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_CONNECTIONREPORTS_NO_REPORTS').'",
+						ct_connection_reports_send_report = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_CONNECTIONREPORTS_SENDBUTTON_LABEL').'",
+						ct_connection_reports_table_date = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_CONNECTIONREPORTS_TABLE_DATE').'",
+						ct_connection_reports_table_pageurl = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_CONNECTIONREPORTS_TABLE_PAGEURL').'",
+						ct_connection_reports_table_libreport = "'.JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_CONNECTIONREPORTS_TABLE_LIBREPORT').'",
+						ct_account_name_label = "'.JText::_('PLG_CLEANTALK_ANTISPAM_ACCOUNT_NAME_LABEL').'",
+						ct_form_settings_title = "'.JText::_('PLG_CLEANTALK_ANTISPAM_SETTINGS_TITLE').'";																
 				');
 				//Admin JS and CSS
-				$document->addScript(JURI::root(true)."/plugins/system/antispambycleantalk/js/ct-settings.js?".time());
-				$document->addStyleSheet(JURI::root(true)."/plugins/system/antispambycleantalk/css/ct-settings.css?".time());
+				$document->addScript(JURI::root(true)."/plugins/cleantalk/antispam/js/ct-settings.js?".time());
+				$document->addStyleSheet(JURI::root(true)."/plugins/cleantalk/antispam/css/ct-settings.css?".time());
 				
 				if(isset($config['show_review']) && $config['show_review'] == 1 && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id)
 				{
 					$document->addScriptDeclaration('var ct_show_feedback=true;');
-					$document->addScriptDeclaration('var ct_show_feedback_mes="'.JText::_('PLG_SYSTEM_CLEANTALK_FEEDBACKLINK').'";');
+					$document->addScriptDeclaration('var ct_show_feedback_mes="'.JText::_('PLG_CLEANTALK_ANTISPAM_FEEDBACKLINK').'";');
 				}
 				else
 					$document->addScriptDeclaration('var ct_show_feedback=false;');	
@@ -955,7 +934,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 							{
 				                if ($ctResponse['allow'] == 0)
 				                {
-				            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
+				            		$error_tpl=file_get_contents(dirname(__FILE__)."/classes/error.html");
 									print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);	
 									die();		                				
 			                    	                	
@@ -1111,7 +1090,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 									}
 									else 
 									{
-					            		$error_tpl=file_get_contents(dirname(__FILE__)."/error.html");
+					            		$error_tpl=file_get_contents(dirname(__FILE__)."/classes/error.html");
 										print str_replace('%ERROR_TEXT%',$ctResponse['comment'],$error_tpl);	
 										die();										
 									}			                			                		
@@ -1751,7 +1730,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 		$jtable = $db->loadAssocList();
 		if (empty($jtable))
 		{
-        	$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_JCOMMENTSNOTINSTALLED');
+        	$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_JCOMMENTSNOTINSTALLED');
         	$output['result'] = 'error';  				
 		}
         else 
@@ -1783,7 +1762,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	            }
 	            if (count($data) == 0)
 	            {
-	            	$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOCOMMENTSTOCHECK');
+	            	$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_NOCOMMENTSTOCHECK');
 	            	$output['result'] = 'error';  	            	  
 	            }
 	            else
@@ -1806,11 +1785,11 @@ class plgSystemAntispambycleantalk extends JPlugin
 			       		if (isset($result['error_message']))
 			       		{
 			       			if ($result['error_message'] == 'Access key unset.' || $result['error_message'] == 'Unknown access key.')
-			       				$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
+			       				$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_BADKEY');
 		       				elseif ($result['error_message'] == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
-		       					$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
+		       					$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
 		       				elseif ($result['error_message'] == 'Calls limit exceeded, method name spam_check_cms().')
-		       					$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_CALLS_LIMIT_EXCEEDED');		       			
+		       					$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_CALLS_LIMIT_EXCEEDED');		       			
 			       			else $output['data'] = $result['error_message'];	       			
 			       			$output['result']='error';
 			       		}
@@ -1846,7 +1825,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 		       	}
 		       	else 
 		       	{
-		       		$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOCOMMENTSFOUND');
+		       		$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_NOCOMMENTSFOUND');
 		 			$output['result']='error';        					
 		       	} 	            		
         	}        	
@@ -1885,7 +1864,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 		    }
 		    if (count($data) == 0)
 		    {
-		    	$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOUSERSTOCHECK');
+		    	$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_NOUSERSTOCHECK');
 		    	$output['result'] = 'error';
 		    }
 		    else 
@@ -1909,11 +1888,11 @@ class plgSystemAntispambycleantalk extends JPlugin
 		       		if (isset($result['error_message']))
 		       		{
 		       			if ($result['error_message'] == 'Access key unset.' || $result['error_message'] == 'Unknown access key.')
-		       				$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY');
+		       				$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_BADKEY');
 		       			elseif ($result['error_message'] == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
-		       				$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
+		       				$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
 		       			elseif ($result['error_message'] == 'Calls limit exceeded, method name spam_check_cms().')
-		       				$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_CALLS_LIMIT_EXCEEDED');
+		       				$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_CALLS_LIMIT_EXCEEDED');
 		       			else $output['data'] = $result['error_message'];	       			
 		       			$output['result']='error';
 		       		}
@@ -1953,7 +1932,7 @@ class plgSystemAntispambycleantalk extends JPlugin
 	       	}
 	       	else 
 	       	{
-            	$output['data'] = JText::_('PLG_SYSTEM_CLEANTALK_JS_PARAM_SPAMCHECK_NOUSERSFOUND');
+            	$output['data'] = JText::_('PLG_CLEANTALK_ANTISPAM_JS_PARAM_SPAMCHECK_NOUSERSFOUND');
 	       		$output['result']='error';
 	       	}              		
     	}	   	

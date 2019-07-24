@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="3.0" type="plugin" group="cleantalk" method="upgrade" >
+    <name>PLG_CLEANTALK_ANTISPAM_NAME</name>
+    <author>CleanTalk team</author>
+    <creationDate>24.07.2019</creationDate>
+    <copyright>(C) CleanTalk</copyright>
+    <license>GNU/GPLv2</license>
+    <authorEmail>welcome@cleantalk.org</authorEmail>
+    <authorUrl>cleantalk.org</authorUrl>
+    <version>1.0</version>
+    <description>PLG_CLEANTALK_ANTISPAM_DESCRIPTION</description>
+    <files>
+	<filename plugin="antispam">antispam.php</filename>
+	<filename plugin="antispam">classes/Cleantalk.php</filename>
+	<filename plugin="antispam">classes/CleantalkRequest.php</filename>
+	<filename plugin="antispam">classes/CleantalkResponse.php</filename>
+	<filename plugin="antispam">classes/CleantalkHelper.php</filename>
+	<filename plugin="antispam">classes/CleantalkSFW.php</filename>	
+	<filename plugin="antispam">classes/sfw_die_page.html</filename>
+	<filename plugin="antispam">classes/error.html</filename>
+	<filename plugin="antispam">js/ct-settings.js</filename>
+	<filename plugin="antispam">js/ct-functions.js</filename>
+	<filename plugin="antispam">js/ct-external.js</filename>		
+	<filename plugin="antispam">css/ct-settings.css</filename>
+	<filename plugin="antispam">img/preloader.gif</filename>
+	<filename plugin="antispam">custom_config.php</filename>	
+	<folder>sql/mysql</folder>
+    </files>
+    <languages folder="language">
+	<language tag="en-GB">en-GB/en-GB.plg_cleantalk_antispam.ini</language>
+	<language tag="en-GB">en-GB/en-GB.plg_cleantalk_antispam.sys.ini</language>
+	<language tag="ru-RU">ru-RU/ru-RU.plg_cleantalk_antispam.ini</language>
+	<language tag="ru-RU">ru-RU/ru-RU.plg_cleantalk_antispam.sys.ini</language>
+    </languages> 
+    <config>
+	<fields name="params">
+		<fieldset name="basic">
+			<field name="apikey" type="text" 
+				label="PLG_CLEANTALK_ANTISPAM_PARAM_APIKEY" 
+				description="PLG_CLEANTALK_ANTISPAM_PARAM_APIKEY_DESC" 
+				size="40" 
+				class="cleantalk_auth_key"
+				hint="PLG_CLEANTALK_ANTISPAM_PARAM_APIKEY_HINT"
+			/>
+			<field name="key_control" type="spacer" 
+				label="PLG_CLEANTALK_ANTISPAM_PARAM_KEY_CONTROL_LABEL"
+				description="PLG_CLEANTALK_ANTISPAM_PARAM_KEY_CONTROL_DESCRIPTION"
+				class="cleantalk_key_control display_none"
+			/>
+			<field name="form_protection" type="checkboxes" label="PLG_CLEANTALK_ANTISPAM_FORMS_PROTECTION_TITLE">
+				<option value="check_register">PLG_CLEANTALK_ANTISPAM_CT_CHECK_REGISTER</option>
+				<option value="check_contact_forms">PLG_CLEANTALK_ANTISPAM_CT_CHECK_CONTACT_FORMS</option>
+				<option value="general_contact_forms_test">PLG_CLEANTALK_ANTISPAM_CT_CUSTOM_FORMS</option>
+				<option value="check_external">PLG_CLEANTALK_ANTISPAM_CT_CHECK_EXTERNAL</option>
+				<option value="check_search">PLG_CLEANTALK_ANTISPAM_CT_CHECK_SEARCH</option>
+			</field>
+			<field name="comments_and_messages" type="checkboxes" label="PLG_CLEANTALK_ANTISPAM_COMMENTS_TITLE">
+				<option value="jcomments_check_comments">PLG_CLEANTALK_ANTISPAM_JCOMMENTS_CHECK_COMMENTS</option>
+				<option value="jcomments_automod">PLG_CLEANTALK_ANTISPAM_JCOMMENTS_AUTOMODERATION</option>
+				<option value="relevance_test">PLG_CLEANTALK_ANTISPAM_RELEVANCE_TEST</option>
+				<option value="jcomments_unpublished_nofications">PLG_CLEANTALK_ANTISPAM_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED</option>
+			</field>
+			<field name="data_processing" type="checkboxes" label="PLG_CLEANTALK_ANTISPAM_DATA_PROCESSING_TITLE">
+				<option value="skip_registered_users">PLG_CLEANTALK_ANTISPAM_CT_SKIP_REGISTERED_USERS</option>
+				<option value="check_all_post">PLG_CLEANTALK_ANTISPAM_CT_CHECK_ALL_POST</option>
+			</field>
+			<field name="other_settings" type="checkboxes" label="PLG_CLEANTALK_ANTISPAM_OTHER_TITLE">
+				<option value="sfw_enable">PLG_CLEANTALK_ANTISPAM_CT_SPAM_FIREWALL</option>
+				<option value="tell_about_cleantalk">PLG_CLEANTALK_ANTISPAM_CT_TELL_ABOUT</option>
+			</field>														               
+		</fieldset>
+		<fieldset name="checkuserscomments">
+			
+		</fieldset>
+		<fieldset name="connectionreports">
+			
+		</fieldset>	
+	</fields>
+    </config>
+    <install>
+        <sql>
+            <file driver="mysql" charset="utf8">sql/mysql/install.mysql.utf8.sql</file>
+        </sql>
+    </install>
+    <uninstall>
+        <sql>
+            <file driver="mysql" charset="utf8">sql/mysql/uninstall.mysql.utf8.sql</file>
+        </sql>
+    </uninstall>
+	<update> 
+      <schemas>
+         <schemapath type="mysql">sql/mysql/updates</schemapath> 
+      </schemas> 
+   </update>
+	<updateservers>
+		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla3.x-antispam/master/plugin-updates.xml</server>
+	</updateservers>
+</extension>
