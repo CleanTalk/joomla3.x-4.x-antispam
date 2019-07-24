@@ -1,0 +1,1 @@
+# joomla3.x-antispam
