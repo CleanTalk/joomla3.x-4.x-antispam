@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension version="2.5" type="plugin" group="system"  method="upgrade" >
+<extension version="3.0" type="plugin" group="system"  method="upgrade" >
     <name>PLG_SYSTEM_CLEANTALK_NAME</name>
     <author>CleanTalk team</author>
-    <creationDate>01.12.2017</creationDate>
+    <creationDate>24.07.2019</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>6.3</version>
+    <version>1.0</version>
     <description>PLG_CLEANTALK_DESCRIPTION</description>
     <files>
 	<filename plugin="antispambycleantalk">antispambycleantalk.php</filename>
@@ -35,7 +35,7 @@
 	<language tag="ru-RU">ru-RU/ru-RU.plg_system_antispambycleantalk.ini</language>
 	<language tag="ru-RU">ru-RU/ru-RU.plg_system_antispambycleantalk.sys.ini</language>
     </languages> 
-    <!-- Joomla 1.7+ config -->
+
     <config>
 	<fields name="params">
 		<fieldset name="basic">
@@ -97,6 +97,6 @@
       </schemas> 
    </update>
 	<updateservers>
-		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla25-3x-antispam/master/plugin-updates.xml</server>
+		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla3.x-antispam/master/plugin-updates.xml</server>
 	</updateservers>
 </extension>
