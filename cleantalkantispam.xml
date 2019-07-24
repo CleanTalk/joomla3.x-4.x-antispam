@@ -50,7 +50,7 @@
 			<field name="form_protection" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_FORMS_PROTECTION_TITLE">
 				<option value="check_register">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_REGISTER</option>
 				<option value="check_contact_forms">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_CONTACT_FORMS</option>
-				<option value="general_contact_forms_test">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CUSTOM_FORMS</option>
+				<option value="check_custom_contact_forms">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CUSTOM_FORMS</option>
 				<option value="check_external">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_EXTERNAL</option>
 				<option value="check_search">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_SEARCH</option>
 			</field>

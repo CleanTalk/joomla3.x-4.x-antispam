@@ -111,8 +111,8 @@ class plgSystemCleantalkantispam extends JPlugin
 		$query
 			->select($db->quoteName('a.extension_id'))
 			->from($db->quoteName('#__extensions', 'a'))
-			->where($db->quoteName('a.element').' = '.$db->quote('antispam'))
-			->where($db->quoteName('a.folder').' = '.$db->quote('cleantalk'));
+			->where($db->quoteName('a.element').' = '.$db->quote('cleantalkantispam'))
+			->where($db->quoteName('a.folder').' = '.$db->quote('system'));
 		$db->setQuery($query);
 		$db->execute();
 
@@ -634,7 +634,7 @@ class plgSystemCleantalkantispam extends JPlugin
 					$sfw->send_logs($access_key);
 					$save_params['sfw_last_check'] = time();
 					$save_params['sfw_last_send_log'] = time();
-					error_log(print_r($save_params,true));
+
 					$this->saveCTConfig($save_params);
 				}
 				$this->ctSendFeedback($access_key, '0:' . self::ENGINE);
@@ -706,19 +706,9 @@ class plgSystemCleantalkantispam extends JPlugin
 			else
 				$code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br></div>";
 
-			if(version_compare(JVERSION, '3.0', '<') == 1)
-			{
-				$documentbody = JResponse::getBody();
-				$documentbody = str_replace ("</body>", $code." </body>", $documentbody);
-				JResponse::setBody($documentbody);
-			}
-			else
-			{
-				$documentbody = JFactory::getApplication()->getBody();
-				$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);
-				JFactory::getApplication()->setBody($documentbody);	
-
-			}
+			$documentbody = JFactory::getApplication()->getBody();
+			$documentbody = str_replace ("</footer>", $code." </footer>", $documentbody);
+			JFactory::getApplication()->setBody($documentbody);	
 		}
 
     }
@@ -912,7 +902,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	        {
 	        	if (isset($_GET['searchword']) && $_GET['searchword'] != '' && (strpos($_SERVER['REQUEST_URI'], '/component/search/') !== false || strpos($_SERVER['REQUEST_URI'], '/components/search-component/') !== false)) // Search form
 	        	{
-	        		$post_info['comment_type'] = 'site_search_joomla3';
+	        		$post_info['comment_type'] = 'site_search_joomla34';
 	        		$sender_email = JFactory::getUser()->email;
 	        		$sender_nickname = JFactory::getUser()->username;
 	        		$message = trim($_GET['searchword']);
@@ -1026,7 +1016,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				$message = isset($_POST['comment']) ? $_POST['comment'] : '';
 			}	        
 	        // Genertal test for any forms or form with custom fields
-	        elseif ((isset($this->params['form_protection']) && in_array('general_contact_forms_test', $this->params['form_protection'])) ||
+	        elseif ((isset($this->params['form_protection']) && in_array('check_custom_contact_forms', $this->params['form_protection'])) ||
 	        	(isset($this->params['form_protection']) && in_array('check_external', $this->params['form_protection'])) || 
 	        	$app->input->get('option') == 'com_rsform' ||
 	        	$app->input->get('option') == 'com_virtuemart' ||
@@ -1046,7 +1036,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				$message = implode("\n", $message);
 
 	        }
-	        if (!$this->exceptionList() && (trim($sender_email) !='' || (isset($this->params['data_processing']) && in_array('check_all_post', $this->params['data_processing']))) && !empty($_POST) && empty($_FILES) && ((isset($this->params['form_protection']) && in_array('general_contact_forms_test', $this->params['form_protection'])) || (isset($this->params['form_protection']) && in_array('check_external', $this->params['form_protection'])) || (isset($this->params['form_protection']) && in_array('check_contact_forms', $this->params['form_protection']) && isset($post_info['comment_type']))))
+	        if (!$this->exceptionList() && (trim($sender_email) !='' || (isset($this->params['data_processing']) && in_array('check_all_post', $this->params['data_processing']))) && !empty($_POST) && empty($_FILES) && ((isset($this->params['form_protection']) && in_array('check_custom_contact_forms', $this->params['form_protection'])) || (isset($this->params['form_protection']) && in_array('check_external', $this->params['form_protection'])) || (isset($this->params['form_protection']) && in_array('check_contact_forms', $this->params['form_protection']) && isset($post_info['comment_type']))))
 	        {
 				if (!isset($post_info['comment_type']))
 					$post_info['comment_type'] = 'feedback_general_contact_form';	        	

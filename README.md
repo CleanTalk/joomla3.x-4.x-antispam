@@ -8,7 +8,7 @@ Version 1.0
 Example how to use plugin to filter spam bots at any Joomla form.
 
 
-            $result = plgCleantalkAntispam::onSpamCheck(
+            $result = plgSystemCleantalkantispam::onSpamCheck(
                 '',
                 array(
                     'sender_email' => $contact_email, 
