@@ -56,7 +56,7 @@ class plgSystemCleantalkantispam extends JPlugin
     /**
      * Minimum time between remote calls
      */
-    const APBCT_REMOTE_CALL_SLEEP = 10;
+    const CT_REMOTE_CALL_SLEEP = 10;
      
     /**
      * Constructor
@@ -437,7 +437,7 @@ class plgSystemCleantalkantispam extends JPlugin
         {
 			// Remote calls
 			if(isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) && in_array($_GET['plugin_name'], array('antispam','anti-spam', 'apbct'))){
-				$this->apbct_remote_call__perform();
+				$this->ct_remote_call__perform();
 			}
         }
 
@@ -2000,7 +2000,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	/**
 	* Function preforms remote call
 	*/	
-	private function apbct_remote_call__perform()
+	private function ct_remote_call__perform()
 	{
 		$remote_action = $_GET['spbc_remote_call_action'];
 
@@ -2010,7 +2010,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		{
 			if(array_key_exists($remote_action, $remote_calls_config)){
 						
-				if(time() - $remote_calls_config[$remote_action]['last_call'] > self::APBCT_REMOTE_CALL_SLEEP){
+				if(time() - $remote_calls_config[$remote_action]['last_call'] > self::CT_REMOTE_CALL_SLEEP){
 					$remote_calls_config[$remote_action]['last_call'] = time();
 					$save_params['remote_calls'] = $remote_calls_config;
 					$this->saveCTConfig($save_params);
