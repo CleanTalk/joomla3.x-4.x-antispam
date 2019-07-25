@@ -2005,14 +2005,14 @@ class plgSystemCleantalkantispam extends JPlugin
 		$remote_action = $_GET['spbc_remote_call_action'];
 
 		$save_params = array();
-		if (isset($this->params['remote_calls']))
+		$remote_calls_config = isset($this->params['remote_calls']) ? json_decode(json_encode($this->params['remote_calls']),true) : array('close_renew_banner' => array('last_call' => 0), 'sfw_update' => array('last_call' => 0), 'sfw_send_logs' => array('last_call' => 0), 'update_plugin' => array('last_call' => 0));
+		if ($remote_calls_config && is_array($remote_calls_config))
 		{
-			$remote_calls_config = json_decode(json_encode($this->params['remote_calls']),true);
 			if(array_key_exists($remote_action, $remote_calls_config)){
 						
 				if(time() - $remote_calls_config[$remote_action]['last_call'] > self::APBCT_REMOTE_CALL_SLEEP){
-					
-					$save_params['remote_calls'][$remote_action]['last_call'] = time();
+					$remote_calls_config[$remote_action]['last_call'] = time();
+					$save_params['remote_calls'] = $remote_calls_config;
 					$this->saveCTConfig($save_params);
 
 					if(strtolower($_GET['spbc_remote_call_token']) == strtolower(md5($this->params['apikey']))){
