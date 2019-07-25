@@ -441,7 +441,7 @@ jQuery(document).ready(function(){
 					}
 				}		
 				if (msg.result == 'error' && (!document.getElementById('spamusers_table' || !document.getElementById('spamcomments_table')))){
-					html+='<center><h2>'+msg.data+'</h2></center>;';
+					html+='<center><h2>'+msg.data+'</h2></center>';
 					jQuery('#spam_results').append(html);
 				}
 				jQuery('#ct_preloader_spam_results').hide();		
