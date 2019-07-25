@@ -20,7 +20,8 @@
 	<filename plugin="cleantalkantispam">classes/error.html</filename>
 	<filename plugin="cleantalkantispam">js/ct-settings.js</filename>
 	<filename plugin="cleantalkantispam">js/ct-functions.js</filename>
-	<filename plugin="cleantalkantispam">js/ct-external.js</filename>		
+	<filename plugin="cleantalkantispam">js/ct-external.js</filename>	
+	<filename plugin="cleantalkantispam">js/ct-nocache.js</filename>		
 	<filename plugin="cleantalkantispam">css/ct-settings.css</filename>
 	<filename plugin="cleantalkantispam">img/preloader.gif</filename>
 	<filename plugin="cleantalkantispam">custom_config.php</filename>	
@@ -62,6 +63,7 @@
 			</field>
 			<field name="data_processing" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_DATA_PROCESSING_TITLE">
 				<option value="skip_registered_users">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SKIP_REGISTERED_USERS</option>
+				<option value="use_ajax_js">PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_AJAX_JS</option>
 				<option value="check_all_post">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_ALL_POST</option>
 			</field>
 			<field name="other_settings" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_OTHER_TITLE">
