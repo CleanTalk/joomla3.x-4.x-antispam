@@ -849,52 +849,28 @@ class plgSystemCleantalkantispam extends JPlugin
         $view_cmd = $app->input->get('view');
         $task_cmd = $app->input->get('task');
         $page_cmd = $app->input->get('page');        
-        $ver = new JVersion();
 
         // constants can be found in  components/com_contact/views/contact/tmpl/default_form.php
         // 'option' and 'view' constants are the same in all versions
-        if (strcmp($ver->RELEASE, '1.5') <= 0) {
-            if ($option_cmd == 'com_user') {
-                if ($task_cmd == 'register_save') {
-                } else {
-                    $document = & JFactory::getDocument();
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('josForm'));
-                }
-            }
-            if ($option_cmd == 'com_virtuemart') {
-                if ($task_cmd == 'registercartuser' 
-                    || $task_cmd == 'registercheckoutuser'
-                    || $task_cmd == 'saveUser' 
-                    || $page_cmd == 'shop.registration'
-                    || $page_cmd == 'checkout.index'
-                    ) {
-                } else {
-                    $document = & JFactory::getDocument();
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm'));
-                }
-            }
-
-        } else {
             //com_users - registration - registration.register
-            if ($option_cmd == 'com_users') {
-                if ($task_cmd == 'registration.register') {
-                } else {
-                    $document = JFactory::getDocument();
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('member-registration'));
-                }
+        if ($option_cmd == 'com_users') {
+            if ($task_cmd == 'registration.register') {
+            } else {
+                $document = JFactory::getDocument();
+                $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('member-registration'));
             }
-           if ($option_cmd == 'com_virtuemart') {
-                if ($task_cmd == 'editaddresscart') {
-                    $document = JFactory::getDocument();
-                    $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm'));
-                } elseif ($task_cmd == 'registercartuser' 
-                    || $task_cmd == 'registercheckoutuser' 
-                    || $task_cmd == 'checkout' // OPC
-                    ) {
-                     $this->moderateUser();
-                } 
+        }
+       	if ($option_cmd == 'com_virtuemart') {
+            if ($task_cmd == 'editaddresscart') {
+                $document = JFactory::getDocument();
+                $document->addScriptDeclaration($this->fillRegisterFormScriptHTML('userForm'));
+            } elseif ($task_cmd == 'registercartuser' 
+                || $task_cmd == 'registercheckoutuser' 
+                || $task_cmd == 'checkout' // OPC
+                ) {
+                 $this->moderateUser();
+            } 
 
-            }
         }
         if ($_SERVER['REQUEST_METHOD'] == 'GET')
         {
@@ -1131,22 +1107,14 @@ class plgSystemCleantalkantispam extends JPlugin
     	
         $session = JFactory::getSession();
 
-        $ver = new JVersion();
         // constants can be found in components/com_contact/views/contact/tmpl/default_form.php
-        if (strcmp($ver->RELEASE, '1.5') <= 0) {  // 1.5 and lower
-            $user_name_key = 'name';
-            $user_email_key = 'email';
-            $subject_key = 'subject';
-            $message_key = 'text';
-            $sendAlarm = TRUE;
-        } else {      // current higest version by default ('2.5' now)
-            $user_name_key = 'contact_name';
-            $user_email_key = 'contact_email';
-            $subject_key = 'contact_subject';
-            $message_key = 'contact_message';
-        }
+      // current higest version by default ('2.5' now)
+        $user_name_key = 'contact_name';
+        $user_email_key = 'contact_email';
+        $subject_key = 'contact_subject';
+        $message_key = 'contact_message';
         
-        $post_info['comment_type'] = 'feedback';
+        $post_info['comment_type'] = 'feedback_general_contact_form';
         $post_info = json_encode($post_info);
         if ($post_info === false)
             $post_info = '';
@@ -1173,7 +1141,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	                    // Redirect back to the contact form.
 	                    // see http://docs.joomla.org/JApplication::redirect/11.1 - what does last param mean?
 	                    // but it works! AZ
-	                    $app->redirect(JRoute::_('index.php?option=com_contact&view=contact&id=' . $stub, false), $res_str, 'warning');
+	                    $app->redirect(JRoute::_('index.php?option=com_contact&view=contact&id=' . $stub, false), $res_str, 'error');
 	                    return new Exception($res_str); // $res_str not used in com_contact code - see source :(
 	                }
 	            }
@@ -1366,16 +1334,10 @@ class plgSystemCleantalkantispam extends JPlugin
             return false;
         }
         $post = $_POST;
-        $ver = new JVersion();
-        if (strcmp($ver->RELEASE, '1.5') <= 0) {
-            $post_name = isset($post['name']) ? $post['name'] : null;
-            $post_username = isset($post['username']) ? $post['username'] : null;
-            $post_email = isset($post['email']) ? $post['email'] : null;
-        } else {
-            $post_name = isset($post['name']) ? $post['name'] : (isset($post['jform']['name']) ? $post['jform']['name'] : null);
-            $post_username = isset($post['username']) ? $post['username'] : (isset($post['jform']['username']) ? $post['jform']['username'] : null);
-            $post_email = isset($post['email']) ? $post['email'] : (isset($post['jform']['email1']) ? $post['jform']['email1'] : null);
-        }
+
+        $post_name = isset($post['name']) ? $post['name'] : (isset($post['jform']['name']) ? $post['jform']['name'] : null);
+        $post_username = isset($post['username']) ? $post['username'] : (isset($post['jform']['username']) ? $post['jform']['username'] : null);
+        $post_email = isset($post['email']) ? $post['email'] : (isset($post['jform']['email1']) ? $post['jform']['email1'] : null);
 
         $session = JFactory::getSession();
 
