@@ -781,8 +781,6 @@ class plgSystemCleantalkantispam extends JPlugin
 			$document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
 			if (isset($config['form_protection']) && in_array('check_external', $config['form_protection']))
 				$document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-external.js?" . time());
-			if (isset($config['data_processing']) && in_array('use_ajax_js', $config['data_processing']))
-				$document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-nocache.js?" . time());
 		}
 
 		if ($user->get('isRoot'))
