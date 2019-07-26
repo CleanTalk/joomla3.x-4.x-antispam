@@ -146,7 +146,18 @@ class CleantalkHelper
 				? reset($result)
 				: null);
 	}
-		
+
+	/*
+	*	Checking api_key
+	*	returns (boolean)
+	*/
+
+	static public function apbct_key_is_correct($api_key = '') {
+
+		return preg_match('/^[a-z\d]{3,15}$|^$/', $api_key);
+
+	}
+			
 	/*
 	 * Check if the IP belong to mask. Recursivly if array given
 	 * @param ip string  

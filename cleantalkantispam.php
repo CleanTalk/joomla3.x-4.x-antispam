@@ -179,10 +179,16 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		if ((isset($this->params['acc_status_last_check']) && ($this->params['acc_status_last_check'] < time() - 86400)) || $force_check || !isset($this->params['ct_key_is_ok']))
 		{
-			$result      = CleantalkHelper::api_method__notice_paid_till($api_key);
+			$ct_key_is_ok = 0;
+			$key_is_valid = CleantalkHelper::apbct_key_is_correct($api_key);
 			$save_params = array();
-
-			$save_params['ct_key_is_ok']            = empty($result['error']) ? 1 : 0;
+			$result = null;
+			if ($key_is_valid){
+				$result      = CleantalkHelper::api_method__notice_paid_till($api_key);
+				$ct_key_is_ok = empty($result['error']) ? 1 : 0;
+			}
+			
+			$save_params['ct_key_is_ok']            = $ct_key_is_ok;
 			$save_params['acc_status_last_check']   = time();
 			$save_params['show_notice']             = (empty($result['error']) && isset($result['show_notice'])) ? $result['show_notice'] : 0;
 			$save_params['renew']                   = (empty($result['error']) && isset($result['renew'])) ? $result['renew'] : 0;
@@ -237,7 +243,6 @@ class plgSystemCleantalkantispam extends JPlugin
 			// Getting key automatically
 			if (isset($_POST['get_auto_key']) && $_POST['get_auto_key'] === 'yes')
 			{
-
 				$output = CleantalkHelper::api_method__get_api_key(JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
 				// Checks if the user token is empty, then get user token by notice_paid_till()
 				if (empty($output['user_token']))
@@ -245,7 +250,6 @@ class plgSystemCleantalkantispam extends JPlugin
 					$result_tmp           = CleantalkHelper::api_method__notice_paid_till($output['auth_key']);
 					$output['user_token'] = $result_tmp['user_token'];
 				}
-
 			}
 
 			// Check spam users
