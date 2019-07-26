@@ -569,6 +569,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_connection_reports_success ="' . (isset($connection_reports['success']) ? $connection_reports['success'] : 0) . '",
 						ct_connection_reports_negative ="' . (isset($connection_reports['negative']) ? $connection_reports['negative'] : 0) . '",
 						ct_connection_reports_negative_report = "' . (isset($connection_reports['negative_report']) ? addslashes(json_encode($connection_reports['negative_report'])) : null) . '",
+						ct_notice_review_done ='.((isset($config['show_review_done']) && $config['show_review_done'] === 1)?'true':'false').',
 					
 					//Translation
 					    ct_autokey_label = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_AUTOKEY_LABEL') . '",
