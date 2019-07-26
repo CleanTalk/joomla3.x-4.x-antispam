@@ -1295,6 +1295,9 @@ class plgSystemCleantalkantispam extends JPlugin
 					return;
 		}
 
+		if (isset($this->params['ct_key_is_ok']) && $this->params['ct_key_is_ok'] == 0)
+			return;
+		
 		//Skip backend or admin checking
 		if (JFactory::getApplication()->isAdmin() || JFactory::getUser()->authorise('core.admin'))
 			return;
