@@ -93,6 +93,6 @@
       </schemas> 
    </update>
 	<updateservers>
-		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla3.x-antispam/master/plugin-updates.xml</server>
+		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla3.x-4.x-antispam/master/plugin-updates.xml</server>
 	</updateservers>
 </extension>
