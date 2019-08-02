@@ -763,6 +763,39 @@ class CleantalkHelper
 		return $value;
 	}
 
+	/**
+	 * Print html form for external forms()
+	 * @return string
+	 */
+	static public function print_form($arr, $k)
+	{
+		foreach ($arr as $key => $value)
+		{
+			if (!is_array($value))
+			{
+
+				if ($k == '')
+					print '<textarea name="' . $key . '" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
+				else
+					print '<textarea name="' . $k . '[' . $key . ']" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
+			}
+		}
+	}
+
+	/**
+	 * Valids email
+	 * @return bool
+	 * @since 1.5
+	 */
+	static public function validEmail($string)
+	{
+		if (!isset($string) || !is_string($string))
+		{
+			return false;
+		}
+
+		return preg_match("/^\S+@\S+$/i", $string);
+	}
 	/* 
 	 * If Apache web server is missing then making
 	 * Patch for apache_request_headers() 

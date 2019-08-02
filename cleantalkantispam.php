@@ -770,7 +770,7 @@ class plgSystemCleantalkantispam extends JPlugin
 					{
 						foreach ($v as $k => $v2)
 						{
-							if ($this->validEmail($v2))
+							if (CleantalkHelper::validEmail($v2))
 							{
 								$sender_email = $v2;
 							}
@@ -785,7 +785,7 @@ class plgSystemCleantalkantispam extends JPlugin
 					}
 					else
 					{
-						if ($this->validEmail($v))
+						if (CleantalkHelper::validEmail($v))
 						{
 							$sender_email = $v;
 						}
@@ -883,7 +883,7 @@ class plgSystemCleantalkantispam extends JPlugin
 								unset($_POST['ct_action']);
 								unset($_POST['ct_method']);
 								print "<html><body><form method='$form_method' action='$form_action'>";
-								$this->ct_print_form($_POST, '');
+								CleantalkHelper::print_form($_POST, '');
 								print "</form></body></html>";
 								print "<script>
 									if(document.forms[0].submit != 'undefined'){
@@ -1426,21 +1426,6 @@ class plgSystemCleantalkantispam extends JPlugin
 	}
 
 	/**
-	 * Valids email
-	 * @return bool
-	 * @since 1.5
-	 */
-	private function validEmail($string)
-	{
-		if (!isset($string) || !is_string($string))
-		{
-			return false;
-		}
-
-		return preg_match("/^\S+@\S+$/i", $string);
-	}
-
-	/**
 	 * Validate form submit time
 	 *
 	 */
@@ -1844,24 +1829,6 @@ class plgSystemCleantalkantispam extends JPlugin
 				$jparams->set($k, $v);
 			$table->params = $jparams->toString();
 			$table->store();
-		}
-	}
-
-	private function ct_print_form($arr, $k)
-	{
-
-		foreach ($arr as $key => $value)
-		{
-
-			if (!is_array($value))
-			{
-
-				if ($k == '')
-					print '<textarea name="' . $key . '" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
-				else
-					print '<textarea name="' . $k . '[' . $key . ']" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
-
-			}
 		}
 	}
 
