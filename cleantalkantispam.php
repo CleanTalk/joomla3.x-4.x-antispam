@@ -852,29 +852,30 @@ class plgSystemCleantalkantispam extends JPlugin
 									print "<script>var obj = { type : 'baform', msg : document.getElementById('form-sys-mesage').value }; window.parent.postMessage(obj, '*');</script>";
 									die();
 								}
+								elseif (JFactory::getApplication()->input->get('option') == 'com_igallery' && JFactory::getApplication()->input->get('task') == 'imagefront.addComment')
+								{
+									$output = array(
+										'success' => 0,
+										'message' => $ctResponse['comment']
+									);
+									print json_encode($output);
+									die();
+								}
+								elseif (JFactory::getApplication()->input->get('option') == 'com_contactenhanced' && JFactory::getApplication()->input->get('task') == 'contact.submit')
+								{
+									$output = array(
+											'statusText' => strip_tags($ctResponse['comment']),
+											'status' => 403
+										);
+									print json_encode($output);
+									die();									
+								}
 								else
 								{
-									if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
-									{
-										if (JFactory::getApplication()->input->get('option') == 'com_igallery' && JFactory::getApplication()->input->get('task') == 'imagefront.addComment')
-										{
-											$output = array(
-												'success' => 0,
-												'message' => $ctResponse['comment']
-											);
-											print json_encode($output);
-											die();
-										}
-
-									}
-									else
-									{
-										$error_tpl = file_get_contents(dirname(__FILE__) . "/classes/error.html");
-										print str_replace('%ERROR_TEXT%', $ctResponse['comment'], $error_tpl);
-										die();
-									}
+									$error_tpl = file_get_contents(dirname(__FILE__) . "/classes/error.html");
+									print str_replace('%ERROR_TEXT%', $ctResponse['comment'], $error_tpl);
+									die();									
 								}
-
 							}
 							elseif ($ctResponse['allow'] == 1 && (isset($this->params['form_protection']) && in_array('check_external', $this->params['form_protection'])) && isset($_POST['ct_action'], $_POST['ct_method']) && strpos($_POST['ct_action'], 'paypal.com') === false)
 							{
