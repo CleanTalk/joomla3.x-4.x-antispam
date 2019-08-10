@@ -184,7 +184,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			$save_params = array();
 			$result = null;
 			if ($key_is_valid){
-				$result      = CleantalkHelper::api_method__notice_paid_till($api_key);
+				$result      = CleantalkHelper::api_method__notice_paid_till($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
 				$ct_key_is_ok = empty($result['error']) ? 1 : 0;
 			}
 			
@@ -247,7 +247,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				// Checks if the user token is empty, then get user token by notice_paid_till()
 				if (empty($output['user_token']))
 				{
-					$result_tmp           = CleantalkHelper::api_method__notice_paid_till($output['auth_key']);
+					$result_tmp           = CleantalkHelper::api_method__notice_paid_till($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
 					$output['user_token'] = $result_tmp['user_token'];
 				}
 			}

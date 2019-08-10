@@ -262,13 +262,15 @@ class CleantalkHelper
 	 * Function gets information about renew notice
 	 *
 	 * @param string api_key
+	 * @param string $path_to_cms Path to website
 	 * @return type
 	 */
-	static public function api_method__notice_paid_till($api_key, $do_check = true)
+	static public function api_method__notice_paid_till($api_key, $path_to_cms, $do_check = true)
 	{
 		$request = array(
 			'method_name' => 'notice_paid_till',
-			'auth_key' => $api_key,
+			'path_to_cms' => $path_to_cms,
+			'auth_key' => $api_key
 		);
 		
 		$result = self::api_send_request($request);
