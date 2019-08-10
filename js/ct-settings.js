@@ -211,7 +211,7 @@ jQuery(document).ready(function(){
 			// dataType: 'json',
 			success: function(msg){
 				msg=jQuery.parseJSON(msg);
-				var html='<center><h2>'+msg.data+'</h2></center>;'
+				var html='<center><h2>'+msg.data+'</h2></center>'
 				jQuery('#connection_reports').append(html);
 				jQuery('#ct_preloader_spam_results').hide();
 				setTimeout(function() { location.reload();}, 2000)
@@ -276,7 +276,7 @@ jQuery(document).ready(function(){
 						// dataType: 'json',
 						success: function(msg){
 							msg=jQuery.parseJSON(msg);
-							var html='<center><h2>'+msg.data+'</h2></center>;';
+							var html='<center><h2>'+msg.data+'</h2></center>';
 							jQuery('#spam_results').append(html);				
 							jQuery('#ct_preloader_spam_results').hide();
 							setTimeout(function() { jQuery('#check_spam_users').click();}, 2000)
@@ -325,7 +325,7 @@ jQuery(document).ready(function(){
 						// dataType: 'json',
 						success: function(msg){
 							msg=jQuery.parseJSON(msg);
-							var html='<center><h2>'+msg.data+'</h2></center>;';
+							var html='<center><h2>'+msg.data+'</h2></center>';
 							jQuery('#spam_results').append(html);				
 							jQuery('#ct_preloader_spam_results').hide();
 							setTimeout(function() { jQuery('#check_spam_comments').click();}, 2000)
