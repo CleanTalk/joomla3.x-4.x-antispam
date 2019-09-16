@@ -222,6 +222,10 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 		$app = JFactory::getApplication();
 
+
+        CleantalkCustomConfig::$cleantalk_url_exclusions = isset($this->params['url_exclusions']) ? $this->params['url_exclusions'] : '';
+        CleantalkCustomConfig::$cleantalk_fields_exclusions = isset($this->params['fields_exclusions']) ? $this->params['fields_exclusions'] : '';
+
 		if (!$app->isAdmin())
 		{
 			// Remote calls
@@ -1291,8 +1295,13 @@ class plgSystemCleantalkantispam extends JPlugin
 		$url_exclusion = CleantalkCustomConfig::get_url_exclusions();
 		if ($url_exclusion)
 		{
+			// Not always we have 'HTTP_X_REQUESTED_WITH' :(
+			// @ToDo need to detect ajax request
+			$haystack = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == "XMLHttpRequest" && !empty($_SERVER['HTTP_REFERER'])
+				? $_SERVER['HTTP_REFERER']
+				: $_SERVER['REQUEST_URI'];
 			foreach ($url_exclusion as $key => $value)
-				if (strpos($_SERVER['REQUEST_URI'], $value) !== false)
+				if (strpos($haystack, $value) !== false)
 					return;
 		}
 

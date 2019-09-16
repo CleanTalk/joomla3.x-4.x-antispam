@@ -10,72 +10,77 @@
     <version>1.0</version>
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
     <files>
-	<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
-	<filename plugin="cleantalkantispam">classes/Cleantalk.php</filename>
-	<filename plugin="cleantalkantispam">classes/CleantalkRequest.php</filename>
-	<filename plugin="cleantalkantispam">classes/CleantalkResponse.php</filename>
-	<filename plugin="cleantalkantispam">classes/CleantalkHelper.php</filename>
-	<filename plugin="cleantalkantispam">classes/CleantalkSFW.php</filename>	
-	<filename plugin="cleantalkantispam">classes/sfw_die_page.html</filename>
-	<filename plugin="cleantalkantispam">classes/error.html</filename>
-	<filename plugin="cleantalkantispam">js/ct-settings.js</filename>
-	<filename plugin="cleantalkantispam">js/ct-functions.js</filename>
-	<filename plugin="cleantalkantispam">js/ct-external.js</filename>		
-	<filename plugin="cleantalkantispam">css/ct-settings.css</filename>
-	<filename plugin="cleantalkantispam">img/preloader.gif</filename>
-	<filename plugin="cleantalkantispam">custom_config.php</filename>	
-	<folder>sql/mysql</folder>
+		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
+		<filename plugin="cleantalkantispam">classes/Cleantalk.php</filename>
+		<filename plugin="cleantalkantispam">classes/CleantalkRequest.php</filename>
+		<filename plugin="cleantalkantispam">classes/CleantalkResponse.php</filename>
+		<filename plugin="cleantalkantispam">classes/CleantalkHelper.php</filename>
+		<filename plugin="cleantalkantispam">classes/CleantalkSFW.php</filename>
+		<filename plugin="cleantalkantispam">classes/sfw_die_page.html</filename>
+		<filename plugin="cleantalkantispam">classes/error.html</filename>
+		<filename plugin="cleantalkantispam">js/ct-settings.js</filename>
+		<filename plugin="cleantalkantispam">js/ct-functions.js</filename>
+		<filename plugin="cleantalkantispam">js/ct-external.js</filename>
+		<filename plugin="cleantalkantispam">css/ct-settings.css</filename>
+		<filename plugin="cleantalkantispam">img/preloader.gif</filename>
+		<filename plugin="cleantalkantispam">custom_config.php</filename>
+		<folder>sql/mysql</folder>
     </files>
     <languages folder="language">
-	<language tag="en-GB">en-GB/en-GB.plg_system_cleantalkantispam.ini</language>
-	<language tag="en-GB">en-GB/en-GB.plg_system_cleantalkantispam.sys.ini</language>
-	<language tag="ru-RU">ru-RU/ru-RU.plg_system_cleantalkantispam.ini</language>
-	<language tag="ru-RU">ru-RU/ru-RU.plg_system_cleantalkantispam.sys.ini</language>
+		<language tag="en-GB">en-GB/en-GB.plg_system_cleantalkantispam.ini</language>
+		<language tag="en-GB">en-GB/en-GB.plg_system_cleantalkantispam.sys.ini</language>
+		<language tag="ru-RU">ru-RU/ru-RU.plg_system_cleantalkantispam.ini</language>
+		<language tag="ru-RU">ru-RU/ru-RU.plg_system_cleantalkantispam.sys.ini</language>
     </languages> 
     <config>
-	<fields name="params">
-		<fieldset name="basic">
-			<field name="apikey" type="text" 
-				label="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY" 
-				description="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY_DESC" 
-				size="40" 
-				class="cleantalk_auth_key"
-				hint="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY_HINT"
-			/>
-			<field name="key_control" type="spacer" 
-				label="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_KEY_CONTROL_LABEL"
-				description="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_KEY_CONTROL_DESCRIPTION"
-				class="cleantalk_key_control display_none"
-			/>
-			<field name="form_protection" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_FORMS_PROTECTION_TITLE">
-				<option value="check_register">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_REGISTER</option>
-				<option value="check_contact_forms">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_CONTACT_FORMS</option>
-				<option value="check_custom_contact_forms">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CUSTOM_FORMS</option>
-				<option value="check_external">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_EXTERNAL</option>
-				<option value="check_search">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_SEARCH</option>
-			</field>
-			<field name="comments_and_messages" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_COMMENTS_TITLE">
-				<option value="jcomments_check_comments">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_CHECK_COMMENTS</option>
-				<option value="jcomments_automod">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_AUTOMODERATION</option>
-				<option value="jcomments_relevance_test">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_RELEVANCE_TEST</option>
-				<option value="jcomments_unpublished_nofications">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED</option>
-			</field>
-			<field name="data_processing" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_DATA_PROCESSING_TITLE">
-				<option value="skip_registered_users">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SKIP_REGISTERED_USERS</option>
-				<option value="check_all_post">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_ALL_POST</option>
-			</field>
-			<field name="other_settings" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_OTHER_TITLE">
-				<option value="sfw_enable">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SPAM_FIREWALL</option>
-				<option value="tell_about_cleantalk">PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT</option>
-			</field>														               
-		</fieldset>
-		<fieldset name="checkuserscomments">
-			
-		</fieldset>
-		<fieldset name="connectionreports">
-			
-		</fieldset>	
-	</fields>
+		<fields name="params">
+			<fieldset name="basic">
+				<field name="apikey" type="text"
+					label="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY"
+					description="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY_DESC"
+					size="40"
+					class="cleantalk_auth_key"
+					hint="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY_HINT"
+				/>
+				<field name="key_control" type="spacer"
+					label="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_KEY_CONTROL_LABEL"
+					description="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_KEY_CONTROL_DESCRIPTION"
+					class="cleantalk_key_control display_none"
+				/>
+				<field name="form_protection" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_FORMS_PROTECTION_TITLE">
+					<option value="check_register">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_REGISTER</option>
+					<option value="check_contact_forms">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_CONTACT_FORMS</option>
+					<option value="check_custom_contact_forms">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CUSTOM_FORMS</option>
+					<option value="check_external">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_EXTERNAL</option>
+					<option value="check_search">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_SEARCH</option>
+				</field>
+				<field name="comments_and_messages" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_COMMENTS_TITLE">
+					<option value="jcomments_check_comments">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_CHECK_COMMENTS</option>
+					<option value="jcomments_automod">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_AUTOMODERATION</option>
+					<option value="jcomments_relevance_test">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_RELEVANCE_TEST</option>
+					<option value="jcomments_unpublished_nofications">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED</option>
+				</field>
+				<field name="data_processing" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_DATA_PROCESSING_TITLE">
+					<option value="skip_registered_users">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SKIP_REGISTERED_USERS</option>
+					<option value="check_all_post">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_ALL_POST</option>
+				</field>
+				<field name="other_settings" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_OTHER_TITLE">
+					<option value="sfw_enable">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SPAM_FIREWALL</option>
+					<option value="tell_about_cleantalk">PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT</option>
+				</field>
+			</fieldset>
+			<fieldset name="exclusions">
+				<field type="note" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_NOTE" />
+				<field name="url_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL_DESC" />
+				<field name="fields_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS_DESC" />
+			</fieldset>
+			<fieldset name="checkuserscomments">
+
+			</fieldset>
+			<fieldset name="connectionreports">
+
+			</fieldset>
+		</fields>
     </config>
     <install>
         <sql>
