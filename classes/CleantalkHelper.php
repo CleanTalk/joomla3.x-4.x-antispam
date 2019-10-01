@@ -665,18 +665,16 @@ class CleantalkHelper
 					unset($needle);
 
 
-					// Decodes URL-encoded data to string.
-					$value = urldecode($value);
+					// Removes whitespaces
+					$value = urldecode( trim( $value ) ); // Fully cleaned message
+					$value_for_email = trim( $value );    // Removes shortcodes to do better spam filtration on server side.
 
 					// Email
-					if (!$email && preg_match("/^\S+@\S+\.\S+$/", $value))
-					{
-						$email = $value;
+					if ( ! $email && preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
+						$email = $value_for_email;
 
 						// Names
-					}
-					elseif (preg_match("/name/i", $key))
-					{
+					} elseif (preg_match("/name/i", $key)) {
 
 						preg_match("/((name.?)?(your|first|for)(.?name)?)$/", $key, $match_forename);
 						preg_match("/((name.?)?(last|family|second|sur)(.?name)?)$/", $key, $match_surname);
@@ -689,7 +687,7 @@ class CleantalkHelper
 						elseif (count($match_nickname) > 1)
 							$nickname['nick'] = $value;
 						else
-							$message[$prev_name . $key] = $value;
+							$nickname[$prev_name . $key] = $value;
 
 						// Subject
 					}
