@@ -58,6 +58,10 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	const CT_REMOTE_CALL_SLEEP = 10;
 
+	// Sessions
+	const APBCT_SEESION__LIVE_TIME = 86400*2;
+	const APBCT_SEESION__CHANCE_TO_CLEAN = 100;
+
 	/**
 	 * Constructor
 	 * @access public
@@ -1484,7 +1488,11 @@ class plgSystemCleantalkantispam extends JPlugin
 	private function ct_cookie()
 	{
 
-		if (!headers_sent())
+		if( ! in_array( 'set_cookies', $this->params->get('cookies')) || headers_sent() )
+		{
+			return;
+		}
+		else
 		{
 			// Cookie names to validate
 			$cookie_test_value = array(
@@ -1494,21 +1502,39 @@ class plgSystemCleantalkantispam extends JPlugin
 
 			// Submit time
 			$ct_timestamp = time();
-			setcookie('ct_timestamp', $ct_timestamp, 0, '/');
-			$cookie_test_value['cookies_names'][] = 'ct_timestamp';
+			if( in_array('use_alternative_cookies', $this->params->get('cookies') ) ){
+				// by database
+				$prev_time = $this->ct_getcookie('apbct_prev_timestamp');
+				if(is_null($prev_time)){
+					$this->ct_setcookie('apbct_timestamp', $ct_timestamp);
+					$this->ct_setcookie('apbct_prev_timestamp', $ct_timestamp);
+					$cookie_test_value['check_value'] .= $ct_timestamp;
+				} else {
+					$this->ct_setcookie('apbct_timestamp', $prev_time);
+					$this->ct_setcookie('apbct_prev_timestamp', $ct_timestamp);
+					$cookie_test_value['check_value'] .= $prev_time;
+				}
+			} else {
+				// by cookies
+				$this->ct_setcookie('apbct_timestamp', $ct_timestamp);
+				$cookie_test_value['check_value'] .= $ct_timestamp;
+			}
+			$ct_timestamp = time();
+			$this->ct_setcookie('apbct_timestamp', $ct_timestamp);
+			$cookie_test_value['cookies_names'][] = 'apbct_timestamp';
 			$cookie_test_value['check_value']     .= $ct_timestamp;
 
 			// Pervious referer
 			if (!empty($_SERVER['HTTP_REFERER']))
 			{
-				setcookie('ct_prev_referer', $_SERVER['HTTP_REFERER'], 0, '/');
-				$cookie_test_value['cookies_names'][] = 'ct_prev_referer';
+				$this->ct_setcookie('apbct_prev_referer', $_SERVER['HTTP_REFERER']);
+				$cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
 				$cookie_test_value['check_value']     .= $_SERVER['HTTP_REFERER'];
 			}
 
 			// Cookies test
 			$cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
-			setcookie('ct_cookies_test', json_encode($cookie_test_value), 0, '/');
+			$this->ct_setcookie('apbct_cookies_test', json_encode($cookie_test_value));
 		}
 
 	}
@@ -1519,10 +1545,10 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	private function ct_cookies_test()
 	{
-		if (isset($_COOKIE['ct_cookies_test']))
+		if (isset($_COOKIE['apbct_cookies_test']))
 		{
 
-			$cookie_test = json_decode(stripslashes($_COOKIE['ct_cookies_test']), true);
+			$cookie_test = json_decode(stripslashes($_COOKIE['apbct_cookies_test']), true);
 
 			$check_srting = $this->params['apikey'];
 			foreach ($cookie_test['cookies_names'] as $cookie_name)
@@ -1544,6 +1570,90 @@ class plgSystemCleantalkantispam extends JPlugin
 		{
 			return null;
 		}
+	}
+
+	private function ct_setcookie( $name, $value )
+	{
+		if( in_array('use_alternative_cookies', $this->params->get('cookies') ) ) {
+
+			// To database
+			$columns = array('id', 'name', 'value', 'last_update');
+			$values = array(
+				self::_apbct_alt_session__id__get(),
+				$name,
+				$value,
+				date('Y-m-d H:i:s')
+			);
+
+			$db = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query
+				->insert($db->quoteName('#__cleantalk_sessions'))
+				->columns($db->quoteName($columns))
+				->values($db->quoteName(implode(',', $values)));
+			$db->setQuery($query . "  ON DUPLICATE KEY UPDATE value = " . $db->quoteName($value) . ", last_update = " . $db->quoteName(date('Y-m-d H:i:s')));
+			$db->execute();
+
+		} else {
+			// To cookies
+			setcookie($name, $value, 0, '/');
+		}
+	}
+
+	private function ct_getcookie( $name )
+	{
+		if ( in_array('use_alternative_cookies', $this->params->get('cookies') ) ) {
+
+			// From database
+			/*$value = db_query("SELECT value FROM {cleantalk_sessions} WHERE id = :id AND name = :name",
+				array(
+					':id' => self::_apbct_alt_session__id__get(),
+					':name' => $name
+				))->fetchField();
+			if (false !== $value) {
+				return $value;
+			} else {
+				return null;
+			}*/
+
+		} else {
+
+			// From cookies
+			if (isset($_COOKIE[$name])) {
+				return $_COOKIE[$name];
+			} else {
+				return null;
+			}
+
+		}
+	}
+
+	/**
+	 * Clean 'cleantalk_sessions' table
+	 */
+	static private function _apbct_alt_sessions__remove_old()
+	{
+		if (rand(0, 1000) < APBCT_SESSION__CHANCE_TO_CLEAN) {
+
+			db_query("DELETE
+      FROM {cleantalk_sessions}
+      WHERE last_update < NOW() - INTERVAL '. APBCT_SESSION__LIVE_TIME .' SECOND
+      LIMIT 100000;");
+
+		}
+	}
+
+	/**
+	 * Get hash session ID
+	 *
+	 * @return string
+	 */
+	static private function _apbct_alt_session__id__get()
+	{
+		$id = CleantalkHelper::ip_get(array('real'))
+			. filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
+			. filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
+		return hash('sha256', $id);
 	}
 
 	private function get_spam_comments($offset = 0, $on_page = 20, $improved_check = false)
@@ -1909,5 +2019,15 @@ class plgSystemCleantalkantispam extends JPlugin
 		}
 
 	}
+
+	static private function _cleantalk_user_has_role_id($role_id)
+	{
+		if (is_array(JFactory::getUser()->groups) && in_array($role_id, JFactory::getUser()->groups)) {
+			return TRUE;
+		}
+
+		return FALSE;
+	}
+
 }
 

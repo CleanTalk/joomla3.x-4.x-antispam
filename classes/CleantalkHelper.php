@@ -596,9 +596,20 @@ class CleantalkHelper
 			'acy_source',
 			'subid',
 		);
-		$fields_exclusions        = CleantalkCustomConfig::get_fields_exclusions();
-		if ($fields_exclusions)
-			array_merge($skip_fields_with_strings, $fields_exclusions);
+
+		// Field exclusions
+		if( !is_null( CleantalkCustomConfig::get_fields_exclusions() ) ) {
+			$fields_exclusions = CleantalkCustomConfig::get_fields_exclusions();
+			foreach($fields_exclusions as &$fields_exclusion) {
+				if( preg_match('/\[*\]/', $fields_exclusion ) ) {
+					// I have to do this to support exclusions like 'submitted[name]'
+					$fields_exclusion = str_replace( array( '[', ']' ), array( '_', '' ), $fields_exclusion );
+				}
+			}
+			if ($fields_exclusions && is_array($fields_exclusions) && count($fields_exclusions) > 0)
+				$skip_fields_with_strings = array_merge($skip_fields_with_strings, $fields_exclusions);
+		}
+
 		// Reset $message if we have a sign-up data
 		$skip_message_post = array(
 			'edd_action', // Easy Digital Downloads
