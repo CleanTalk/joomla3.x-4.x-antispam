@@ -19,6 +19,10 @@ jimport('joomla.application.component.helper');
 if (!defined('DS'))
 	define('DS', DIRECTORY_SEPARATOR);
 
+// Sessions
+define('APBCT_SESSION__LIVE_TIME', 86400*2);
+define('APBCT_SESSION__CHANCE_TO_CLEAN', 100);
+
 require_once(dirname(__FILE__) . DS . 'classes' . DS . 'Cleantalk.php');
 require_once(dirname(__FILE__) . DS . 'classes' . DS . 'CleantalkRequest.php');
 require_once(dirname(__FILE__) . DS . 'classes' . DS . 'CleantalkResponse.php');
@@ -1555,7 +1559,6 @@ class plgSystemCleantalkantispam extends JPlugin
 				$this->ct_setcookie('apbct_timestamp', $ct_timestamp);
 				$cookie_test_value['check_value'] .= $ct_timestamp;
 			}
-			$ct_timestamp = time();
 			$this->ct_setcookie('apbct_timestamp', $ct_timestamp);
 			$cookie_test_value['cookies_names'][] = 'apbct_timestamp';
 			$cookie_test_value['check_value']     .= $ct_timestamp;
@@ -1581,30 +1584,27 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	private function ct_cookies_test()
 	{
-		if (isset($_COOKIE['apbct_cookies_test']))
-		{
-
-			$cookie_test = json_decode(stripslashes($_COOKIE['apbct_cookies_test']), true);
-
-			$check_srting = $this->params['apikey'];
-			foreach ($cookie_test['cookies_names'] as $cookie_name)
-			{
-				$check_srting .= isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : '';
-			}
-			unset($cokie_name);
-
-			if ($cookie_test['check_value'] == md5($check_srting))
-			{
-				return 1;
-			}
-			else
-			{
-				return 0;
-			}
+		if (in_array('use_alternative_cookies', $this->params->get('cookies') )) {
+			return 1;
 		}
-		else
-		{
+
+		$cookie_test = json_decode(stripslashes(self::ct_getcookie('apbct_cookies_test')), true);
+
+		if (is_null($cookie_test)) {
 			return null;
+		}
+
+		$check_string = trim($this->params['apikey']);
+
+		foreach ($cookie_test['cookies_names'] as $cookie_name) {
+			$check_string .= self::ct_getcookie($cookie_name);
+		}
+		unset($cokie_name);
+
+		if ($cookie_test['check_value'] == md5($check_string)) {
+			return 1;
+		} else {
+			return 0;
 		}
 	}
 
@@ -1612,22 +1612,18 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 		if( in_array('use_alternative_cookies', $this->params->get('cookies') ) ) {
 
-			// To database
-			$columns = array('id', 'name', 'value', 'last_update');
-			$values = array(
-				self::_apbct_alt_session__id__get(),
-				$name,
-				$value,
-				date('Y-m-d H:i:s')
-			);
+			self::_apbct_alt_sessions__remove_old();
 
+			// To database
 			$db = JFactory::getDbo();
 			$query = $db->getQuery(true);
+
+			$columns = array('id', 'name', 'value', 'last_update');
+			$values = array($db->quote(self::_apbct_alt_session__id__get()), $db->quote($name), $db->quote($value), $db->quote(date('Y-m-d H:i:s')));
 			$query
 				->insert($db->quoteName('#__cleantalk_sessions'))
 				->columns($db->quoteName($columns))
-				->values($db->quoteName(implode(',', $values)));
-			$db->setQuery($query . "  ON DUPLICATE KEY UPDATE value = " . $db->quoteName($value) . ", last_update = " . $db->quoteName(date('Y-m-d H:i:s')));
+				->values(implode(',', $values));$db->setQuery($query . '  ON DUPLICATE KEY UPDATE ' . $db->quoteName('value') . ' = '.$db->quote($value).', ' . $db->quoteName('last_update') . ' = ' . $db->quote(date('Y-m-d H:i:s')));
 			$db->execute();
 
 		} else {
@@ -1641,16 +1637,21 @@ class plgSystemCleantalkantispam extends JPlugin
 		if ( in_array('use_alternative_cookies', $this->params->get('cookies') ) ) {
 
 			// From database
-			/*$value = db_query("SELECT value FROM {cleantalk_sessions} WHERE id = :id AND name = :name",
-				array(
-					':id' => self::_apbct_alt_session__id__get(),
-					':name' => $name
-				))->fetchField();
-			if (false !== $value) {
+			$db = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			$query->select($db->quoteName(array('value')));
+			$query->from($db->quoteName('#__cleantalk_sessions'));
+			$query->where($db->quoteName('id') . ' = '. $db->quote(self::_apbct_alt_session__id__get()));
+			$query->where($db->quoteName('name') . ' = '. $db->quote($name));
+			$db->setQuery($query);
+			$value = $db->loadResult();
+
+			if ( ! is_null($value) ) {
 				return $value;
 			} else {
 				return null;
-			}*/
+			}
 
 		} else {
 
@@ -1671,10 +1672,14 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 		if (rand(0, 1000) < APBCT_SESSION__CHANCE_TO_CLEAN) {
 
-			db_query("DELETE
-      FROM {cleantalk_sessions}
-      WHERE last_update < NOW() - INTERVAL '. APBCT_SESSION__LIVE_TIME .' SECOND
-      LIMIT 100000;");
+			$db = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			$query->delete($db->quoteName('#__user_profiles'));
+			$query->where($db->quoteName('last_update') . ' < NOW() - INTERVAL '. APBCT_SESSION__LIVE_TIME .' SECOND');
+
+			$db->setQuery($query);
+			$db->execute();
 
 		}
 	}
