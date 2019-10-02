@@ -64,6 +64,10 @@
 					<option value="skip_registered_users">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SKIP_REGISTERED_USERS</option>
 					<option value="check_all_post">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_ALL_POST</option>
 				</field>
+				<field name="cookies" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_COOKIES_TITLE">
+					<option value="set_cookies">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SET_COOKIES</option>
+					<option value="use_alternative_cookies">PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_ALTERNATIVE_COOKIES</option>
+				</field>
 				<field name="other_settings" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_OTHER_TITLE">
 					<option value="sfw_enable">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SPAM_FIREWALL</option>
 					<option value="tell_about_cleantalk">PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT</option>
