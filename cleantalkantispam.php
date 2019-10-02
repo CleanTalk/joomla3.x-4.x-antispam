@@ -226,9 +226,10 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 		$app = JFactory::getApplication();
 
-
-        CleantalkCustomConfig::$cleantalk_url_exclusions = isset($this->params['url_exclusions']) ? $this->params['url_exclusions'] : '';
-        CleantalkCustomConfig::$cleantalk_fields_exclusions = isset($this->params['fields_exclusions']) ? $this->params['fields_exclusions'] : '';
+		// Set exclusions
+		CleantalkCustomConfig::$cleantalk_url_exclusions    =  $this->params['url_exclusions'];
+		CleantalkCustomConfig::$cleantalk_fields_exclusions =  $this->params['fields_exclusions'];
+		CleantalkCustomConfig::$cleantalk_roles_exclusions  =  $this->params['roles_exclusions'];
 
 		if (!$app->isAdmin())
 		{
@@ -1295,19 +1296,54 @@ class plgSystemCleantalkantispam extends JPlugin
 
 	private function ctSendRequest($method, $params)
 	{
-		// Don't send request if current url is in exclusions list
+		// URL Exclusions
+		$url_check = true;
 		$url_exclusion = CleantalkCustomConfig::get_url_exclusions();
-		if ($url_exclusion)
+		if (! is_null( $url_exclusion ) )
 		{
 			// Not always we have 'HTTP_X_REQUESTED_WITH' :(
 			// @ToDo need to detect ajax request
 			$haystack = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == "XMLHttpRequest" && !empty($_SERVER['HTTP_REFERER'])
 				? $_SERVER['HTTP_REFERER']
 				: $_SERVER['REQUEST_URI'];
-			foreach ($url_exclusion as $key => $value)
-				if (strpos($haystack, $value) !== false)
-					return;
+
+			// @ToDo implement support for a regexp
+			$check_type = 0;
+			foreach ($url_exclusion as $key => $value) {
+
+				if( $check_type == 1 ) { // If RegExp
+					if( @preg_match( '/' . $value . '/', $_SERVER['REQUEST_URI'] ) ) {
+						$url_check = false;
+					}
+				} else {
+					if( $_SERVER['SERVER_NAME'] . $haystack === $value ) { // Simple string checking
+						$url_check = false;
+					}
+				}
+
+			}
 		}
+		if (!$url_check)
+			return;
+		// END URL Exclusions
+
+		// Roles Exclusions
+		$roles = CleantalkCustomConfig::get_url_exclusions();
+		if ( ! is_null( $roles ) ) {
+
+			$set_check = false;
+
+			foreach ($roles as $role_id) {
+				if (self::_cleantalk_user_has_role_id($role_id)) {
+					$set_check = true;
+				}
+			}
+
+			if (!$set_check) {
+				return;
+			}
+		}
+		// END Roles Exclusions
 
 		if (isset($this->params['ct_key_is_ok']) && $this->params['ct_key_is_ok'] == 0)
 			return;
