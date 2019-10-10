@@ -1675,7 +1675,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			$db = JFactory::getDbo();
 			$query = $db->getQuery(true);
 
-			$query->delete($db->quoteName('#__user_profiles'));
+			$query->delete($db->quoteName('#__cleantalk_sessions'));
 			$query->where($db->quoteName('last_update') . ' < NOW() - INTERVAL '. APBCT_SESSION__LIVE_TIME .' SECOND');
 
 			$db->setQuery($query);
