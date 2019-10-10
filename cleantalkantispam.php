@@ -1485,7 +1485,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	private function submit_time_test()
 	{
-		return $this->ct_cookies_test() ? time() - intval($_COOKIE['ct_timestamp']) : null;
+		return $this->ct_cookies_test() ? time() - intval($_COOKIE['apbct_timestamp']) : null;
 	}
 
 	/**
@@ -1512,7 +1512,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			'direct_post'            => $this->ct_direct_post,
 			'cookies_enabled'        => $this->ct_cookies_test(),
 			'ct_options'             => json_encode($this->params),
-			'REFFERRER_PREVIOUS'     => isset($_COOKIE['ct_prev_referer']) ? $_COOKIE['ct_prev_referer'] : null,
+			'REFFERRER_PREVIOUS'     => isset($_COOKIE['apbct_prev_referer']) ? $_COOKIE['apbct_prev_referer'] : null,
 			'fields_number'          => sizeof($_POST),
 			'cms_lang'               => $cms_lang,
 		);
