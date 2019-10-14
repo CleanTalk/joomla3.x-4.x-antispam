@@ -1485,7 +1485,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	private function submit_time_test()
 	{
-		return $this->ct_cookies_test() ? time() - intval($_COOKIE['apbct_timestamp']) : null;
+		return $this->ct_cookies_test() ? time() - intval($this->ct_getcookie('apbct_timestamp')) : null;
 	}
 
 	/**
@@ -1512,7 +1512,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			'direct_post'            => $this->ct_direct_post,
 			'cookies_enabled'        => $this->ct_cookies_test(),
 			'ct_options'             => json_encode($this->params),
-			'REFFERRER_PREVIOUS'     => isset($_COOKIE['apbct_prev_referer']) ? $_COOKIE['apbct_prev_referer'] : null,
+			'REFFERRER_PREVIOUS'     => $this->ct_getcookie('apbct_prev_referer'),
 			'fields_number'          => sizeof($_POST),
 			'cms_lang'               => $cms_lang,
 		);
@@ -1528,7 +1528,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	private function ct_cookie()
 	{
 
-		if( ! in_array( 'set_cookies', $this->params->get('cookies')) || headers_sent() )
+		if(!isset($this->params['cookies']) || ! in_array( 'set_cookies', $this->params->get('cookies')) || headers_sent())
 		{
 			return;
 		}
@@ -1557,11 +1557,9 @@ class plgSystemCleantalkantispam extends JPlugin
 			} else {
 				// by cookies
 				$this->ct_setcookie('apbct_timestamp', $ct_timestamp);
+				$cookie_test_value['cookies_names'][] = 'apbct_timestamp';
 				$cookie_test_value['check_value'] .= $ct_timestamp;
 			}
-			$this->ct_setcookie('apbct_timestamp', $ct_timestamp);
-			$cookie_test_value['cookies_names'][] = 'apbct_timestamp';
-			$cookie_test_value['check_value']     .= $ct_timestamp;
 
 			// Pervious referer
 			if (!empty($_SERVER['HTTP_REFERER']))
@@ -1570,7 +1568,6 @@ class plgSystemCleantalkantispam extends JPlugin
 				$cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
 				$cookie_test_value['check_value']     .= $_SERVER['HTTP_REFERER'];
 			}
-
 			// Cookies test
 			$cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
 			$this->ct_setcookie('apbct_cookies_test', json_encode($cookie_test_value));
@@ -1584,7 +1581,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	private function ct_cookies_test()
 	{
-		if (in_array('use_alternative_cookies', $this->params->get('cookies') )) {
+		if (isset($this->params['cookies']) && in_array('use_alternative_cookies', $this->params->get('cookies') )) {
 			return 1;
 		}
 
@@ -1593,9 +1590,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		if (is_null($cookie_test)) {
 			return null;
 		}
-
 		$check_string = trim($this->params['apikey']);
-
 		foreach ($cookie_test['cookies_names'] as $cookie_name) {
 			$check_string .= self::ct_getcookie($cookie_name);
 		}
@@ -1634,7 +1629,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
 	private function ct_getcookie( $name )
 	{
-		if ( in_array('use_alternative_cookies', $this->params->get('cookies') ) ) {
+		if (isset($this->params['cookies']) && in_array('use_alternative_cookies', $this->params->get('cookies') ) ) {
 
 			// From database
 			$db = JFactory::getDbo();
