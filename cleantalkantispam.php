@@ -1335,11 +1335,11 @@ class plgSystemCleantalkantispam extends JPlugin
 		$roles = CleantalkCustomConfig::get_roles_exclusions();
 		if ( ! is_null( $roles ) ) {
 
-			$set_check = false;
+			$set_check = true;
 
 			foreach ($roles as $role_id) {
 				if (self::_cleantalk_user_has_role_id($role_id)) {
-					$set_check = true;
+					$set_check = false;
 				}
 			}
 
