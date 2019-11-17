@@ -1332,7 +1332,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		// END URL Exclusions
 
 		// Roles Exclusions
-		$roles = CleantalkCustomConfig::get_url_exclusions();
+		$roles = CleantalkCustomConfig::get_roles_exclusions();
 		if ( ! is_null( $roles ) ) {
 
 			$set_check = false;
