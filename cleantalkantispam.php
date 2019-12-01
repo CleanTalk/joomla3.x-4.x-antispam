@@ -62,10 +62,6 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	const CT_REMOTE_CALL_SLEEP = 10;
 
-	// Sessions
-	const APBCT_SEESION__LIVE_TIME = 172800;
-	const APBCT_SEESION__CHANCE_TO_CLEAN = 100;
-
 	/**
 	 * Constructor
 	 * @access public
@@ -109,6 +105,12 @@ class plgSystemCleantalkantispam extends JPlugin
 				$this->params = new JRegistry;
 				$this->params->loadString($config['params']);
 			}
+
+			// Suppor for old joomla versions
+            $ver = new JVersion;
+			if( version_compare( $ver->getShortVersion(), '3.3.0', '<' ) ) {
+                $this->params = (array) $this->params;
+            }
 		}
 
 		$this->loadLanguage();
