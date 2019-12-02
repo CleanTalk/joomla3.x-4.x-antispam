@@ -34,37 +34,44 @@ class plgSystemCleantalkantispam extends JPlugin
 {
 	/**
 	 * Plugin version string for server
+     * @since         1.0
 	 */
 	const ENGINE = 'joomla34-11';
 
 	/*
 	 * Flag marked JComments form initilization.
+	 * @since         1.0
 	 */
 	private $JCReady = false;
 
 	/**
 	 * Form submited without page load
+     * @since         1.0
 	 */
 	private $ct_direct_post = 0;
 
 	/**
 	 * Plugin id
+     * @since         1.0
 	 */
 	private $_id;
 
 	/**
 	 * Plugin params
+     * @since         1.0
 	 */
 	public $params;
 
 	/**
 	 * Minimum time between remote calls
+     * @since         1.0
 	 */
 	const CT_REMOTE_CALL_SLEEP = 10;
 
 	/**
 	 * Constructor
 	 * @access public
+     * @since         1.0
 	 *
 	 * @param $subject
 	 * @param $config
@@ -216,11 +223,12 @@ class plgSystemCleantalkantispam extends JPlugin
 		return isset($save_params) ? $save_params : null;
 	}
 
-	/**
-	 * This event is triggered after Joomla initialization
-	 * Joomla 1.5
-	 * @access public
-	 */
+    /**
+     * This event is triggered after Joomla initialization
+     * @since Joomla 1.5
+     * @access public
+     * @throws Exception
+     */
 
 	public function onAfterInitialise()
 	{
@@ -413,11 +421,12 @@ class plgSystemCleantalkantispam extends JPlugin
 			$this->ctSendFeedback($this->params->get('apikey'), '0:' . self::ENGINE);
 	}
 
-	/**
-	 * This event is triggered after extension save their settings
-	 * Joomla 2.5+
-	 * @access public
-	 */
+    /**
+     * This event is triggered after extension save their settings
+     * Joomla 2.5+
+     * @access public
+     * @throws Exception
+     */
 	public function onExtensionAfterSave($name, $data)
 	{
 		$app = JFactory::getApplication();
@@ -476,10 +485,11 @@ class plgSystemCleantalkantispam extends JPlugin
 		return false;
 	}
 
-	/**
-	 * This event is triggered before an update of a user record.
-	 * @access public
-	 */
+    /**
+     * This event is triggered before an update of a user record.
+     * @access public
+     * @throws Exception
+     */
 	public function onUserBeforeSave($user, $isnew, $new)
 	{
 		if ($isnew)
@@ -488,11 +498,12 @@ class plgSystemCleantalkantispam extends JPlugin
 		return null;
 	}
 
-	/**
-	 * This event is triggered before an update of a user record.
-	 * Joomla 1.5
-	 * @access public
-	 */
+    /**
+     * This event is triggered before an update of a user record.
+     * Joomla 1.5
+     * @access public
+     * @throws Exception
+     */
 	public function onBeforeStoreUser($user, $isnew)
 	{
 		if ($isnew)
@@ -517,11 +528,12 @@ class plgSystemCleantalkantispam extends JPlugin
 		}
 	}
 
-	/**
-	 * Save user registration request_id
-	 * @access public
-	 * @return type
-	 */
+    /**
+     * Save user registration request_id
+     * @access public
+     * @return void
+     * @throws Exception
+     */
 	public function onBeforeCompileHead()
 	{
 		$config   = $this->params;
@@ -932,16 +944,17 @@ class plgSystemCleantalkantispam extends JPlugin
 	////////////////////////////
 	// com_contact related sutff
 
-	/**
-	 * onValidateContact trigger - used by com_contact
-	 * @access public
-	 *
-	 * @param &$contact
-	 * @param &$data
-	 *
-	 * @return instanceof Exception when fails
-	 * @since  1.5
-	 */
+    /**
+     * onValidateContact trigger - used by com_contact
+     * @access public
+     *
+     * @param &$contact
+     * @param &$data
+     *
+     * @return Exception|void
+     * @throws Exception
+     * @since  1.5
+     */
 	public function onValidateContact(&$contact, &$data)
 	{
 
@@ -1038,7 +1051,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 *
 	 * @param   JCommentsDB  $comment
 	 *
-	 * @return bolean true
+	 * @return boolean
 	 * @since  1.5
 	 */
 	public function onJCommentsCommentBeforeAdd(&$comment)
@@ -1192,9 +1205,11 @@ class plgSystemCleantalkantispam extends JPlugin
 	}
 
 
-	/**
-	 * Moderate new user
-	 */
+    /**
+     * Moderate new user
+     * @return bool|void
+     * @throws Exception
+     */
 	private function moderateUser()
 	{
 
@@ -1314,7 +1329,18 @@ class plgSystemCleantalkantispam extends JPlugin
 		return false;
 	}
 
-	private function ctSendRequest($method, $params)
+    /**
+     * Sending request to the cleantalk cloud
+     *
+     * @param $method
+     * @param $params
+     *
+     * @return mixed|void|null
+     *
+     * @throws Exception
+     * @since version
+     */
+    private function ctSendRequest($method, $params)
 	{
 		// URL Exclusions
 		$url_check = true;
@@ -1463,11 +1489,12 @@ class plgSystemCleantalkantispam extends JPlugin
 		$this->saveCTConfig($save_params);
 	}
 
-	/**
-	 * Get value of $ct_checkjs
-	 * JavaScript avaibility test.
-	 * @return null|0|1
-	 */
+    /**
+     * Get value of $ct_checkjs
+     * JavaScript avaibility test.
+     * @return null|0|1
+     * @throws Exception
+     */
 	private function get_ct_checkjs($data)
 	{
 
