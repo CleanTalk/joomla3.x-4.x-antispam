@@ -116,10 +116,10 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		$query = $db->getQuery(true);
 		$query
-			->select($db->quoteName('a.extension_id'))
-			->from($db->quoteName('#__extensions', 'a'))
-			->where($db->quoteName('a.element') . ' = ' . $db->quote('cleantalkantispam'))
-			->where($db->quoteName('a.folder') . ' = ' . $db->quote('system'));
+			->select($db->quoteName('extension_id'))
+			->from($db->quoteName('#__extensions'))
+			->where($db->quoteName('element') . ' = ' . $db->quote('cleantalkantispam'))
+			->where($db->quoteName('folder') . ' = ' . $db->quote('system'));
 		$db->setQuery($query);
 		$db->execute();
 
