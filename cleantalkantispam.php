@@ -195,7 +195,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			$save_params = array();
 			$result = null;
 			if ($key_is_valid){
-				$result      = CleantalkHelper::api_method__notice_paid_till($api_key, preg_replace('http[s]?:\/\/', '', $_SERVER['HTTP_HOST'], 1));
+				$result      = CleantalkHelper::api_method__notice_paid_till($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
 				$ct_key_is_ok = empty($result['error']) ? 1 : 0;
 			}
 			
