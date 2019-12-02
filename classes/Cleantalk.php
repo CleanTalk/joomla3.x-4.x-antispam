@@ -309,16 +309,12 @@ class Cleantalk {
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
             // see http://stackoverflow.com/a/23322368
             curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
-            
-            // Disabling CA cert verivication
-            // Disabling common name verification
+
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Disabling CA cert verivication and
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);     // Disabling common name verification
+
             if ($this->ssl_on && $this->ssl_path != '') {
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
                 curl_setopt($ch, CURLOPT_CAINFO, $this->ssl_path);
-            }else{ // Disabling CA cert verivication and common name verification
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             }
 
             $result = curl_exec($ch);
@@ -330,8 +326,8 @@ class Cleantalk {
                     return $this->sendRequest($original_data, $original_url, $server_timeout);
                 }
             }
-            
-            curl_close($ch); 
+
+            curl_close($ch);
         }
 
         if (!$result) {
