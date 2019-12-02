@@ -62,10 +62,6 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	const CT_REMOTE_CALL_SLEEP = 10;
 
-	// Sessions
-	const APBCT_SEESION__LIVE_TIME = 172800;
-	const APBCT_SEESION__CHANCE_TO_CLEAN = 100;
-
 	/**
 	 * Constructor
 	 * @access public
