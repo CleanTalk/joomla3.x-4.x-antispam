@@ -329,7 +329,7 @@ class plgSystemCleantalkantispam extends JPlugin
 					$to      = "welcome@cleantalk.org";
 					$subject = "Connection report for " . $_SERVER['HTTP_HOST'];
 					$message = ' 
-					<html> 
+					<html lang="en"> 
 						<head> 
 							<title></title> 
 						</head> 
