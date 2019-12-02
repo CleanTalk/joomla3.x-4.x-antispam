@@ -2077,7 +2077,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						elseif ($_GET['spbc_remote_call_action'] == 'sfw_send_logs')
 						{
 							$sfw                              = new CleantalkSFW();
-							$result                           = $sfw->sfw_send_logs($this->params['apikey']);
+							$result                           = $sfw->send_logs($this->params->get('apikey'));
 							$save_params['sfw_last_send_log'] = time();
 							$this->saveCTConfig($save_params);
 							die(empty($result['error']) ? 'OK' : 'FAIL ' . json_encode(array('error' => $result['error_string'])));
