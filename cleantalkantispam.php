@@ -861,6 +861,15 @@ class plgSystemCleantalkantispam extends JPlugin
                 isset($post_info['comment_type'])
             )
 			{
+			    if(
+                    $task_cmd === 'registration.register' ||
+			        $this->params->get('form_protection') &&
+                    in_array('check_register', $this->params->get('form_protection'))
+                )
+			    {
+			        // If this request is a registration - jump to the onValidateContact trigger
+			        return;
+                }
 				if (!isset($post_info['comment_type']))
 					$post_info['comment_type'] = 'feedback_general_contact_form';
 				$ctResponse = self::ctSendRequest(
