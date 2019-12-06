@@ -1645,7 +1645,10 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	private function ct_cookies_test()
 	{
-		if ($this->params->get('cookies') && in_array('use_alternative_cookies', $this->params->get('cookies') )) {
+        if ($this->params->get('cookies') && ! in_array('set_cookies', $this->params->get('cookies') ) ) {
+            return null;
+        }
+		if ($this->params->get('cookies') && in_array('use_alternative_cookies', $this->params->get('cookies') ) ) {
 			return 1;
 		}
 
