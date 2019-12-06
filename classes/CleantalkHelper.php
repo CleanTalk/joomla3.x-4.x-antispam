@@ -595,6 +595,8 @@ class CleantalkHelper
 			'nextstep',
 			'acy_source',
 			'subid',
+			'ct_action',
+			'ct_method',
 		);
 
 		// Field exclusions
