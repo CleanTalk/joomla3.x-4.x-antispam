@@ -862,7 +862,7 @@ class plgSystemCleantalkantispam extends JPlugin
             )
 			{
 			    if(
-                    $task_cmd === 'registration.register' ||
+                    $task_cmd === 'registration.register' &&
 			        $this->params->get('form_protection') &&
                     in_array('check_register', $this->params->get('form_protection'))
                 )
@@ -871,7 +871,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			        return;
                 }
                 if(
-                    $app->input->get('option') == 'com_rsform' ||
+                    $option_cmd === 'com_jcomments' &&
                     $this->params->get('comments_and_messages') &&
                     in_array('jcomments_check_comments', $this->params->get('comments_and_messages'))
                 )
