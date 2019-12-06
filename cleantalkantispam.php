@@ -870,6 +870,15 @@ class plgSystemCleantalkantispam extends JPlugin
 			        // If this request is a registration - jump to the onValidateContact trigger
 			        return;
                 }
+                if(
+                    $app->input->get('option') == 'com_rsform' ||
+                    $this->params->get('comments_and_messages') &&
+                    in_array('jcomments_check_comments', $this->params->get('comments_and_messages'))
+                )
+                {
+                    // If this request is a JComment - jump to the onJCommentsCommentBeforeAdd trigger
+                    return;
+                }
 				if (!isset($post_info['comment_type']))
 					$post_info['comment_type'] = 'feedback_general_contact_form';
 				$ctResponse = self::ctSendRequest(
