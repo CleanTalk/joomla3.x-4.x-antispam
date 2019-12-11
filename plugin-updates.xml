@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <updates>
+    <!-- For every release have to insert new update section -->
     <update>
         <name>CleanTalk Update Site</name>
         <description>CleanTalk Update Site</description>
