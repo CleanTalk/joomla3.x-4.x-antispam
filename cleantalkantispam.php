@@ -757,6 +757,8 @@ class plgSystemCleantalkantispam extends JPlugin
 				$post_info['comment_type'] = 'contact_form_joomla_acymailing';
 			if ($app->input->get('option') == 'com_virtuemart' && $app->input->get('task') == 'savecheckoutuser')
 				$post_info['comment_type'] = 'order';
+			if ($app->input->get('option') == 'com_uniform')
+				$post_info['comment_type'] = 'contact_form_joomla_jsn_uniform';
 
 			//Rapid
 			if (isset($_POST['rp_email']))
@@ -834,7 +836,8 @@ class plgSystemCleantalkantispam extends JPlugin
 				$app->input->get('option') == 'com_virtuemart' ||
 				$app->input->get('option') == 'com_baforms' ||
 				$app->input->get('option') == 'com_acym' ||
-				$app->input->get('option') == 'com_acymailing'
+				$app->input->get('option') == 'com_acymailing' ||
+			    $app->input->get('option') == 'com_uniform'
             )
 			{
 				$ct_temp_msg_data = CleantalkHelper::get_fields_any($_POST);
