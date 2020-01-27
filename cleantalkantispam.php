@@ -570,7 +570,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				$ct_user_token      = $config->get('user_token') ? $config->get('user_token') : '';
 				$ct_service_id      = $config->get('service_id') ? $config->get('service_id') : 0;
 				$ct_account_name_ob = $config->get('account_name_ob') ? $config->get('account_name_ob') : '';
-
+				
 				if (!$ct_key_is_ok)
 					$notice = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_APIKEY');
 
@@ -735,9 +735,11 @@ class plgSystemCleantalkantispam extends JPlugin
 				}
 			}
 		}
-
+		
 		if ($_SERVER['REQUEST_METHOD'] == 'POST')
 		{
+			
+			
 			$this->ct_direct_post = 1;
 
 			/*
@@ -821,13 +823,14 @@ class plgSystemCleantalkantispam extends JPlugin
 				}
 				$post_info['comment_type'] = 'contact_form_joomla_breezing';
 			}
+			// Unknown
 			elseif ($app->input->get('option') == 'com_virtuemart' && $app->input->get('task') == 'review')
 			{
 				$sender_email    = JFactory::getUser()->email;
 				$sender_nickname = JFactory::getUser()->username;
 				$message         = isset($_POST['comment']) ? $_POST['comment'] : '';
 			}
-			// Genertal test for any forms or form with custom fields
+			// General test for any forms or form with custom fields
 			elseif (
 			    $this->params->get('form_protection') &&
                 in_array('check_custom_contact_forms', $this->params->get('form_protection')) ||
@@ -849,9 +852,9 @@ class plgSystemCleantalkantispam extends JPlugin
 
 				if ($subject != '')
 					$message = array_merge(array('subject' => $subject), $message);
-				$message = implode("\n", $message);
 
 			}
+			
 			if (
 			    !$this->exceptionList() &&
                 (trim($sender_email) != '' || ($this->params->get('data_processing') && in_array('check_all_post', $this->params->get('data_processing')))) &&
@@ -1065,14 +1068,16 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		return null;
 	}
-
+	
 	/**
 	 * onJCommentsCommentBeforeAdd trigger
+	 *
 	 * @access public
 	 *
-	 * @param   JCommentsDB  $comment
+	 * @param JCommentsDB $comment
 	 *
 	 * @return boolean
+	 * @throws Exception
 	 * @since  1.5
 	 */
 	public function onJCommentsCommentBeforeAdd(&$comment)
@@ -1444,7 +1449,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		$ct->work_url       = $this->params->get('work_url') ? $this->params->get('work_url') : '';
 		$ct->server_ttl     = $this->params->get('server_ttl') ? $this->params->get('server_ttl') : 0;
 		$ct->server_changed = $this->params->get('server_changed') ? $this->params->get('server_changed') : 0;
-
+		
 		switch ($method)
 		{
 			case 'check_message':
@@ -1542,7 +1547,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		return $checkjs;
 	}
-
+	
 	/**
 	 * Validate form submit time
 	 *
@@ -1885,7 +1890,6 @@ class plgSystemCleantalkantispam extends JPlugin
 	private function get_spam_users($offset = 0, $on_page = 20, $improved_check = false)
 	{
 		$db               = JFactory::getDBO();
-		
 		$spam_users       = array();
 		$output['result'] = null;
 		$output['data']   = null;

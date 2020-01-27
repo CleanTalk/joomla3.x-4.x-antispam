@@ -1,6 +1,16 @@
 <?php
+
 /**
- * Request class
+ * CleantalkRequest class
+ *
+ * @version 2.0.0
+ * @package Cleantalk
+ * @subpackage Base
+ * @author Cleantalk team (welcome@cleantalk.org)
+ * @copyright (C) 2014 CleanTalk team (http://cleantalk.org)
+ * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @see https://github.com/CleanTalk/php-antispam
+ *
  */
 class CleantalkRequest {
 
@@ -14,7 +24,7 @@ class CleantalkRequest {
      *  IP address of connection
      * @var string
      */
-     //public $remote_addr = null;
+     public $remote_addr = null;
      
      /**
      *  Last error number
@@ -74,13 +84,13 @@ class CleantalkRequest {
 
     /**
      * User IP
-     * @var strings
+     * @var string
      */
     public $sender_ip = null;
 
     /**
      * User email
-     * @var strings
+     * @var string
      */
     public $sender_email = null;
 
@@ -121,10 +131,10 @@ class CleantalkRequest {
     /**
      * Is enable Java Script,
      * valid are 0|1|2
-     * Status:
-     *  null - JS html code not inserted into phpBB templates
-     *  0 - JS disabled at the client browser
-     *  1 - JS enabled at the client broswer
+	 * Status:
+	 *  null - JS html code not inserted into phpBB templates
+	 *  0 - JS disabled at the client browser
+	 *  1 - JS enabled at the client broswer
      * @var int
      */
     public $js_on = null;
@@ -144,7 +154,7 @@ class CleantalkRequest {
 
     /**
      * Phone number
-     * @var type 
+     * @var string|int
      */
     public $phone = null;
     
@@ -156,14 +166,41 @@ class CleantalkRequest {
 
     /**
      * Fill params with constructor
-     * @param type $params
+     * @param array $params
      */
     public function __construct($params = null) {
-        if (is_array($params) && count($params) > 0) {
-            foreach ($params as $param => $value) {
-                $this->{$param} = $value;
-            }
-        }
-    }
+		
+		// IPs
+		$this->sender_ip       = isset($params['sender_ip'])       ? (string)$params['sender_ip']       : null;
+		$this->x_forwarded_for = isset($params['x_forwarded_for']) ? (string)$params['x_forwarded_for'] : null;
+		$this->x_real_ip       = isset($params['x_real_ip'])       ? (string)$params['x_real_ip']       : null;
 
+		// Misc
+		$this->agent           = isset($params['agent'])            ? (string)$params['agent']                    : null;
+		$this->auth_key        = isset($params['auth_key'])         ? (string)$params['auth_key']                 : null;
+		$this->sender_email    = isset($params['sender_email'])     ? (string)$params['sender_email']             : null;
+		$this->sender_nickname = !empty($params['sender_nickname']) ? (string)$params['sender_nickname']          : null;
+		$this->phone           = !empty($params['phone'])           ? (string)$params['phone']                    : null;
+		$this->js_on           = isset($params['js_on'])            ? (int)$params['js_on']                       : null;
+		$this->allow_links     = isset($params['allow_links'])      ? (int)json_encode($params['allow_links'])    : null;
+		$this->stoplist_check  = isset($params['stoplist_check'])   ? (int)json_encode($params['stoplist_check']) : null;
+		$this->submit_time     = isset($params['submit_time'])      ? (int)$params['submit_time']                 : null;
+		$this->post_info       = isset($params['post_info'])        ? (string)json_encode($params['post_info'])   : null;
+		$this->sender_info     = isset($params['sender_info'])      ? (string)json_encode($params['sender_info']) : null;
+		
+	    $this->message = ! empty( $params['message'] )
+		    ? ( ! is_scalar( $params['message'] )
+			    ? json_encode( $params['message'] )
+			    : $params['message'] )
+		    : null;
+	    $this->example = ! empty( $params['example'] )
+		    ? ( ! is_scalar( $params['example'] )
+			    ? json_encode( $params['example'] )
+			    : $params['example'] )
+		    : null;
+		
+		// Feedback
+		$this->feedback        = !empty($params['feedback']) ? $params['feedback'] : null;
+				
+    }
 }
