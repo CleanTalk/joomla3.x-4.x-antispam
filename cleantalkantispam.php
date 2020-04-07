@@ -846,7 +846,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
 				if ($subject != '')
 					$message = array_merge(array('subject' => $subject), $message);
-				$message = implode("\n", $message);
+//				$message = implode("\n", $message);
 
 			}
 			if (
