@@ -879,6 +879,20 @@ class plgSystemCleantalkantispam extends JPlugin
                     // If this request is a JComment - jump to the onJCommentsCommentBeforeAdd trigger
                     return;
                 }
+				
+                // Fix. Passing login form.
+                if( preg_match( '/\/customer-login[^\/]*$/', $_SERVER['REQUEST_URI'] ) ){
+                    return;
+                }
+                
+                // "MyMuse" module. Music e-store
+                if(
+                    $app->input->get('option') === 'com_mymuse' &&
+                    $app->input->get('task') === 'confirm'
+                ){
+	                $post_info['comment_type'] = 'order';
+                }
+                
 				if (!isset($post_info['comment_type']))
 					$post_info['comment_type'] = 'feedback_general_contact_form';
 				$ctResponse = self::ctSendRequest(
