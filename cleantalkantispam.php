@@ -478,7 +478,8 @@ class plgSystemCleantalkantispam extends JPlugin
 			$option_cmd == 'com_easysocial' ||
 			($module_cmd == 'shoutbox' && $method_cmd == 'getPosts') ||
 			($option_cmd == 'com_virtuemart' && $task_cmd == 'addJS') ||
-			($option_cmd == 'com_virtuemart' && $task_cmd == 'cart')
+			($option_cmd == 'com_virtuemart' && $task_cmd == 'cart') ||
+			($option_cmd == 'com_rsform' && $task_cmd == 'ajaxValidate') // RSFrom ajax validation on multipage form
 		)
 			return true;
 
