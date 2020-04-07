@@ -6,7 +6,7 @@
         <element>cleantalkantispam</element>
         <type>plugin</type>
         <folder>system</folder>
-        <version>1.2</version>
+        <version>1.2.1</version>
         <downloads>
             <downloadurl type="full" format="zip">https://github.com/CleanTalk/joomla3.x-4.x-antispam/archive/1.2.zip</downloadurl>
         </downloads>
