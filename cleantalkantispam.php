@@ -851,7 +851,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
 				if ($subject != '')
 					$message = array_merge(array('subject' => $subject), $message);
-//				$message = implode("\n", $message);
+				$message = json_encode( $message );
 
 			}
 			if (
@@ -904,7 +904,8 @@ class plgSystemCleantalkantispam extends JPlugin
 					'check_message', array(
 						'sender_nickname' => $sender_nickname,
 						'sender_email'    => $sender_email,
-						'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
+//						'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
+						'message'         => $message,
 						'post_info'       => json_encode($post_info),
 					)
 				);
