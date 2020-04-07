@@ -461,6 +461,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	*/
 	private function exceptionList()
 	{
+		
 		$option_cmd = JFactory::getApplication()->input->get('option');
 		$task_cmd   = JFactory::getApplication()->input->get('task');
 		$module_cmd = JFactory::getApplication()->input->get('module');
@@ -770,6 +771,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				if (isset($_POST['rp_message']))
 					$message .= ' ' . $_POST['rp_message'];
 				$post_info['comment_type'] = 'contact_form_joomla_rapid';
+				
 			} //VTEM Contact
 			elseif (isset($_POST["vcontact_email"]))
 			{
@@ -783,6 +785,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				if (isset($_POST["vcontact_name"]))
 					$sender_nickname = $_POST["vcontact_name"];
 				$post_info['comment_type'] = 'contact_form_joomla_vtem';
+				
 			} //BreezingForms
 			elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit')
 			{
@@ -826,6 +829,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				$sender_nickname = JFactory::getUser()->username;
 				$message         = isset($_POST['comment']) ? $_POST['comment'] : '';
 			}
+			
 			// Genertal test for any forms or form with custom fields
 			elseif (
 			    $this->params->get('form_protection') &&
