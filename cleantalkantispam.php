@@ -854,16 +854,22 @@ class plgSystemCleantalkantispam extends JPlugin
 				$message = json_encode( $message );
 
 			}
+			
 			if (
-			    !$this->exceptionList() &&
-                (trim($sender_email) != '' || ($this->params->get('data_processing') && in_array('check_all_post', $this->params->get('data_processing')))) &&
-                !empty($_POST) &&
-                empty($_FILES) &&
-                $this->params->get('form_protection') &&
-                in_array('check_custom_contact_forms', $this->params->get('form_protection')) ||
-                in_array('check_external', $this->params->get('form_protection')) ||
-                in_array('check_contact_forms', $this->params->get('form_protection')) &&
-                isset($post_info['comment_type'])
+                  empty( $_FILES ) &&
+                ! empty( $_POST ) &&
+			    ! $this->exceptionList() &&
+                (
+                	! empty( $sender_email ) ||
+	                ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
+                ) &&
+				( $this->params->get( 'form_protection' ) &&
+					(
+					    in_array( 'check_custom_contact_forms', $this->params->get( 'form_protection' ) ) ||
+					    in_array( 'check_external',             $this->params->get( 'form_protection' ) ) ||
+					    in_array( 'check_contact_forms',        $this->params->get( 'form_protection' ) )
+					)
+				)
             )
 			{
 			    if(
