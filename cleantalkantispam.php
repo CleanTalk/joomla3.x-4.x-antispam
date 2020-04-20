@@ -891,8 +891,11 @@ class plgSystemCleantalkantispam extends JPlugin
                     return;
                 }
 				
-                // Fix. Passing login form.
-                if( preg_match( '/\/customer-login[^\/]*$/', $_SERVER['REQUEST_URI'] ) ){
+                // Passing login form.
+                if(
+                	$option_cmd === 'com_users' &&
+                    $view_cmd === 'login'
+				){
                     return;
                 }
                 
