@@ -893,8 +893,8 @@ class plgSystemCleantalkantispam extends JPlugin
 				
                 // Passing login form.
                 if(
-                	$option_cmd === 'com_users' &&
-                    $view_cmd === 'login'
+	                $app->input->get->get('option') === 'com_users' &&
+	                $app->input->get->get('view') === 'login'
 				){
                     return;
                 }
@@ -905,10 +905,10 @@ class plgSystemCleantalkantispam extends JPlugin
                     $app->input->get('task') === 'confirm'
                 ){
 	                $post_info['comment_type'] = 'order';
-                }
-                
-				if (!isset($post_info['comment_type']))
+				
+				if( ! isset( $post_info['comment_type'] ) )
 					$post_info['comment_type'] = 'feedback_general_contact_form';
+				
 				$ctResponse = self::ctSendRequest(
 					'check_message', array(
 						'sender_nickname' => $sender_nickname,
@@ -918,6 +918,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						'post_info'       => json_encode($post_info),
 					)
 				);
+				
 				if ($ctResponse)
 				{
 					if (!empty($ctResponse) && is_array($ctResponse))
