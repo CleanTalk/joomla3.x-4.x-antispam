@@ -372,6 +372,11 @@ class plgSystemCleantalkantispam extends JPlugin
 				$save_params['connection_reports'] = array('success' => 0, 'negative' => 0, 'negative_report' => null);
 			}
 
+			if (isset($_POST['check_renew_banner'])) {
+				$output['result'] = 'success';
+				$output['close_renew_banner'] = $this->params->get('show_notice') == 0 ? 1 : 0;
+			}
+
 			if (isset($_POST['dev_insert_spam_users']) && $_POST['dev_insert_spam_users'] === 'yes')
 			    // @ToDo This code block not used!
 				$output = self::dev_insert_spam_users();
@@ -2168,7 +2173,9 @@ class plgSystemCleantalkantispam extends JPlugin
 						// Close renew banner
 						if ($remote_action == 'close_renew_banner')
 						{
-							$save_params['show_review_done'] = 1;
+							$save_params['trial'] = 0;
+							$save_params['renew'] = 0;
+							$save_params['show_notice'] = 0;
 							$this->saveCTConfig($save_params);
 							die('OK');
 							// SFW update
