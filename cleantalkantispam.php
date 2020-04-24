@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       1.2
+ * @version       1.2.2
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -36,7 +36,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 * Plugin version string for server
      * @since         1.0
 	 */
-	const ENGINE = 'joomla34-12';
+	const ENGINE = 'joomla34-121';
 
 	/*
 	 * Flag marked JComments form initilization.
@@ -461,6 +461,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	*/
 	private function exceptionList()
 	{
+		
 		$option_cmd = JFactory::getApplication()->input->get('option');
 		$task_cmd   = JFactory::getApplication()->input->get('task');
 		$module_cmd = JFactory::getApplication()->input->get('module');
@@ -478,7 +479,8 @@ class plgSystemCleantalkantispam extends JPlugin
 			$option_cmd == 'com_easysocial' ||
 			($module_cmd == 'shoutbox' && $method_cmd == 'getPosts') ||
 			($option_cmd == 'com_virtuemart' && $task_cmd == 'addJS') ||
-			($option_cmd == 'com_virtuemart' && $task_cmd == 'cart')
+			($option_cmd == 'com_virtuemart' && $task_cmd == 'cart') ||
+			($option_cmd == 'com_rsform' && $task_cmd == 'ajaxValidate') // RSFrom ajax validation on multipage form
 		)
 			return true;
 
@@ -769,6 +771,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				if (isset($_POST['rp_message']))
 					$message .= ' ' . $_POST['rp_message'];
 				$post_info['comment_type'] = 'contact_form_joomla_rapid';
+				
 			} //VTEM Contact
 			elseif (isset($_POST["vcontact_email"]))
 			{
@@ -782,6 +785,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				if (isset($_POST["vcontact_name"]))
 					$sender_nickname = $_POST["vcontact_name"];
 				$post_info['comment_type'] = 'contact_form_joomla_vtem';
+				
 			} //BreezingForms
 			elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit')
 			{
@@ -825,6 +829,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				$sender_nickname = JFactory::getUser()->username;
 				$message         = isset($_POST['comment']) ? $_POST['comment'] : '';
 			}
+			
 			// Genertal test for any forms or form with custom fields
 			elseif (
 			    $this->params->get('form_protection') &&
@@ -846,19 +851,25 @@ class plgSystemCleantalkantispam extends JPlugin
 
 				if ($subject != '')
 					$message = array_merge(array('subject' => $subject), $message);
-				$message = implode("\n", $message);
+				$message = json_encode( $message );
 
 			}
+			
 			if (
-			    !$this->exceptionList() &&
-                (trim($sender_email) != '' || ($this->params->get('data_processing') && in_array('check_all_post', $this->params->get('data_processing')))) &&
-                !empty($_POST) &&
-                empty($_FILES) &&
-                $this->params->get('form_protection') &&
-                in_array('check_custom_contact_forms', $this->params->get('form_protection')) ||
-                in_array('check_external', $this->params->get('form_protection')) ||
-                in_array('check_contact_forms', $this->params->get('form_protection')) &&
-                isset($post_info['comment_type'])
+                  empty( $_FILES ) &&
+                ! empty( $_POST ) &&
+			    ! $this->exceptionList() &&
+                (
+                	! empty( $sender_email ) ||
+	                ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
+                ) &&
+				( $this->params->get( 'form_protection' ) &&
+					(
+					    in_array( 'check_custom_contact_forms', $this->params->get( 'form_protection' ) ) ||
+					    in_array( 'check_external',             $this->params->get( 'form_protection' ) ) ||
+					    in_array( 'check_contact_forms',        $this->params->get( 'form_protection' ) )
+					)
+				)
             )
 			{
 			    if(
@@ -879,16 +890,35 @@ class plgSystemCleantalkantispam extends JPlugin
                     // If this request is a JComment - jump to the onJCommentsCommentBeforeAdd trigger
                     return;
                 }
-				if (!isset($post_info['comment_type']))
+				
+                // Passing login form.
+                if(
+	                $app->input->get->get('option') === 'com_users' &&
+	                $app->input->get->get('view') === 'login'
+				){
+                    return;
+                }
+                
+                // "MyMuse" module. Music e-store
+                if(
+                    $app->input->get('option') === 'com_mymuse' &&
+                    $app->input->get('task') === 'confirm'
+                ){
+	                $post_info['comment_type'] = 'order';
+				
+				if( ! isset( $post_info['comment_type'] ) )
 					$post_info['comment_type'] = 'feedback_general_contact_form';
+				
 				$ctResponse = self::ctSendRequest(
 					'check_message', array(
 						'sender_nickname' => $sender_nickname,
 						'sender_email'    => $sender_email,
-						'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
+//						'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
+						'message'         => $message,
 						'post_info'       => json_encode($post_info),
 					)
 				);
+				
 				if ($ctResponse)
 				{
 					if (!empty($ctResponse) && is_array($ctResponse))
