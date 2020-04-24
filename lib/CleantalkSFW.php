@@ -11,7 +11,7 @@
 if(!defined('DS'))
     define('DS', DIRECTORY_SEPARATOR);
 
-class CleantalkSFW extends CleantalkHelper
+class CleantalkSFW
 {
 	public $ip = 0;
 	public $ip_str = '';
@@ -61,12 +61,12 @@ class CleantalkSFW extends CleantalkHelper
 	*/
 	static public function ip_get($ips_input = array('real', 'remote_addr', 'x_forwarded_for', 'x_real_ip', 'cloud_flare'), $v4_only = true){
 		
-		$result = (array)parent::ip_get($ips_input, $v4_only);
+		$result = (array)CleantalkHelper::ip_get($ips_input, $v4_only);
 		
 		$result = !empty($result) ? $result : array();
 		
 		if(isset($_GET['sfw_test_ip'])){
-			if(self::ip_validate($_GET['sfw_test_ip']) !== false)
+			if(CleantalkHelper::ip_validate($_GET['sfw_test_ip']) !== false)
 				$result['sfw_test'] = $_GET['sfw_test_ip'];
 		}
 		
@@ -129,53 +129,117 @@ class CleantalkSFW extends CleantalkHelper
 	* 
 	* return mixed true || array('error' => true, 'error_string' => STRING)
 	*/
-	public function sfw_update($ct_key){
-		
-		$result = self::api_method__get_2s_blacklists_db($ct_key);
+	public function sfw_update($ct_key, $file_url = null){
 
-		if ($result) {
+		if(!$file_url){
 
-			if(empty($result['error'])) {
+			$result = CleantalkAPI::method__get_2s_blacklists_db($ct_key, 'multifiles');
+
+			if(empty($result['error'])){
 			
-				$this->unversal_query("TRUNCATE TABLE `".$this->table_prefix."cleantalk_sfw`",true);
-							
-				// Cast result to int
+				if( !empty($result['file_url']) ){
 
-				foreach($result as $value) {
+					if(CleantalkHelper::http__request($result['file_url'], array(), 'get_code') === 200) {
 
-					$value[0] = intval($value[0]);
-					$value[1] = intval($value[1]);
+						if(ini_get('allow_url_fopen')) {
 
-				} unset($value);
-				
-				$query="INSERT INTO `".$this->table_prefix."cleantalk_sfw` VALUES ";
+							$pattenrs = array();
+							$pattenrs = array('get', 'async');		
 
-				for($i=0, $arr_count = count($result); $i < $arr_count; $i++) {
-					if($i == count($result)-1) {
-						$query.="(".$result[$i][0].",".$result[$i][1].")";
-					}else {
-						$query.="(".$result[$i][0].",".$result[$i][1]."), ";
-					}
-				}
-				
-				$this->unversal_query($query,true);
-				
-				return true;
+							$this->unversal_query("TRUNCATE TABLE `".$this->table_prefix."cleantalk_sfw`",true);
 
-			}
-			else {
+							if (preg_match('/multifiles/', $result['file_url'])) {
+								
+								$gf = gzopen($result['file_url'], 'rb');
 
+								if ($gf) {
+
+									$file_urls = array();
+
+									while(!gzeof($gf))
+										$file_urls[] = trim(gzgets($gf, 1024));			
+
+									gzclose($gf);
+
+									return CleantalkHelper::http__request(
+										JUri::root(), 
+										array(
+											'spbc_remote_call_token'  => md5($ct_key),
+											'spbc_remote_call_action' => 'sfw_update',
+											'plugin_name'             => 'apbct',
+											'file_urls'               => implode(',', $file_urls),
+										),
+										$pattenrs
+									);								
+								}
+							}else {
+								return CleantalkHelper::http__request(
+									JUri::root(), 
+									array(
+										'spbc_remote_call_token'  => md5($ct_key),
+										'spbc_remote_call_action' => 'sfw_update',
+										'plugin_name'             => 'apbct',
+										'file_urls'               => $result['file_url'],
+									),
+									$pattenrs
+								);								
+							}
+						}else
+							return array('error' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
+					}				
+				}else
+					return array('error' => 'BAD_RESPONSE');
+			}else
 				return $result;
+		}else{
+						
+			if(CleantalkHelper::http__request($file_url, array(), 'get_code') === 200){ // Check if it's there
+		
+					$gf = gzopen($file_url, 'rb');
 
-			}
+					if($gf){
+						
+						if(!gzeof($gf)){
+							
+							for($count_result = 0; !gzeof($gf); ){
+	
+								$query = "INSERT INTO `".$this->table_prefix."cleantalk_sfw` VALUES %s";
+	
+								for($i=0, $values = array(); 5000 !== $i && !gzeof($gf); $i++, $count_result++){
+	
+									$entry = trim(gzgets($gf, 1024));
+	
+									if(empty($entry)) continue;
 
+									$entry = explode(',', $entry);
+	
+									// Cast result to int
+									$ip   = preg_replace('/[^\d]*/', '', $entry[0]);
+									$mask = preg_replace('/[^\d]*/', '', $entry[1]);
+	
+									if(!$ip || !$mask) continue;
+	
+									$values[] = '('. $ip .','. $mask .')';
+	
+								}
+
+								if(!empty($values)){
+									$query = sprintf($query, implode(',', $values).';');
+									$this->unversal_query($query,true);
+								}
+								
+							}
+							
+							gzclose($gf);
+							return $count_result;
+							
+						}else
+							return array('error' => 'ERROR_GZ_EMPTY');
+					}else
+						return array('error' => 'ERROR_OPEN_GZ_FILE');
+			}else
+				return array('error' => 'NO_REMOTE_FILE_FOUND');
 		}
-		else {
-
-			error_log("ERROR GETTING SFW DATA");
-
-		}
-
 	}
 	
 	/*
@@ -200,7 +264,7 @@ class CleantalkSFW extends CleantalkHelper
 			unset($key, $value);
 			
 			//Sending the request
-			$result = self::api_method__sfw_logs($ct_key, $data);
+			$result = CleantalkAPI::method__sfw_logs($ct_key, $data);
 			
 			//Checking answer and deleting all lines from the table
 			if(empty($result['error'])){

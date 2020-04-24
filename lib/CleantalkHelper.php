@@ -16,6 +16,11 @@
 
 class CleantalkHelper
 {
+	/**
+	 * Default user agent for HTTP requests
+	 */
+	const AGENT = 'Cleatalk-Helper/3.2';
+
 	const URL = 'https://api.cleantalk.org';
 
 	public static $cdn_pool = array(
@@ -191,316 +196,149 @@ class CleantalkHelper
 		                                                          return false; // Unknown
 	}
 	
-	/*
-	* Wrapper for sfw_logs API method
-	* 
-	* returns mixed STRING || array('error' => true, 'error_string' => STRING)
-	*/
-	static public function api_method__sfw_logs($api_key, $data, $do_check = true){
-		
-		$request = array(
-			'auth_key' => $api_key,
-			'method_name' => 'sfw_logs',
-			'data' => json_encode($data),
-			'rows' => count($data),
-			'timestamp' => time()
-		);
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'sfw_logs') : $result;
-		
-		return $result;
-	}
-	
-	/*
-	* Wrapper for 2s_blacklists_db API method
-	* 
-	* returns mixed STRING || array('error' => true, 'error_string' => STRING)
-	*/
-	static public function api_method__get_2s_blacklists_db($api_key, $out = null, $do_check = true){
-		
-		$request = array(
-			'method_name' => '2s_blacklists_db',
-			'auth_key' => $api_key,
-			'out' => $out,			
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, '2s_blacklists_db') : $result;
-		
-		return $result;
-	}
-	
 	/**
-	 * Function gets access key automatically
+	 * Merging arrays without reseting numeric keys
 	 *
-	 * @param string website admin email
-	 * @param string website host
-	 * @param string website platform
-	 * @return type
-	 */
-	static public function api_method__get_api_key($email, $host, $platform, $agent = null, $timezone = null, $language = null, $ip = null, $do_check = true)
-	{		
-		$request = array(
-			'method_name'          => 'get_api_key',
-			'product_name'         => 'antispam',
-			'email'                => $email,
-			'website'              => $host,
-			'platform'             => $platform,
-			'agent'                => $agent,			
-			'timezone'             => $timezone,
-			'http_accept_language' => !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : null,
-			'user_ip'              => $ip ? $ip : self::ip_get(array('real'), false),
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'get_api_key') : $result;
-		
-		return $result;
-	}
-		
-	/**
-	 * Function gets information about renew notice
+	 * @param array $arr1 One-dimentional array
+	 * @param array $arr2 One-dimentional array
 	 *
-	 * @param string api_key
-	 * @param string $path_to_cms Path to website
-	 * @return type
+	 * @return array Merged array
 	 */
-	static public function api_method__notice_paid_till($api_key, $path_to_cms, $do_check = true)
+	static public function array_merge__save_numeric_keys($arr1, $arr2)
 	{
-		$request = array(
-			'method_name' => 'notice_paid_till',
-			'path_to_cms' => $path_to_cms,
-			'auth_key' => $api_key
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'notice_paid_till') : $result;
-		
-		return $result;
-	}
-
-	/**
-	 * Function gets spam report
-	 *
-	 * @param string website host
-	 * @param integer report days
-	 * @return type
-	 */
-	static public function api_method__get_antispam_report($host, $period = 1)
-	{
-		$request=Array(
-			'method_name' => 'get_antispam_report',
-			'hostname' => $host,
-			'period' => $period,
-		);
-		
-		$result = self::api_send_request($request);
-		// $result = $do_check ? self::api_check_response($result, 'get_antispam_report') : $result;
-		
-		return $result;
-	}
-
-	/**
-	 * Function gets information about account
-	 *
-	 * @param string api_key
-	 * @param string perform check flag
-	 * @return mixed (STRING || array('error' => true, 'error_string' => STRING))
-	 */
-	static public function api_method__get_account_status($api_key, $do_check = true)
-	{
-		$request = array(
-			'method_name' => 'get_account_status',
-			'auth_key' => $api_key
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'get_account_status') : $result;
-		
-		return $result;
-	}
-
-	/**
-	 * Function gets spam statistics
-	 *
-	 * @param string website host
-	 * @param integer report days
-	 * @return type
-	 */
-	static public function api_method__get_antispam_report_breif($api_key, $do_check = true)
-	{
-		
-		$request = array(
-			'method_name' => 'get_antispam_report_breif',
-			'auth_key' => $api_key,		
-		);
-		
-		$result = self::api_send_request($request);
-		$result = $do_check ? self::api_check_response($result, 'get_antispam_report_breif') : $result;
-		
-		$tmp = array();
-		for( $i = 0; $i < 7; $i++ )
-			$tmp[ date( 'Y-m-d', time() - 86400 * 7 + 86400 * $i ) ] = 0;
-		
-		$result['spam_stat']    = array_merge( $tmp, isset($result['spam_stat']) ? $result['spam_stat'] : array() );
-		$result['top5_spam_ip'] = isset($result['top5_spam_ip']) ? $result['top5_spam_ip'] : array();
-		
-		return $result;		
-	}
-	
-	/**
-	 * Function gets spam report
-	 *
-	 * @param string website host
-	 * @param integer report days
-	 * @return type
-	 */
-	static public function api_method__spam_check_cms($api_key, $data, $date = null, $do_check = true)
-	{
-		$request=Array(
-			'method_name' => 'spam_check_cms',
-			'auth_key' => $api_key,
-			'data' => is_array($data) ? implode(',',$data) : $data,			
-		);
-		
-		if($date) $request['date'] = $date;
-		
-		$result = self::api_send_request($request, self::URL, false, 30);
-		$result = $do_check ? self::api_check_response($result, 'spam_check_cms') : $result;
-		
-		return $result;
-	}
-
-	/**
-	 * Function sends raw request to API server
-	 *
-	 * @param string url of API server
-	 * @param array data to send
-	 * @param boolean is data have to be JSON encoded or not
-	 * @param integer connect timeout
-	 * @return type
-	 */
-	static public function api_send_request($data, $url = self::URL, $isJSON = false, $timeout=3, $ssl = false)
-	{	
-		
-		$result = null;
-		$curl_error = false;
-		
-		$original_data = $data;
-		
-		if(!$isJSON){
-			$data = http_build_query($data);
-			$data = str_replace("&amp;", "&", $data);
-		}else{
-			$data = json_encode($data);
+		foreach($arr2 as $key => $val){
+			$arr1[$key] = $val;
 		}
-		
-		if (function_exists('curl_init') && function_exists('json_decode')){
-		
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-			curl_setopt($ch, CURLOPT_POST, true);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
+		return $arr1;
+	}
+	/**
+	 * Function sends raw http request
+	 *
+	 * May use 4 presets(combining possible):
+	 * get_code - getting only HTTP response code
+	 * async    - async requests
+	 * get      - GET-request
+	 * ssl      - use SSL
+	 *
+	 * @param string       $url     URL
+	 * @param array        $data    POST|GET indexed array with data to send
+	 * @param string|array $presets String or Array with presets: get_code, async, get, ssl, dont_split_to_array
+	 * @param array        $opts    Optional option for CURL connection
+	 *
+	 * @return array|bool (array || array('error' => true))
+	 */	
+	static public function http__request($url, $data = array(), $presets = null, $opts = array())
+	{
+		if(function_exists('curl_init')){
 			
-			if ($ssl === true) {
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-            }else{
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+			$ch = curl_init();
+			
+			if(!empty($data)){
+				// If $data scalar converting it to array
+				$data = is_string($data) || is_int($data) ? array($data => 1) : $data;
+				// Build query
+				$opts[CURLOPT_POSTFIELDS] = $data;
 			}
 			
+			// Merging OBLIGATORY options with GIVEN options
+			$opts = self::array_merge__save_numeric_keys(
+				array(
+					CURLOPT_URL => $url,
+					CURLOPT_RETURNTRANSFER => true,
+					CURLOPT_CONNECTTIMEOUT_MS => 3000,
+					CURLOPT_FORBID_REUSE => true,
+					CURLOPT_USERAGENT => self::AGENT . '; ' . ( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : 'UNKNOWN_HOST' ),
+					CURLOPT_POST => true,
+					CURLOPT_SSL_VERIFYPEER => false,
+					CURLOPT_SSL_VERIFYHOST => 0,
+					CURLOPT_HTTPHEADER => array('Expect:'), // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
+					CURLOPT_FOLLOWLOCATION => true,
+					CURLOPT_MAXREDIRS => 5,
+				),
+				$opts
+			);
+			
+			// Use presets
+			$presets = is_array($presets) ? $presets : explode(' ', $presets);
+			foreach($presets as $preset){
+				
+				switch($preset){
+					
+					// Do not follow redirects
+					case 'dont_follow_redirects':
+						$opts[CURLOPT_FOLLOWLOCATION] = false;
+						$opts[CURLOPT_MAXREDIRS] = 0;
+						break;
+					
+					// Get headers only
+					case 'get_code':
+						$opts[CURLOPT_HEADER] = true;
+						$opts[CURLOPT_NOBODY] = true;
+						break;
+					
+					// Make a request, don't wait for an answer
+					case 'async':
+						$opts[CURLOPT_CONNECTTIMEOUT_MS] = 1000;
+						$opts[CURLOPT_TIMEOUT_MS] = 500;
+						break;
+					
+					case 'get':
+						$opts[CURLOPT_URL] .= $data ? '?' . str_replace("&amp;", "&", http_build_query($data)) : '';
+						$opts[CURLOPT_CUSTOMREQUEST] = 'GET';
+						$opts[CURLOPT_POST] = false;
+						$opts[CURLOPT_POSTFIELDS] = null;
+						break;
+					
+					case 'ssl':
+						$opts[CURLOPT_SSL_VERIFYPEER] = true;
+						$opts[CURLOPT_SSL_VERIFYHOST] = 2;
+						if(defined('CLEANTALK_CASERT_PATH') && CLEANTALK_CASERT_PATH)
+							$opts[CURLOPT_CAINFO] = CLEANTALK_CASERT_PATH;
+						break;
+					
+					default:
+						
+						break;
+				}
+				
+			}
+			unset($preset);
+			
+			curl_setopt_array($ch, $opts);
 			$result = curl_exec($ch);
 			
-			if($result === false){
-				if($ssl === false){
-					return self::api_send_request($original_data, $url, $isJSON, $timeout, true);
+			// RETURN if async request
+			if(in_array('async', $presets))
+				return true;
+			
+			if($result){
+				
+				if(strpos($result, PHP_EOL) !== false && !in_array('dont_split_to_array', $presets))
+					$result = explode(PHP_EOL, $result);
+				
+				// Get code crossPHP method
+				if(in_array('get_code', $presets)){
+					$curl_info = curl_getinfo($ch);
+					$result = $curl_info['http_code'];
 				}
-				$curl_error = curl_error($ch);
-			}
-			
-			curl_close($ch);
-			
-		}else{
-			$curl_error = 'CURL_NOT_INSTALLED';
+				curl_close($ch);
+				$out = $result;
+			}else
+				$out = array('error' => curl_error($ch));
+		}else
+			$out = array('error' => 'CURL_NOT_INSTALLED');
+		
+		/**
+		 * Getting HTTP-response code without cURL
+		 */
+		if($presets && ($presets == 'get_code' || (is_array($presets) && in_array('get_code', $presets)))
+			&& isset($out['error']) && $out['error'] == 'CURL_NOT_INSTALLED'
+		){
+			$headers = get_headers($url);
+			$out = (int)preg_replace('/.*(\d{3}).*/', '$1', $headers[0]);
 		}
 		
-		if($curl_error){
-			
-			$opts = array(
-				'http'=>array(
-					'method'  => "POST",
-					'timeout' => $timeout,
-					'content' => $data,
-				)
-			);
-			$context = stream_context_create($opts);
-			$result = @file_get_contents($url, 0, $context);
-		}
-		
-		if(!$result && $curl_error)
-			return json_encode(array('error' => true, 'error_string' => $curl_error));
-		
-		return $result;
-	}
-
-	/**
-	 * Function checks server response
-	 *
-	 * @param string result
-	 * @param string request_method
-	 * @return mixed (array || array('error' => true))
-	 */
-	static public function api_check_response($result, $method_name = null)
-	{	
-		
-		// Errors handling
-		
-		// Bad connection
-		if(empty($result)){
-			return array(
-				'error' => true,
-				'error_string' => 'CONNECTION_ERROR'
-			);
-		}
-		
-		// JSON decode errors
-		$result = json_decode($result, true);
-		if(empty($result)){
-			return array(
-				'error' => true,
-				'error_string' => 'JSON_DECODE_ERROR'
-			);
-		}
-		
-		// cURL error
-		if(!empty($result['error'])){
-			return array(
-				'error' => true,
-				'error_string' => 'CONNECTION_ERROR: ' . $result['error_string'],
-			);
-		}
-		
-		// Server errors
-		if($result && (isset($result['error_no']) || isset($result['error_message']))){
-			return array(
-				'error' => true,
-				'error_string' => "SERVER_ERROR NO: {$result['error_no']} MSG: {$result['error_message']}",
-				'error_no' => $result['error_no'],
-				'error_message' => $result['error_message']
-			);
-		}
-		
-		// Pathces for different methods
-		
-		
-		// Other methods
-		if(isset($result['data']) && is_array($result['data'])){
-			return $result['data'];
-		}
+		return $out;
 	}
 	
 	static public function is_json($string)

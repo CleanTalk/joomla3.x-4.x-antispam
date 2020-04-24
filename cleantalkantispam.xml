@@ -11,13 +11,14 @@
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
     <files>
 		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
-		<filename plugin="cleantalkantispam">classes/Cleantalk.php</filename>
-		<filename plugin="cleantalkantispam">classes/CleantalkRequest.php</filename>
-		<filename plugin="cleantalkantispam">classes/CleantalkResponse.php</filename>
-		<filename plugin="cleantalkantispam">classes/CleantalkHelper.php</filename>
-		<filename plugin="cleantalkantispam">classes/CleantalkSFW.php</filename>
-		<filename plugin="cleantalkantispam">classes/sfw_die_page.html</filename>
-		<filename plugin="cleantalkantispam">classes/error.html</filename>
+		<filename plugin="cleantalkantispam">lib/Cleantalk.php</filename>
+		<filename plugin="cleantalkantispam">lib/CleantalkRequest.php</filename>
+		<filename plugin="cleantalkantispam">lib/CleantalkResponse.php</filename>
+		<filename plugin="cleantalkantispam">lib/CleantalkHelper.php</filename>
+		<filename plugin="cleantalkantispam">lib/CleantalkAPI.php</filename>
+		<filename plugin="cleantalkantispam">lib/CleantalkSFW.php</filename>
+		<filename plugin="cleantalkantispam">lib/sfw_die_page.html</filename>
+		<filename plugin="cleantalkantispam">lib/error.html</filename>
 		<filename plugin="cleantalkantispam">js/ct-settings.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-functions.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-external.js</filename>
