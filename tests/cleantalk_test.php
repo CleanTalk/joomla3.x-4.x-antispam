@@ -1,7 +1,10 @@
 <?php
 define('CLEANTALK_TEST_API_KEY', 'CleanTalk some api key');
-require_once 'lib/Cleantalk.php';
-require_once 'lib/CleantalkRequest.php';
+require_once 'lib/Cleantalk/Antispam/Cleantalk.php';
+require_once 'lib/Cleantalk/Antispam/CleantalkRequest.php';
+
+use Cleantalk\Antispam\Cleantalk as Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest as CleantalkRequest;
 
 class cleantalk_test extends \PHPUnit\Framework\TestCase {
 

@@ -1,4 +1,7 @@
 <?php
+
+namespace Cleantalk\Antispam;
+
 /**
  * Cleantalk base class
  *

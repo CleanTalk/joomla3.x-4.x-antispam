@@ -1,5 +1,7 @@
 <?php
 
+namespace Cleantalk\Common;
+
 /**
  * CleanTalk API class.
  * Mostly contains wrappers for API methods. Check and send mehods.
@@ -11,7 +13,7 @@
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/php-antispam
  */
-class CleantalkAPI
+class API
 {
 	/* Default params  */
 	const URL = 'https://api.cleantalk.org';

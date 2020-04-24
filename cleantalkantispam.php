@@ -17,20 +17,31 @@ jimport('joomla.plugin.plugin');
 jimport('joomla.application.application');
 jimport('joomla.application.component.helper');
 
-if (!defined('DS'))
-	define('DS', DIRECTORY_SEPARATOR);
-
 // Sessions
 define('APBCT_SESSION__LIVE_TIME', 86400*2);
 define('APBCT_SESSION__CHANCE_TO_CLEAN', 100);
 
-require_once(dirname(__FILE__) . DS . 'lib' . DS . 'Cleantalk.php');
-require_once(dirname(__FILE__) . DS . 'lib' . DS . 'CleantalkRequest.php');
-require_once(dirname(__FILE__) . DS . 'lib' . DS . 'CleantalkResponse.php');
-require_once(dirname(__FILE__) . DS . 'lib' . DS . 'CleantalkHelper.php');
-require_once(dirname(__FILE__) . DS . 'lib' . DS . 'CleantalkAPI.php');
-require_once(dirname(__FILE__) . DS . 'lib' . DS . 'CleantalkSFW.php');
-require_once(dirname(__FILE__) . DS . 'custom_config.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/Cleantalk.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/CleantalkRequest.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/CleantalkResponse.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Helper.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/API.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/SFW.php');
+require_once(dirname(__FILE__) . '/custom_config.php');
+
+
+//Antispam classes
+use Cleantalk\Antispam\Cleantalk as Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest as CleantalkRequest;
+use Cleantalk\Antispam\CleantalkRequest as CleantalkResponse;
+
+//Joomla classes
+use Cleantalk\ApbctJoomla\SFW as CleantalkSFW;
+
+//Common classes
+use Cleantalk\Common\API as CleantalkAPI;
+use Cleantalk\Common\Helper as CleantalkHelper;
+
 
 class plgSystemCleantalkantispam extends JPlugin
 {

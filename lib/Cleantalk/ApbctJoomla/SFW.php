@@ -1,4 +1,10 @@
 <?php
+
+namespace Cleantalk\ApbctJoomla;
+
+use Cleantalk\Common\Helper as CleantalkHelper;
+use Cleantalk\Common\API as CleantalkAPI;
+
 /*
  * CleanTalk SpamFireWall base class
  * Compatible only with Wordpress.
@@ -8,10 +14,8 @@
  * license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * see https://github.com/CleanTalk/php-antispam
 */
-if(!defined('DS'))
-    define('DS', DIRECTORY_SEPARATOR);
 
-class CleantalkSFW
+class SFW
 {
 	public $ip = 0;
 	public $ip_str = '';
@@ -31,7 +35,7 @@ class CleantalkSFW
 	public function __construct()
 	{
 		$this->table_prefix = "#__";
-		$this->db = JFactory::getDBO();
+		$this->db = \JFactory::getDBO();
 	}
 	
 	public function unversal_query($query, $straight_query = false)
@@ -162,7 +166,7 @@ class CleantalkSFW
 									gzclose($gf);
 
 									return CleantalkHelper::http__request(
-										JUri::root(), 
+										\JUri::root(), 
 										array(
 											'spbc_remote_call_token'  => md5($ct_key),
 											'spbc_remote_call_action' => 'sfw_update',
@@ -174,7 +178,7 @@ class CleantalkSFW
 								}
 							}else {
 								return CleantalkHelper::http__request(
-									JUri::root(), 
+									\JUri::root(), 
 									array(
 										'spbc_remote_call_token'  => md5($ct_key),
 										'spbc_remote_call_action' => 'sfw_update',
@@ -287,10 +291,10 @@ class CleantalkSFW
 	* Stops script executing
 	*/	
 	public function sfw_die($api_key, $cookie_prefix = '', $cookie_domain = ''){
-		
+
 		// File exists?
-		if(file_exists(dirname(__FILE__) . DS . 'sfw_die_page.html')){
-			$sfw_die_page = file_get_contents(dirname(__FILE__) . DS . 'sfw_die_page.html');
+		if(file_exists(dirname(__FILE__).'/../../sfw_die_page.html')){
+			$sfw_die_page = file_get_contents(dirname(__FILE__).'/../../sfw_die_page.html');
 		}else{
 			die("IP BLACKLISTED");
 		}

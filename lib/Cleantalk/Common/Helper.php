@@ -1,4 +1,7 @@
 <?php
+
+namespace Cleantalk\Common;
+
 /**
  * Cleantalk's hepler class
  * 
@@ -14,7 +17,7 @@
  *
  */
 
-class CleantalkHelper
+class Helper
 {
 	/**
 	 * Default user agent for HTTP requests
