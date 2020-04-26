@@ -84,11 +84,19 @@ class SFW
 	public function check_ip(){
 
 		foreach($this->ip_array as $current_ip){
-		
+
+			$current_ip_v4 = sprintf("%u", ip2long($current_ip));
+			for ( $needles = array(), $m = 15; $m <= 32; $m ++ ) {
+				$mask      = sprintf( "%u", ip2long( long2ip( - 1 << ( 32 - (int) $m ) ) ) );
+				$needles[] = bindec( decbin( $mask ) & decbin( $current_ip_v4 ) );
+			}
+			$needles = array_unique( $needles );
+
 			$query = "SELECT 
-				COUNT(network) AS cnt
+				COUNT(network) AS cnt, network, mask
 				FROM `".$this->table_prefix."cleantalk_sfw`
-				WHERE network = ".sprintf("%u", ip2long($current_ip))." & mask";
+				WHERE network IN (". implode( ',', $needles ) .");";
+				
 			$this->unversal_query($query,true);
 			$this->unversal_fetch();
 
