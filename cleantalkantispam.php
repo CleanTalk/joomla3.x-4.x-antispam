@@ -273,7 +273,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			// Getting key automatically
 			if (isset($_POST['get_auto_key']) && $_POST['get_auto_key'] === 'yes')
 			{
-				$output = CleantalkAPI::method__get_api_key(JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
+				$output = CleantalkAPI::method__get_api_key('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
 				// Checks if the user token is empty, then get user token by notice_paid_till()
 				if (empty($output['user_token']))
 				{
