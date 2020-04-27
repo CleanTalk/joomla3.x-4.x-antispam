@@ -209,7 +209,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			$result = null;
 			if ($key_is_valid){
 				$result      = CleantalkAPI::method__notice_paid_till($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
-				$ct_key_is_ok = empty($result['error']) ? 1 : 0;
+				$ct_key_is_ok = (empty($result['error']) && $result['valid']) ? 1 : 0;
 			}
 			
 			$save_params['ct_key_is_ok']            = $ct_key_is_ok;
