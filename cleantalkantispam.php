@@ -578,6 +578,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				$ct_key_is_ok       = ($config->get('ct_key_is_ok') && $config->get('ct_key_is_ok') == 1) ? 1 : 0;
 				$show_notice        = ($config->get('show_notice') && $config->get('show_notice') == 1) ? 1 : 0;
 				$trial              = ($config->get('trial') && $config->get('trial') == 1) ? 1 : 0;
+				$renew 				= ($config->get('renew') && $config->get('renew') == 1) ? 1 : 0;
 				$ct_ip_license      = $config->get('ip_license') ? $config->get('ip_license') : 0;
 				$ct_moderate_ip     = $config->get('moderate_ip') ? $config->get('moderate_ip') : 0;
 				$ct_user_token      = $config->get('user_token') ? $config->get('user_token') : '';
@@ -589,6 +590,9 @@ class plgSystemCleantalkantispam extends JPlugin
 
 				if ($show_notice == 1 && $trial == 1)
 					$notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_TRIAL', $config->get('user_token'));
+
+				if ($show_notice == 1 && $renew == 1)
+					$notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $config->get('user_token'));
 
 				$connection_reports = $config->get('connection_reports') ? json_decode(json_encode($config->get('connection_reports')), true) : array();
 				$adminmail          = JFactory::getConfig()->get('mailfrom');
