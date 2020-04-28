@@ -15,7 +15,7 @@
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkRequest.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkResponse.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Helper.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Api.php</filename>
+		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/API.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/SFW.php</filename>
 		<filename plugin="cleantalkantispam">lib/sfw_die_page.html</filename>
 		<filename plugin="cleantalkantispam">lib/error.html</filename>
