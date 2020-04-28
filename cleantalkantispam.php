@@ -1405,7 +1405,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		if (! is_null( $url_exclusion ) && !empty( $url_exclusion ) )
 		{
 			$url_exclusion = explode(',', $url_exclusion);
-			
+
 			// Not always we have 'HTTP_X_REQUESTED_WITH' :(
 			// @ToDo need to detect ajax request
 			$haystack = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == "XMLHttpRequest" && !empty($_SERVER['HTTP_REFERER'])
@@ -1421,7 +1421,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						$url_check = false;
 					}
 				} else {
-					if( $_SERVER['SERVER_NAME'] . $haystack === $value ) { // Simple string checking
+					if( strpos($haystack, $value) !== false) { // Simple string checking
 						$url_check = false;
 					}
 				}
