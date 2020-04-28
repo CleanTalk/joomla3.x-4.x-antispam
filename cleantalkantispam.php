@@ -1402,8 +1402,10 @@ class plgSystemCleantalkantispam extends JPlugin
 		// URL Exclusions
 		$url_check = true;
 		$url_exclusion = $this->params->get('url_exclusions');
-		if (! is_null( $url_exclusion ) )
+		if (! is_null( $url_exclusion ) && !empty( $url_exclusion ) )
 		{
+			$url_exclusion = explode(',', $url_exclusion);
+			
 			// Not always we have 'HTTP_X_REQUESTED_WITH' :(
 			// @ToDo need to detect ajax request
 			$haystack = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == "XMLHttpRequest" && !empty($_SERVER['HTTP_REFERER'])
