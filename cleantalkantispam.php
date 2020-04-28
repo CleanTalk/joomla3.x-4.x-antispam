@@ -27,7 +27,6 @@ require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/CleantalkResponse.php'
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Helper.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/API.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/SFW.php');
-require_once(dirname(__FILE__) . '/custom_config.php');
 
 
 //Antispam classes
@@ -246,11 +245,6 @@ class plgSystemCleantalkantispam extends JPlugin
 	public function onAfterInitialise()
 	{
 		$app = JFactory::getApplication();
-
-		// Set exclusions
-		CleantalkCustomConfig::$cleantalk_url_exclusions    =  $this->params->get('url_exclusions');
-		CleantalkCustomConfig::$cleantalk_fields_exclusions =  $this->params->get('fields_exclusions');
-		CleantalkCustomConfig::$cleantalk_roles_exclusions  =  $this->params->get('roles_exclusions');
 
 		if (!$app->isAdmin())
 		{
@@ -1407,7 +1401,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 		// URL Exclusions
 		$url_check = true;
-		$url_exclusion = CleantalkCustomConfig::get_url_exclusions();
+		$url_exclusion = $this->params->get('url_exclusions');
 		if (! is_null( $url_exclusion ) )
 		{
 			// Not always we have 'HTTP_X_REQUESTED_WITH' :(
@@ -1437,7 +1431,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		// END URL Exclusions
 
 		// Roles Exclusions
-		$roles = CleantalkCustomConfig::get_roles_exclusions();
+		$roles = $this->params->get('roles_exclusions');
 		if ( ! is_null( $roles ) ) {
 
 			$set_check = true;

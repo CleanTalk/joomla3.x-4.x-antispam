@@ -24,7 +24,6 @@
 		<filename plugin="cleantalkantispam">js/ct-external.js</filename>
 		<filename plugin="cleantalkantispam">css/ct-settings.css</filename>
 		<filename plugin="cleantalkantispam">img/preloader.gif</filename>
-		<filename plugin="cleantalkantispam">custom_config.php</filename>
 		<folder>sql/mysql</folder>
     </files>
     <languages folder="language">
