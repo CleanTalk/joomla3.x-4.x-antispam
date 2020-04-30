@@ -2064,21 +2064,11 @@ class plgSystemCleantalkantispam extends JPlugin
 				}
 			}
 
-			$save_params = array();
-
 			if ($this->params->get('sfw_last_check') && time() - $this->params->get('sfw_last_check') > 86400)
-			{
-				$sfw->sfw_update($this->params->get('apikey'));
-				$save_params['sfw_last_check'] = time();
-			}
+				$this->sfw_update($this->params->get('apikey'));
 
 			if ($this->params->get('sfw_last_send_log') && time() - $this->params->get('sfw_last_send_log') > 3600)
-			{
-				$sfw->send_logs($this->params->get('apikey'));
-				$save_params['sfw_last_send_log'] = time();
-			}
-
-			$this->saveCTConfig($save_params);
+				$this->sfw_send_logs($this->params->get('apikey'));
 		}
 	}
 
