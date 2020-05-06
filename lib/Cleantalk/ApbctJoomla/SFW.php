@@ -95,7 +95,8 @@ class SFW
 			$query = "SELECT 
 				COUNT(network) AS cnt, network, mask
 				FROM `".$this->table_prefix."cleantalk_sfw`
-				WHERE network IN (". implode( ',', $needles ) .");";
+				WHERE network IN (". implode( ',', $needles ) .")
+				AND network = " . $current_ip_v4 . " & mask;";
 				
 			$this->unversal_query($query,true);
 			$this->unversal_fetch();
