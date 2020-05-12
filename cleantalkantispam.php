@@ -2035,34 +2035,8 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		if (!$app->isAdmin() && $this->params->get('other_settings') && in_array('sfw_enable', $this->params->get('other_settings')) && $_SERVER["REQUEST_METHOD"] == 'GET')
 		{
-			$is_sfw_check  = true;
-			$sfw           = new CleantalkSFW();
-			$sfw->ip_array = (array) CleantalkSFW::ip_get(array('real'), true);
-
-			foreach ($sfw->ip_array as $key => $value)
-			{
-				if (isset($_COOKIE['ct_sfw_pass_key']) && $_COOKIE['ct_sfw_pass_key'] == md5($value . $this->params->get('apikey')))
-				{
-					$is_sfw_check = false;
-
-					if (isset($_COOKIE['ct_sfw_passed']))
-					{
-						@setcookie('ct_sfw_passed'); //Deleting cookie
-						$sfw->sfw_update_logs($value, 'passed');
-					}
-				}
-			}
-			unset($key, $value);
-
-			if ($is_sfw_check)
-			{
-				$sfw->check_ip();
-				if ($sfw->result)
-				{
-					$sfw->sfw_update_logs($sfw->blocked_ip, 'blocked');
-					$sfw->sfw_die($this->params->get('apikey'));
-				}
-			}
+			$sfw = new CleantalkSFW($this->params->get('apikey'));
+			$sfw->check_ip();
 
 			if ($this->params->get('sfw_last_check') && time() - $this->params->get('sfw_last_check') > 86400)
 				$this->sfw_update($this->params->get('apikey'));
@@ -2075,17 +2049,17 @@ class plgSystemCleantalkantispam extends JPlugin
 	private function sfw_update($access_key) {
 
 		$save_params = array();
-	    $sfw         = new CleantalkSFW();
+	    $sfw         = new CleantalkSFW($this->params->get('apikey'));
 
 	    $file_urls = isset($_GET['file_urls']) ? urldecode( $_GET['file_urls'] ) : null;
 	    $file_urls = isset($file_urls) ? explode(',', $file_urls) : null;
 
 	    if (!$file_urls) {
-			$result = $sfw->sfw_update($access_key, null);
+			$result = $sfw->sfw_update();
 	    } else {
 			if (is_array($file_urls) && count($file_urls)) {
 
-				$result = $sfw->sfw_update($access_key, $file_urls[0]);
+				$result = $sfw->sfw_update($file_urls[0]);
 
 				if(empty($result['error'])){
 
@@ -2116,9 +2090,9 @@ class plgSystemCleantalkantispam extends JPlugin
 	}
 	private function sfw_send_logs($access_key) {
 
-		$sfw         = new CleantalkSFW();
+		$sfw         = new CleantalkSFW($this->params->get('apikey'));
 		$save_params = array();
-		$result = $sfw->send_logs($access_key);
+		$result = $sfw->send_logs();
 		$save_params['sfw_last_send_log']    = time();
 		$this->saveCTConfig($save_params);
 
@@ -2178,8 +2152,8 @@ class plgSystemCleantalkantispam extends JPlugin
 						}
 						elseif ($remote_action == 'sfw_send_logs')
 						{
-							$sfw                              = new CleantalkSFW();
-							$result                           = $sfw->send_logs($this->params->get('apikey'));
+							$sfw                              = new CleantalkSFW($this->params->get('apikey'));
+							$result                           = $sfw->send_logs();
 							$save_params['sfw_last_send_log'] = time();
 							$this->saveCTConfig($save_params);
 							die(empty($result['error']) ? 'OK' : 'FAIL ' . json_encode(array('error' => $result['error_string'])));
