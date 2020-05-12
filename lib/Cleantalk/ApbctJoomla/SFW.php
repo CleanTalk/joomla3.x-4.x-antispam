@@ -35,7 +35,7 @@ class SFW
 		$this->api_key = $api_key;
 	}
 	
-	public function unversal_query($query, $straight_query = false)
+	private function unversal_query($query, $straight_query = false)
 	{
 		if($straight_query){
 			$this->db_result = $this->db->setQuery($query);
@@ -45,12 +45,12 @@ class SFW
 			$this->query = $query;
 	}
 	
-	public function unversal_fetch()
+	private function unversal_fetch()
 	{
 		$this->db_result_data = $this->db->loadAssoc();
 	}
 	
-	public function unversal_fetch_all()
+	private function unversal_fetch_all()
 	{
 		$this->db_result_data = $this->db->loadAssocList();
 	}
