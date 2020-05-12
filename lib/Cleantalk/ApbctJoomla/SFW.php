@@ -93,17 +93,25 @@ class SFW
 			$needles = array_unique( $needles );
 
 			$query = "SELECT 
-				COUNT(network) AS cnt, network, mask
+				network, mask, status
 				FROM `".$this->table_prefix."cleantalk_sfw`
 				WHERE network IN (". implode( ',', $needles ) .")
-				AND network = " . $current_ip_v4 . " & mask;";
-				
+				AND network = " . $current_ip_v4 . " & mask
+				ORDER BY status DESC;";
+
 			$this->unversal_query($query,true);
 			$this->unversal_fetch();
 
-			if($this->db_result_data['cnt']){
-				$this->result = true;
-				$this->blocked_ip = $current_ip;
+			if (count($this->db_result_data)) {
+				foreach ($this->db_result_data as $sfw_item) {
+					if ($sfw_item['status'] == 1) {
+						$this->result = true;
+						$this->passed_ip = $current_ip;						
+					} else {
+						$this->result = false;
+						$this->blocked_ip = $current_ip;
+					}
+				}
 			}else{
 				$this->passed_ip = $current_ip;
 			}
@@ -229,10 +237,11 @@ class SFW
 									// Cast result to int
 									$ip   = preg_replace('/[^\d]*/', '', $entry[0]);
 									$mask = preg_replace('/[^\d]*/', '', $entry[1]);
+									$private = isset($entry[2]) ? $entry[2] : 0;
 	
 									if(!$ip || !$mask) continue;
 	
-									$values[] = '('. $ip .','. $mask .')';
+									$values[] = '('. $ip .','. $mask .', '. $private .')';
 	
 								}
 

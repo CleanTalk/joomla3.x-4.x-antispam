@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS `#__cleantalk_sfw` (
   `network` int(10) unsigned NOT NULL,
   `mask` int(10) unsigned NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 0,
   KEY `network` (`network`)
 );
 CREATE TABLE IF NOT EXISTS `#__cleantalk_sfw_logs` (
