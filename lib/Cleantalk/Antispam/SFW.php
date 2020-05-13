@@ -104,7 +104,7 @@ abstract class SFW
 	/*
 	*	Add entry to SFW log
 	*/
-	private function sfw_update_logs($ip, $desicion) {
+	protected function sfw_update_logs($ip, $desicion) {
 		
 		if($ip === NULL || $desicion === NULL) {
 			return;
