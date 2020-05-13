@@ -1,0 +1,1 @@
+ALTER TABLE `#__cleantalk_sfw` ADD status tinyint(1) NOT NULL DEFAULT 0 AFTER `mask`;
