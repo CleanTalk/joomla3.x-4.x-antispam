@@ -324,7 +324,7 @@ class SFW
 		$sfw_die_page = str_replace('{REQUEST_URI}', $_SERVER['REQUEST_URI'], $sfw_die_page);
 		$sfw_die_page = str_replace('{SFW_COOKIE}', md5($this->ips_array['real']['ip'].$this->api_key), $sfw_die_page);
 		if (isset($this->ips_array['test']))
-			$sfw_die_page = str_replace('{TEST_IP}', 'Tested IP <b>' . $this->ips_array['test']['ip'] . '</b> - ' . ($this->ips_array['test']['in_list']) ? '<span style = "color:red">In list</span>': '<span style = "color:green">Not in list</span>', $sfw_die_page);
+			$sfw_die_page = str_replace('{TEST_IP}', 'Tested IP <b>' . $this->ips_array['test']['ip'] . '</b> - ' . ($this->ips_array['test']['in_list'] ? '<span style = "color:red">In list</span>': '<span style = "color:green">Not in list</span>'), $sfw_die_page);
 		
 		// Headers
 		if(headers_sent() === false){
