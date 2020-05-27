@@ -156,7 +156,7 @@ class SFW
 
 		if(!$file_url){
 
-			$result = CleantalkAPI::method__get_2s_blacklists_db($this->api_key, 'multifiles');
+			$result = CleantalkAPI::method__get_2s_blacklists_db($this->api_key, 'multifiles', '2_0');
 
 			if(empty($result['error'])){
 			

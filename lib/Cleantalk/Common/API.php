@@ -29,12 +29,13 @@ class API
 	 *
 	 * @return mixed|string|array('error' => STRING)
 	 */
-	static public function method__get_2s_blacklists_db($api_key, $out = null, $do_check = true)
+	static public function method__get_2s_blacklists_db($api_key, $out = null, $version = '1_0', $do_check = true)
 	{
 		$request = array(
 			'method_name' => '2s_blacklists_db',
 			'auth_key'    => $api_key,
 			'out'         => $out,
+			'version'	  => $version,
 		);
 		
 		$result = static::send_request($request);
