@@ -1622,7 +1622,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			'REFFERRER_PREVIOUS'     => $this->ct_getcookie('apbct_prev_referer'),
 			'fields_number'          => sizeof($_POST),
 			'cms_lang'               => $cms_lang,
-			'apbct_visible_fields'   => !empty($_COOKIE['ct_visible_fields']) ? ct_visibile_fields__process($_COOKIE['ct_visible_fields'])  : null,
+			'apbct_visible_fields'   => !empty($_COOKIE['ct_visible_fields']) ? $this->ct_visibile_fields__process($_COOKIE['ct_visible_fields'])  : null,
 		);
 
 		return json_encode($sender_info);
