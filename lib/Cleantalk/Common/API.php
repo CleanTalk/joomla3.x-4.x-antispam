@@ -618,6 +618,9 @@ class API
 		
 		// Possibility to switch API url
 		$url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $url;
+
+		//Modify URL for new SFW whitelists feature
+		$url = $data['method_name'] == '2s_blacklists_db' ? $url . '/2.0' : $url;
 		
 		if(function_exists('curl_init')){
 			

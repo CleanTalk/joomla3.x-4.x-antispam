@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       1.4
+ * @version       1.5
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -24,6 +24,7 @@ define('APBCT_SESSION__CHANCE_TO_CLEAN', 100);
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/Cleantalk.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/CleantalkRequest.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/CleantalkResponse.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/SFW.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Helper.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/API.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/SFW.php');
@@ -48,7 +49,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 * Plugin version string for server
      * @since         1.0
 	 */
-	const ENGINE = 'joomla34-14';
+	const ENGINE = 'joomla34-15';
 
 	/*
 	 * Flag marked JComments form initilization.
@@ -1621,9 +1622,37 @@ class plgSystemCleantalkantispam extends JPlugin
 			'REFFERRER_PREVIOUS'     => $this->ct_getcookie('apbct_prev_referer'),
 			'fields_number'          => sizeof($_POST),
 			'cms_lang'               => $cms_lang,
+			'apbct_visible_fields'   => !empty($_COOKIE['ct_visible_fields']) ? ct_visibile_fields__process($_COOKIE['ct_visible_fields'])  : null,
 		);
 
 		return json_encode($sender_info);
+	}
+
+	/**
+	 * Process visible fields for specific form to match the fields from request
+	 * 
+	 * @param string $visible_fields
+	 * 
+	 * @return string
+	 */
+	function ct_visibile_fields__process($visible_fields) {
+	    if(strpos($visible_fields, 'wpforms') !== false){
+			$visible_fields = preg_replace(
+				array('/\[/', '/\]/'),
+				'',
+				str_replace(
+					'][',
+					'_',
+					str_replace(
+						'wpforms[fields]',
+						'',
+						$visible_fields
+					)
+				)
+			);
+		}
+		
+		return $visible_fields;
 	}
 
 	/*

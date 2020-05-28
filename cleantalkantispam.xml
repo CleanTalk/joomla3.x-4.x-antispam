@@ -7,13 +7,14 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>1.4</version>
+    <version>1.5</version>
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
     <files>
 		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/Cleantalk.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkRequest.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkResponse.php</filename>
+		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/SFW.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Helper.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/API.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/SFW.php</filename>
@@ -90,17 +91,23 @@
     <install>
         <sql>
             <file driver="mysql" charset="utf8">sql/mysql/install.mysql.utf8.sql</file>
+            <file driver="mariadb" charset="utf8">sql/mariadb/install.mariadb.utf8.sql</file>
+            <file driver="sqlsrv" charset="utf8">sql/sqlsrv/install.sqlsrv.utf8.sql</file>
         </sql>
     </install>
     <uninstall>
         <sql>
             <file driver="mysql" charset="utf8">sql/mysql/uninstall.mysql.utf8.sql</file>
+            <file driver="mariadb" charset="utf8">sql/mariadb/uninstall.mariadb.utf8.sql</file>
+            <file driver="sqlsrv" charset="utf8">sql/sqlsrv/uninstall.sqlsrv.utf8.sql</file>
         </sql>
     </uninstall>
 	<update> 
       <schemas>
          <schemapath type="mysql">sql/mysql/updates</schemapath> 
-      </schemas> 
+         <schemapath type="mariadb">sql/mariadb/updates</schemapath> 
+         <schemapath type="sqlsrv">sql/sqlsrv/updates</schemapath>
+      </schemas>
    </update>
 	<updateservers>
 		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla3.x-4.x-antispam/master/plugin-updates.xml</server>
