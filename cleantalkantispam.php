@@ -1115,7 +1115,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	public function onJCommentsCommentBeforeAdd(&$comment)
 	{
 
-		if (!$this->params->get('comments_and_messages') && !in_array('jcomments_check_comments', $this->params->get('comments_and_messages')))
+		if (!$this->params->get('comments_and_messages') || !in_array('jcomments_check_comments', $this->params->get('comments_and_messages')))
 			return false;
 		$session = JFactory::getSession();
 
@@ -1187,6 +1187,10 @@ class plgSystemCleantalkantispam extends JPlugin
 					}
 					$comment->published = false;
 
+				} else {
+					if ($ctResponse['stop_words'] === 1) {
+						$comment->published = false;
+					}
 				}
 			}
 
