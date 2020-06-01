@@ -1116,7 +1116,8 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 
 		if (!$this->params->get('comments_and_messages') || !in_array('jcomments_check_comments', $this->params->get('comments_and_messages')))
-			return false;
+			return true;
+		
 		$session = JFactory::getSession();
 
 		// set new time because onJCommentsFormAfterDisplay worked only once
