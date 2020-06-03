@@ -852,7 +852,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				$app->input->get('option') == 'com_acymailing'
             )
 			{
-				$ct_temp_msg_data = CleantalkHelper::get_fields_any($_POST);
+				$ct_temp_msg_data = CleantalkHelper::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
 				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
 				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
