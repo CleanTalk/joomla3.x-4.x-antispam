@@ -1414,20 +1414,16 @@ class plgSystemCleantalkantispam extends JPlugin
 
 			// Not always we have 'HTTP_X_REQUESTED_WITH' :(
 			// @ToDo need to detect ajax request
-			$haystack = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == "XMLHttpRequest" && !empty($_SERVER['HTTP_REFERER'])
-				? $_SERVER['HTTP_REFERER']
-				: $_SERVER['REQUEST_URI'];
 
 			// @ToDo implement support for a regexp
 			$check_type = 0;
 			foreach ($url_exclusion as $key => $value) {
-
 				if( $check_type == 1 ) { // If RegExp
 					if( @preg_match( '/' . $value . '/', $_SERVER['REQUEST_URI'] ) ) {
 						$url_check = false;
 					}
 				} else {
-					if( strpos($haystack, $value) !== false) { // Simple string checking
+					if( strpos($_SERVER['HTTP_REFERER'], $value) !== false) { // Simple string checking
 						$url_check = false;
 					}
 				}
