@@ -439,18 +439,6 @@ class Helper
 			'ct_action',
 			'ct_method',
 		);
-	    if( is_string($fields_exclusions) && !empty($fields_exclusions) ) {
-	      $fields_exclusions = explode(",",$fields_exclusions);
-	      if (is_array($fields_exclusions) && !empty($fields_exclusions)) {
-		      foreach($fields_exclusions as &$fields_exclusion) {
-		        if( preg_match('/\[*\]/', $fields_exclusion ) ) {
-		          // I have to do this to support exclusions like 'submitted[name]'
-		          $fields_exclusion = str_replace( array( '[', ']' ), array( '_', '' ), $fields_exclusion );
-		        }
-		      }
-		      $skip_fields_with_strings = array_merge($skip_fields_with_strings, $fields_exclusions);	      	
-	      }        
-	    }
 		// Reset $message if we have a sign-up data
 		$skip_message_post = array(
 			'edd_action', // Easy Digital Downloads
@@ -477,7 +465,19 @@ class Helper
 
 				if (!is_array($value) && !is_object($value))
 				{
-
+					//Add custom exclusions
+				    if( is_string($fields_exclusions) && !empty($fields_exclusions) ) {
+				      $fields_exclusions = explode(",",$fields_exclusions);
+				      if (is_array($fields_exclusions) && !empty($fields_exclusions)) {
+					      foreach($fields_exclusions as &$fields_exclusion) {
+					        if( preg_match('/\[*\]/', $fields_exclusion ) ) {
+					          // I have to do this to support exclusions like 'submitted[name]'
+					          $fields_exclusion = str_replace( array( '[', ']' ), array( '_', '' ), $fields_exclusion );
+					        }
+					      }
+					      $skip_fields_with_strings = array_merge($skip_fields_with_strings, $fields_exclusions);	      	
+				      }        
+				    }
 					if (in_array($key, $skip_params, true) && $key != 0 && $key != '' || preg_match("/^ct_checkjs/", $key))
 						$contact = false;
 
@@ -550,7 +550,7 @@ class Helper
 					$prev_name_original = $prev_name;
 					$prev_name          = ($prev_name === '' ? $key . '_' : $prev_name . $key . '_');
 
-					$temp = self::get_fields_any($value, '', $message, $email, $nickname, $subject, $contact, $prev_name);
+					$temp = self::get_fields_any($value, $fields_exclusions, $message, $email, $nickname, $subject, $contact, $prev_name);
 
 					$message  = $temp['message'];
 					$email    = ($temp['email'] ? $temp['email'] : null);
