@@ -1314,6 +1314,13 @@ class plgSystemCleantalkantispam extends JPlugin
 					}
 					else
 					{
+						// JoomShopping integration
+						// @ToDo make it better
+						$app = JFactory::getApplication();
+						if( 'registersave' == $app->input->get('task') )
+						{
+							die($ctResponse['comment']);
+						}
 						$session->set('ct_register_form_data', $post);
 
 						$app = JFactory::getApplication();
