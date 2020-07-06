@@ -839,6 +839,24 @@ class plgSystemCleantalkantispam extends JPlugin
 				$sender_nickname = JFactory::getUser()->username;
 				$message         = isset($_POST['comment']) ? $_POST['comment'] : '';
 			}
+			// SP Builder Forms integration
+			elseif ( $app->input->get('option') == 'com_sppagebuilder' )
+			{
+				$post_processed = array();
+				foreach( $_POST['data'] as $item => $value ) {
+					$post_processed[$value['name']] = $value['value'];
+				}
+				$ct_temp_msg_data = CleantalkHelper::get_fields_any($post_processed, $this->params->get('fields_exclusions'));
+				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
+				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
+				$contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
+				$message          = ($ct_temp_msg_data['message'] ? $ct_temp_msg_data['message'] : array());
+
+				if ($subject != '')
+					$message = array_merge(array('subject' => $subject), $message);
+				$message = json_encode( $message );
+			}
 			
 			// Genertal test for any forms or form with custom fields
 			elseif (
