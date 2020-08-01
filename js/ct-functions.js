@@ -81,6 +81,10 @@ function ct_ready(){
 	setTimeout(function(){
 		for(var i = 0; i < document.forms.length; i++){
 			var form = document.forms[i];
+
+			if (!form.name && !form.id) {
+				continue;
+			}
 			
 			form.onsubmit_prev = form.onsubmit;
 			form.onsubmit = function(event){
