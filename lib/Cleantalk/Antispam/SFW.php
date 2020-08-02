@@ -208,7 +208,7 @@ abstract class SFW
 							
 							for($count_result = 0; !gzeof($gf); ) {
 	
-								$query = "INSERT INTO `".$this->table_prefix."cleantalk_sfw` VALUES %s";
+								$query = "INSERT INTO ".$this->table_prefix."cleantalk_sfw VALUES %s";
 	
 								for($i=0, $values = array(); 5000 !== $i && !gzeof($gf); $i++, $count_result++) {
 	
