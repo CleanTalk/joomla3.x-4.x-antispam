@@ -133,11 +133,13 @@ abstract class SFW
 	* 
 	* return mixed true || array('error' => true, 'error_string' => STRING)
 	*/
-	public function sfw_update($file_url = null) {
+    public function sfw_update( $file_url_hash = null, $file_url_num = null ) {
 
-		if(!$file_url) {
+        if( ! isset( $file_url_hash, $file_url_num ) ){
 
 			$result = CleantalkAPI::method__get_2s_blacklists_db($this->api_key, 'multifiles', '2_0');
+
+            sleep(3);
 
 			if(empty($result['error'])) {
 			
@@ -159,10 +161,16 @@ abstract class SFW
 
 								if ($gf) {
 
-									$file_urls = array();
+                                    $file_url_nums = array();
 
-									while(!gzeof($gf))
-										$file_urls[] = trim(gzgets($gf, 1024));			
+                                    while(!gzeof($gf)){
+                                        $file_url       = trim( gzgets( $gf, 1024 ) );
+                                        $file_url_nums[] = preg_replace( '@(https://.*)\.(\d*)(\.csv\.gz)@', '$2', $file_url );
+
+                                        if( ! $file_url_hash )
+                                            $file_url_hash = preg_replace( '@(https://.*)\.(\d*)(\.csv\.gz)@', '$1', $file_url );
+
+                                    }
 
 									gzclose($gf);
 
@@ -172,23 +180,14 @@ abstract class SFW
 											'spbc_remote_call_token'  => md5($this->api_key),
 											'spbc_remote_call_action' => 'sfw_update',
 											'plugin_name'             => 'apbct',
-											'file_urls'               => implode(',', $file_urls),
+                                            'file_url_hash'           => $file_url_hash,
+                                            'file_url_nums'           => implode(',', $file_url_nums),
 										),
 										$pattenrs
 									);								
 								}
-							}else {
-								return CleantalkHelper::http__request(
-									$base_host_url, 
-									array(
-										'spbc_remote_call_token'  => md5($this->api_key),
-										'spbc_remote_call_action' => 'sfw_update',
-										'plugin_name'             => 'apbct',
-										'file_urls'               => $result['file_url'],
-									),
-									$pattenrs
-								);								
-							}
+							}else
+                                return array('error' => 'WRONG MULTIFILE NAME');
 						} else
 							return array('error' => 'ERROR_ALLOW_URL_FOPEN_DISABLED');
 					}				
@@ -196,8 +195,10 @@ abstract class SFW
 					return array('error' => 'BAD_RESPONSE');
 			} else
 				return $result;
-		} else {
-						
+		} elseif( isset( $file_url_hash, $file_url_num ) ) {
+
+            $file_url = $file_url_hash . '.' . $file_url_num . '.csv.gz';
+
 			if(CleantalkHelper::http__request($file_url, array(), 'get_code') === 200) { // Check if it's there
 		
 					$gf = gzopen($file_url, 'rb');

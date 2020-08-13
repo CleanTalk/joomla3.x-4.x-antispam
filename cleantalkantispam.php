@@ -2106,41 +2106,40 @@ class plgSystemCleantalkantispam extends JPlugin
 		$save_params = array();
 	    $sfw         = new CleantalkSFW($this->params->get('apikey'));
 
-	    $file_urls = isset($_GET['file_urls']) ? urldecode( $_GET['file_urls'] ) : null;
-	    $file_urls = isset($file_urls) ? explode(',', $file_urls) : null;
+        $file_url_hash = isset($_GET['file_url_hash']) ? urldecode($_GET['file_url_hash']) : null;
+        $file_url_nums = isset($_GET['file_url_nums']) ? urldecode($_GET['file_url_nums']) : null;
+        $file_url_nums = isset($file_url_nums) ? explode(',', $file_url_nums) : null;
 
-	    if (!$file_urls) {
+        if( ! isset( $file_url_hash, $file_url_nums ) ){
 			$result = $sfw->sfw_update();
-	    } else {
-			if (is_array($file_urls) && count($file_urls)) {
+	    }elseif( $file_url_hash && is_array( $file_url_nums ) && count( $file_url_nums ) ){
+            $result = $sfw->sfw_update( $file_url_hash, $file_url_nums[0] );
 
-				$result = $sfw->sfw_update($file_urls[0]);
+            if(empty($result['error'])){
 
-				if(empty($result['error'])){
+                array_shift($file_url_nums);
 
-					array_shift($file_urls);	
-
-					if (count($file_urls)) {
-						CleantalkHelper::http__request(
-							JUri::root(), 
-							array(
-								'spbc_remote_call_token'  => md5($access_key),
-								'spbc_remote_call_action' => 'sfw_update',
-								'plugin_name'             => 'apbct',
-								'file_urls'               => implode(',', $file_urls),
-							),
-							array('get', 'async')
-						);							
-					} else {
-						//Files array is empty update sfw time
-						$save_params['sfw_last_check']    = time();
-						$this->saveCTConfig($save_params);
-					}
-				} else 
-					return array('error' => 'ERROR_WHILE_INSERTING_SFW_DATA');
-			}	    	
+                if (count($file_url_nums)) {
+                    CleantalkHelper::http__request(
+                        JUri::root(),
+                        array(
+                            'spbc_remote_call_token'  => md5($access_key),
+                            'spbc_remote_call_action' => 'sfw_update',
+                            'plugin_name'             => 'apbct',
+                            'file_url_hash'           => $file_url_hash,
+                            'file_url_nums'           => implode(',', $file_url_nums),
+                        ),
+                        array('get', 'async')
+                    );
+                } else {
+                    //Files array is empty update sfw time
+                    $save_params['sfw_last_check']    = time();
+                    $this->saveCTConfig($save_params);
+                }
+            } else
+                return array('error' => 'ERROR_WHILE_INSERTING_SFW_DATA');
 	    }
-	    return $result;
+	    return true;
 	    
 	}
 	private function sfw_send_logs($access_key) {
@@ -2150,7 +2149,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		$result = $sfw->send_logs();
 		$save_params['sfw_last_send_log']    = time();
 		$this->saveCTConfig($save_params);
-
+        return true;
 	}
 	private function saveCTConfig($params)
 	{
@@ -2180,7 +2179,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			if (array_key_exists($remote_action, $remote_calls_config))
 			{
 
-				if (time() - $remote_calls_config[$remote_action]['last_call'] > self::CT_REMOTE_CALL_SLEEP || ($remote_action == 'sfw_update' && isset($_GET['file_urls'])))
+				if (time() - $remote_calls_config[$remote_action]['last_call'] > self::CT_REMOTE_CALL_SLEEP || ($remote_action == 'sfw_update' && isset($_GET['file_url_hash'])))
 				{
 					$remote_calls_config[$remote_action]['last_call'] = time();
 					$save_params['remote_calls']                      = $remote_calls_config;
