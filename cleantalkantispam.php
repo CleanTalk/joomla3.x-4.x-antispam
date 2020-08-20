@@ -270,12 +270,16 @@ class plgSystemCleantalkantispam extends JPlugin
 			{
 				$output = CleantalkAPI::method__get_api_key('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
 				// Checks if the user token is empty, then get user token by notice_paid_till()
-				if (empty($output['user_token']))
-				{
-					$result_tmp           = CleantalkAPI::method__notice_paid_till($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
-					$output['user_token'] = $result_tmp['user_token'];
+				if( empty( $output['user_token'] ) && ! empty( $output['auth_key'] ) ){
+					
+					$result_tmp = CleantalkAPI::method__notice_paid_till($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
+					
+					if( empty( $result_tmp['error'] ) )
+						$output['user_token'] = $result_tmp['user_token'];
+					
 				}
 			}
+
 
 			// Check spam users
 			if (isset($_POST['check_type']) && $_POST['check_type'] === 'users')
@@ -861,8 +865,8 @@ class plgSystemCleantalkantispam extends JPlugin
 			// Genertal test for any forms or form with custom fields
 			elseif (
 			    $this->params->get('form_protection') &&
-                in_array('check_custom_contact_forms', $this->params->get('form_protection')) ||
-                in_array('check_external', $this->params->get('form_protection')) ||
+			    ( $this->params->get('form_protection') && in_array('check_custom_contact_forms', $this->params->get('form_protection')) ) ||
+			    ( $this->params->get('form_protection') && in_array('check_external', $this->params->get('form_protection')) )||
 				$app->input->get('option') == 'com_rsform' ||
 				$app->input->get('option') == 'com_virtuemart' ||
 				$app->input->get('option') == 'com_baforms' ||
