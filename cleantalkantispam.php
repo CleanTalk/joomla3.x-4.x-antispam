@@ -800,21 +800,41 @@ class plgSystemCleantalkantispam extends JPlugin
 					$sender_nickname = $_POST["vcontact_name"];
 				$post_info['comment_type'] = 'contact_form_joomla_vtem';
 				
-			//BreezingForms
-			}elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit'){
-				
-				$ct_temp_msg_data = CleantalkHelper::get_fields_any($_POST, $this->params->get('fields_exclusions'));
-				
-				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
-				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
-				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
-				$contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
-				$message          = ($ct_temp_msg_data['message'] ? $ct_temp_msg_data['message'] : array());
-				
-				if ($subject != '')
-					$message = array_merge(array('subject' => $subject), $message);
-				$message = json_encode( $message );
-				
+			} //BreezingForms
+			elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit')
+			{
+
+				foreach ($_POST as $v)
+				{
+					if (is_array($v))
+					{
+						foreach ($v as $k => $v2)
+						{
+							if (CleantalkHelper::validEmail($v2))
+							{
+								$sender_email = $v2;
+							}
+							else
+							{
+								if (is_int($k))
+								{
+									$message .= $v2 . "\n";
+								}
+							}
+						}
+					}
+					else
+					{
+						if (CleantalkHelper::validEmail($v))
+						{
+							$sender_email = $v;
+						}
+						else
+						{
+							//$contact_message.=$v."\n";
+						}
+					}
+				}
 				$post_info['comment_type'] = 'contact_form_joomla_breezing';
 			}
 			elseif ($app->input->get('option') == 'com_virtuemart' && $app->input->get('task') == 'review')
@@ -868,25 +888,22 @@ class plgSystemCleantalkantispam extends JPlugin
 			}
 			
 			if (
-				(
-					empty( $_FILES ) ||
-					( ! empty( $_FILES ) && empty( $_FILES[ key($_FILES) ]['name'] ) ) ||
-					( ! empty( $_FILES ) && ! empty( $_FILES[ key($_FILES) ]['name'] ) && empty( $_FILES[ key($_FILES) ]['name'][0] ) )
-				) &&
-				! empty( $_POST ) &&
-				! $this->exceptionList() &&
-				(
-					! empty( $sender_email ) ||
-					( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
-				) &&
+                  empty( $_FILES ) &&
+                ! empty( $_POST ) &&
+			    ! $this->exceptionList() &&
+                (
+                	! empty( $sender_email ) ||
+	                ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
+                ) &&
 				( $this->params->get( 'form_protection' ) &&
-				  (
-					  in_array( 'check_custom_contact_forms', $this->params->get( 'form_protection' ) ) ||
-					  in_array( 'check_external',             $this->params->get( 'form_protection' ) ) ||
-					  in_array( 'check_contact_forms',        $this->params->get( 'form_protection' ) )
-				  )
+					(
+					    in_array( 'check_custom_contact_forms', $this->params->get( 'form_protection' ) ) ||
+					    in_array( 'check_external',             $this->params->get( 'form_protection' ) ) ||
+					    in_array( 'check_contact_forms',        $this->params->get( 'form_protection' ) )
+					)
 				)
-			){
+            )
+			{
 			    if(
                     $task_cmd === 'registration.register' &&
 			        $this->params->get('form_protection') &&
