@@ -868,11 +868,6 @@ class plgSystemCleantalkantispam extends JPlugin
 			}
 			
 			if (
-				(
-					empty( $_FILES ) ||
-					( ! empty( $_FILES ) && empty( $_FILES[ key($_FILES) ]['name'] ) ) ||
-					( ! empty( $_FILES ) && ! empty( $_FILES[ key($_FILES) ]['name'] ) && empty( $_FILES[ key($_FILES) ]['name'][0] ) )
-				) &&
 				! empty( $_POST ) &&
 				! $this->exceptionList() &&
 				(
