@@ -827,8 +827,12 @@ class plgSystemCleantalkantispam extends JPlugin
 			elseif ( $app->input->get('option') == 'com_sppagebuilder' )
 			{
 				$post_processed = array();
-				foreach( $_POST['data'] as $item => $value ) {
-					$post_processed[$value['name']] = $value['value'];
+				if (isset($_POST['data'])) {
+					foreach( $_POST['data'] as $item => $value ) {
+						$post_processed[$value['name']] = $value['value'];
+					}
+				} else {
+					$post_processed = $_POST;
 				}
 				$ct_temp_msg_data = CleantalkHelper::get_fields_any($post_processed, $this->params->get('fields_exclusions'));
 				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
