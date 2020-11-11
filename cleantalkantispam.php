@@ -270,12 +270,16 @@ class plgSystemCleantalkantispam extends JPlugin
 			{
 				$output = CleantalkAPI::method__get_api_key('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
 				// Checks if the user token is empty, then get user token by notice_paid_till()
-				if (empty($output['user_token']))
-				{
-					$result_tmp           = CleantalkAPI::method__notice_paid_till($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
-					$output['user_token'] = $result_tmp['user_token'];
+				if( empty( $output['user_token'] ) && ! empty( $output['auth_key'] ) ){
+					
+					$result_tmp = CleantalkAPI::method__notice_paid_till($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
+					
+					if( empty( $result_tmp['error'] ) )
+						$output['user_token'] = $result_tmp['user_token'];
+					
 				}
 			}
+
 
 			// Check spam users
 			if (isset($_POST['check_type']) && $_POST['check_type'] === 'users')
@@ -796,41 +800,21 @@ class plgSystemCleantalkantispam extends JPlugin
 					$sender_nickname = $_POST["vcontact_name"];
 				$post_info['comment_type'] = 'contact_form_joomla_vtem';
 				
-			} //BreezingForms
-			elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit')
-			{
-
-				foreach ($_POST as $v)
-				{
-					if (is_array($v))
-					{
-						foreach ($v as $k => $v2)
-						{
-							if (CleantalkHelper::validEmail($v2))
-							{
-								$sender_email = $v2;
-							}
-							else
-							{
-								if (is_int($k))
-								{
-									$message .= $v2 . "\n";
-								}
-							}
-						}
-					}
-					else
-					{
-						if (CleantalkHelper::validEmail($v))
-						{
-							$sender_email = $v;
-						}
-						else
-						{
-							//$contact_message.=$v."\n";
-						}
-					}
-				}
+			//BreezingForms
+			}elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit'){
+				
+				$ct_temp_msg_data = CleantalkHelper::get_fields_any($_POST, $this->params->get('fields_exclusions'));
+				
+				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
+				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
+				$contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
+				$message          = ($ct_temp_msg_data['message'] ? $ct_temp_msg_data['message'] : array());
+				
+				if ($subject != '')
+					$message = array_merge(array('subject' => $subject), $message);
+				$message = json_encode( $message );
+				
 				$post_info['comment_type'] = 'contact_form_joomla_breezing';
 			}
 			elseif ($app->input->get('option') == 'com_virtuemart' && $app->input->get('task') == 'review')
@@ -843,8 +827,12 @@ class plgSystemCleantalkantispam extends JPlugin
 			elseif ( $app->input->get('option') == 'com_sppagebuilder' )
 			{
 				$post_processed = array();
-				foreach( $_POST['data'] as $item => $value ) {
-					$post_processed[$value['name']] = $value['value'];
+				if (isset($_POST['data'])) {
+					foreach( $_POST['data'] as $item => $value ) {
+						$post_processed[$value['name']] = $value['value'];
+					}
+				} else {
+					$post_processed = $_POST;
 				}
 				$ct_temp_msg_data = CleantalkHelper::get_fields_any($post_processed, $this->params->get('fields_exclusions'));
 				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
@@ -861,8 +849,8 @@ class plgSystemCleantalkantispam extends JPlugin
 			// Genertal test for any forms or form with custom fields
 			elseif (
 			    $this->params->get('form_protection') &&
-                in_array('check_custom_contact_forms', $this->params->get('form_protection')) ||
-                in_array('check_external', $this->params->get('form_protection')) ||
+			    ( $this->params->get('form_protection') && in_array('check_custom_contact_forms', $this->params->get('form_protection')) ) ||
+			    ( $this->params->get('form_protection') && in_array('check_external', $this->params->get('form_protection')) )||
 				$app->input->get('option') == 'com_rsform' ||
 				$app->input->get('option') == 'com_virtuemart' ||
 				$app->input->get('option') == 'com_baforms' ||
@@ -884,22 +872,20 @@ class plgSystemCleantalkantispam extends JPlugin
 			}
 			
 			if (
-                  empty( $_FILES ) &&
-                ! empty( $_POST ) &&
-			    ! $this->exceptionList() &&
-                (
-                	! empty( $sender_email ) ||
-	                ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
-                ) &&
+				! empty( $_POST ) &&
+				! $this->exceptionList() &&
+				(
+					! empty( $sender_email ) ||
+					( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
+				) &&
 				( $this->params->get( 'form_protection' ) &&
-					(
-					    in_array( 'check_custom_contact_forms', $this->params->get( 'form_protection' ) ) ||
-					    in_array( 'check_external',             $this->params->get( 'form_protection' ) ) ||
-					    in_array( 'check_contact_forms',        $this->params->get( 'form_protection' ) )
-					)
+				  (
+					  in_array( 'check_custom_contact_forms', $this->params->get( 'form_protection' ) ) ||
+					  in_array( 'check_external',             $this->params->get( 'form_protection' ) ) ||
+					  in_array( 'check_contact_forms',        $this->params->get( 'form_protection' ) )
+				  )
 				)
-            )
-			{
+			){
 			    if(
                     $task_cmd === 'registration.register' &&
 			        $this->params->get('form_protection') &&
@@ -2242,4 +2228,3 @@ class plgSystemCleantalkantispam extends JPlugin
 	}
 
 }
-

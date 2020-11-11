@@ -1,1 +1,0 @@
-ALTER TABLE `#__cleantalk_sfw` ADD COLUMN status tinyint(1) NOT NULL DEFAULT 0;
