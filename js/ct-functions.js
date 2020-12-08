@@ -140,7 +140,7 @@ function ct_ready(){
 				ctSetCookie("ct_visible_fields_count", visible_fields_count);
 
 				// Call previous submit action
-				if(event.target !== undefined && event.target.onsubmit_prev instanceof Function){
+				if(event !== undefined && event.target.onsubmit_prev instanceof Function){
 					setTimeout(function(){
 						event.target.onsubmit_prev.call(event.target, event);
 					}, 500);
