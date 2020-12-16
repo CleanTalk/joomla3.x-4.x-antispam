@@ -967,6 +967,23 @@ class plgSystemCleantalkantispam extends JPlugin
 									print json_encode($output);
 									die();									
 								}
+								// JD Simple Contact Form ajax output
+								elseif(
+									JFactory::getApplication()->input->get('module') == 'jdsimplecontactform' &&
+									JFactory::getApplication()->input->get('method') == 'submitForm' &&
+									JFactory::getApplication()->input->get('option') == 'com_ajax'
+								) {
+									if( ! headers_sent() ) {
+										header('Content-Type: application/json');
+										header('Access-Control-Allow-Origin: *');
+									}
+									$return = array(
+										'status' => '\O_o/',
+										'message' => $ctResponse['comment'],
+									);
+									echo \json_encode($return);
+									die();
+								}
 								else
 								{
 									$error_tpl = file_get_contents(dirname(__FILE__) . "/lib/error.html");
