@@ -926,7 +926,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				if( ! isset( $post_info['comment_type'] ) )
 					$post_info['comment_type'] = 'feedback_general_contact_form';
 				
-				$ctResponse = self::ctSendRequest(
+				$ctResponse = $this->ctSendRequest(
 					'check_message', array(
 						'sender_nickname' => $sender_nickname,
 						'sender_email'    => $sender_email,
