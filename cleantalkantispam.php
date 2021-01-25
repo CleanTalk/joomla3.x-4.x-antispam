@@ -823,11 +823,15 @@ class plgSystemCleantalkantispam extends JPlugin
 				$message         = isset($_POST['comment']) ? $_POST['comment'] : '';
 			}
 			// SP Builder Forms integration
-			elseif ( $app->input->get('option') == 'com_sppagebuilder' )
+			elseif ( $app->input->get('option') === 'com_sppagebuilder' )
 			{
 				$post_processed = array();
 				if (isset($_POST['data'])) {
 					foreach( $_POST['data'] as $item => $value ) {
+						if( $value['name'] === 'from_name' || $value['name'] === 'from_email' ) {
+							// These are the service fields
+							continue;
+						}
 						$post_processed[$value['name']] = $value['value'];
 					}
 				} else {
@@ -981,6 +985,15 @@ class plgSystemCleantalkantispam extends JPlugin
 										'message' => $ctResponse['comment'],
 									);
 									echo \json_encode($return);
+									die();
+								} elseif( $app->input->get('option') === 'com_sppagebuilder' ) {
+									$output['status'] = false;
+									$output['content'] = '<span class="sppb-text-danger">' . $ctResponse['comment'] . '</span>';
+									echo \json_encode(
+										array(
+											'data' => \json_encode( $output ),
+										)
+									);
 									die();
 								}
 								else
