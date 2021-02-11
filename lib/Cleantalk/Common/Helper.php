@@ -438,6 +438,7 @@ class Helper
 			'subid',
 			'ct_action',
 			'ct_method',
+			'form_name',
 		);
 		// Reset $message if we have a sign-up data
 		$skip_message_post = array(
