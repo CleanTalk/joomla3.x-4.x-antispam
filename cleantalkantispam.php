@@ -916,6 +916,14 @@ class plgSystemCleantalkantispam extends JPlugin
                     return;
                 }
                 
+                // Skip login form.
+
+                if (
+                	$app->input->get('option') === 'com_comprofiler' &&
+                	$app->input->get('view') === 'login'
+                ) {
+                	return;
+                }
                 // "MyMuse" module. Music e-store
                 if(
                     $app->input->get('option') === 'com_mymuse' &&
