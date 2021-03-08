@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       1.7
+ * @version       1.8
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -24,10 +24,26 @@ define('APBCT_SESSION__CHANCE_TO_CLEAN', 100);
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/Cleantalk.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/CleantalkRequest.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/CleantalkResponse.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/SFW.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Helper.php');
 require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/API.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/SFW.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Helper.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/Helper.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Cron.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/Cron.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/DB.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/DB.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/RemoteCalls.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/RemoteCalls.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Schema.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/ServerVariables.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Cookie.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Get.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Post.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Request.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Server.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Firewall/Firewall.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Firewall/FirewallModule.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Firewall/FirewallUpdater.php');
+require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Firewall/Modules/SFW.php');
 
 
 //Antispam classes
@@ -35,13 +51,25 @@ use Cleantalk\Antispam\Cleantalk as Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest as CleantalkRequest;
 use Cleantalk\Antispam\CleantalkRequest as CleantalkResponse;
 
-//Joomla classes
-use Cleantalk\ApbctJoomla\SFW as CleantalkSFW;
-
-//Common classes
+use Cleantalk\ApbctJoomla\DB;
 use Cleantalk\Common\API as CleantalkAPI;
-use Cleantalk\Common\Helper as CleantalkHelper;
+use Cleantalk\ApbctJoomla\Helper as CleantalkHelper;
+use Cleantalk\ApbctJoomla\Cron;
+use Cleantalk\Common\Schema;
+use Cleantalk\Common\Firewall\Firewall;
+use Cleantalk\Common\Firewall\Modules\SFW;
+use Cleantalk\ApbctJoomla\RemoteCalls as RemoteCalls;
+use Cleantalk\Common\Variables\Server;
+use Cleantalk\Common\Variables\ServerVariables;
 
+define('APBCT_TBL_FIREWALL_DATA', '#__cleantalk_sfw');      // Table with firewall data.
+define('APBCT_TBL_FIREWALL_LOG',  '#__cleantalk_sfw_logs'); // Table with firewall logs.
+define('APBCT_TBL_AC_LOG',        '#__cleantalk_ac_log');   // Table with firewall logs.
+define('APBCT_TBL_AC_UA_BL',      '#__cleantalk_ua_bl');    // Table with User-Agents blacklist.
+define('APBCT_TBL_SESSIONS',      '#__cleantalk_sessions'); // Table with session data.
+define('APBCT_SPAMSCAN_LOGS',     '#__cleantalk_spamscan_logs'); // Table with session data.
+define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
+define('APBCT_WRITE_LIMIT',       5000); // Write limit for firewall data.
 
 class plgSystemCleantalkantispam extends JPlugin
 {
@@ -74,12 +102,6 @@ class plgSystemCleantalkantispam extends JPlugin
      * @since         1.0
 	 */
 	public $params;
-
-	/**
-	 * Minimum time between remote calls
-     * @since         1.0
-	 */
-	const CT_REMOTE_CALL_SLEEP = 10;
 
 	/**
 	 * Constructor
@@ -126,10 +148,8 @@ class plgSystemCleantalkantispam extends JPlugin
 				$this->params->loadString($config['params']);
 			}
 		}
-
 		$this->loadLanguage();
 	}
-
 	private function getId()
 	{
 		$db = JFactory::getDBO();
@@ -204,7 +224,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		if (($this->params->get('acc_status_last_check') && ($this->params->get('acc_status_last_check') < time() - 86400)) || $force_check || !$this->params->get('ct_key_is_ok'))
 		{
 			$ct_key_is_ok = 0;
-			$key_is_valid = CleantalkHelper::apbct_key_is_correct($api_key);
+			$key_is_valid = CleantalkHelper::key_is_correct($api_key);
 			$save_params = array();
 			$result = null;
 			if ($key_is_valid){
@@ -252,7 +272,11 @@ class plgSystemCleantalkantispam extends JPlugin
 			// Remote calls
 			if (isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) && in_array($_GET['plugin_name'], array('antispam', 'anti-spam', 'apbct')))
 			{
-				$this->ct_remote_call__perform();
+			    // Remote calls
+			    if( RemoteCalls::check() ) {
+			        $rc = new RemoteCalls( $this->params->get('apikey') );
+			        $rc->perform();
+			    }
 			}
 		}
 
@@ -456,8 +480,8 @@ class plgSystemCleantalkantispam extends JPlugin
 				$access_key = trim($new_config['apikey']);
 
 				if (isset($new_config['other_settings']) && in_array('sfw_enable', $new_config['other_settings'])) {
-					$this->sfw_update($access_key);
-					$this->sfw_send_logs($access_key);
+					$this->apbct_sfw_update($access_key);
+					$this->apbct_sfw_send_logs($access_key);
 				}
 				$this->ctSendFeedback($access_key, '0:' . self::ENGINE);
 
@@ -471,7 +495,6 @@ class plgSystemCleantalkantispam extends JPlugin
 	*/
 	private function exceptionList()
 	{
-		
 		$option_cmd = JFactory::getApplication()->input->get('option');
 		$task_cmd   = JFactory::getApplication()->input->get('task');
 		$module_cmd = JFactory::getApplication()->input->get('module');
@@ -739,7 +762,7 @@ class plgSystemCleantalkantispam extends JPlugin
 							{
 								if ($ctResponse['allow'] == 0)
 								{
-									$error_tpl = file_get_contents(dirname(__FILE__) . "/lib/error.html");
+									$error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
 									print str_replace('%ERROR_TEXT%', $ctResponse['comment'], $error_tpl);
 									die();
 
@@ -916,14 +939,6 @@ class plgSystemCleantalkantispam extends JPlugin
                     return;
                 }
                 
-                // Skip login form.
-
-                if (
-                	$app->input->get('option') === 'com_comprofiler' &&
-                	$app->input->get('view') === 'login'
-                ) {
-                	return;
-                }
                 // "MyMuse" module. Music e-store
                 if(
                     $app->input->get('option') === 'com_mymuse' &&
@@ -1006,7 +1021,7 @@ class plgSystemCleantalkantispam extends JPlugin
 								}
 								else
 								{
-									$error_tpl = file_get_contents(dirname(__FILE__) . "/lib/error.html");
+									$error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
 									print str_replace('%ERROR_TEXT%', $ctResponse['comment'], $error_tpl);
 									die();									
 								}
@@ -1520,9 +1535,9 @@ class plgSystemCleantalkantispam extends JPlugin
 		$ct_request->auth_key        = $this->params->get('apikey');
 		$ct_request->agent           = self::ENGINE;
 		$ct_request->submit_time     = $this->submit_time_test();
-		$ct_request->sender_ip       = CleantalkHelper::ip_get(array('real'), false);
-		$ct_request->x_forwarded_for = CleantalkHelper::ip_get(array('x_forwarded_for'), false);
-		$ct_request->x_real_ip       = CleantalkHelper::ip_get(array('x_real_ip'), false);
+		$ct_request->sender_ip       = CleantalkHelper::ip__get(array('real'), false);
+		$ct_request->x_forwarded_for = CleantalkHelper::ip__get(array('x_forwarded_for'), false);
+		$ct_request->x_real_ip       = CleantalkHelper::ip__get(array('x_real_ip'), false);
 		$ct_request->sender_info     = $this->get_sender_info();
 		$ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
 
@@ -1872,7 +1887,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	static private function _apbct_alt_session__id__get()
 	{
-		$id = CleantalkHelper::ip_get(array('real'))
+		$id = CleantalkHelper::ip__get(array('real'))
 			. filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
 			. filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
 		return hash('sha256', $id);
@@ -2113,65 +2128,72 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		if (!$app->isAdmin() && $this->params->get('other_settings') && in_array('sfw_enable', $this->params->get('other_settings')) && $_SERVER["REQUEST_METHOD"] == 'GET')
 		{
-			$sfw = new CleantalkSFW($this->params->get('apikey'));
-			$sfw->check_ip();
+	        $firewall = new Firewall(
+	            $this->params->get('apikey'),
+	            DB::getInstance(),
+	            APBCT_TBL_FIREWALL_LOG
+	        );
+	        $firewall->loadFwModule( new SFW(
+	            APBCT_TBL_FIREWALL_DATA,
+	            array(
+	                'sfw_counter'   => 0,
+	                'cookie_domain' => Server::get('HTTP_HOST'),
+	                'set_cookies'    => $this->params->get('cookies'),
+	            )
+	        ) );
 
-			if ($this->params->get('sfw_last_check') && time() - $this->params->get('sfw_last_check') > 86400)
-				$this->sfw_update($this->params->get('apikey'));
+	        $firewall->run();
 
-			if ($this->params->get('sfw_last_send_log') && time() - $this->params->get('sfw_last_send_log') > 3600)
-				$this->sfw_send_logs($this->params->get('apikey'));
+	        apbct_run_cron();
 		}
 	}
-
-	private function sfw_update($access_key) {
-
-		$save_params = array();
-	    $sfw         = new CleantalkSFW($this->params->get('apikey'));
-
-        $file_url_hash = isset($_GET['file_url_hash']) ? urldecode($_GET['file_url_hash']) : null;
-        $file_url_nums = isset($_GET['file_url_nums']) ? urldecode($_GET['file_url_nums']) : null;
-        $file_url_nums = isset($file_url_nums) ? explode(',', $file_url_nums) : null;
-
-        if( ! isset( $file_url_hash, $file_url_nums ) ){
-			$result = $sfw->sfw_update();
-	    }elseif( $file_url_hash && is_array( $file_url_nums ) && count( $file_url_nums ) ){
-            $result = $sfw->sfw_update( $file_url_hash, $file_url_nums[0] );
-
-            if(empty($result['error'])){
-
-                array_shift($file_url_nums);
-
-                if (count($file_url_nums)) {
-                    CleantalkHelper::http__request(
-                        JUri::root(),
-                        array(
-                            'spbc_remote_call_token'  => md5($access_key),
-                            'spbc_remote_call_action' => 'sfw_update',
-                            'plugin_name'             => 'apbct',
-                            'file_url_hash'           => $file_url_hash,
-                            'file_url_nums'           => implode(',', $file_url_nums),
-                        ),
-                        array('get', 'async')
-                    );
-                } else {
-                    //Files array is empty update sfw time
-                    $save_params['sfw_last_check']    = time();
-                    $this->saveCTConfig($save_params);
-                }
-            } else
-                return array('error' => 'ERROR_WHILE_INSERTING_SFW_DATA');
+	private function apbct_run_cron()
+	{
+	    $cron = new Cron();
+	    $tasks_to_run = $cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
+	    if(
+	        ! empty( $tasks_to_run ) && // There is tasks to run
+	        ! RemoteCalls::check() && // Do not doing CRON in remote call action
+	        (
+	            ! defined( 'DOING_CRON' ) ||
+	            ( defined( 'DOING_CRON' ) && DOING_CRON !== true )
+	        )
+	    ){
+	        $cron_res = $cron->runTasks( $tasks_to_run );
+	        // Handle the $cron_res for errors here.
 	    }
-	    return true;
+	}
+	static public function apbct_sfw_update($access_key) {
+
+		if (!isset($access_key) || empty($access_key)) {
+			$access_key = $this->params->get('apikey');
+		}
+	    if( empty( $access_key ) ){
+	        return false;
+	    }
+        $firewall = new Firewall(
+            $access_key,
+            DB::getInstance(),
+            APBCT_TBL_FIREWALL_LOG
+        );
+        $firewall->setSpecificHelper( new CleantalkHelper() );
+        $fw_updater = $firewall->getUpdater( APBCT_TBL_FIREWALL_DATA );
+        $fw_updater->update();
 	    
 	}
-	private function sfw_send_logs($access_key) {
+	static public function apbct_sfw_send_logs($access_key) {
 
-		$sfw         = new CleantalkSFW($this->params->get('apikey'));
-		$save_params = array();
-		$result = $sfw->send_logs();
-		$save_params['sfw_last_send_log']    = time();
-		$this->saveCTConfig($save_params);
+		if (!isset($access_key) || empty($access_key)) {
+			$access_key = $this->params->get('apikey');
+		}
+	    if( empty( $access_key ) ){
+	        return false;
+	    }
+
+        $firewall = new Firewall( $access_key, DB::getInstance(), APBCT_TBL_FIREWALL_LOG );
+		$firewall->setSpecificHelper( new CleantalkHelper() );
+        $result = $firewall->sendLogs();
+
         return true;
 	}
 	private function saveCTConfig($params)
@@ -2186,73 +2208,6 @@ class plgSystemCleantalkantispam extends JPlugin
 			$table->params = $jparams->toString();
 			$table->store();
 		}
-	}
-
-	/**
-	 * Function preforms remote call
-	 */
-	private function ct_remote_call__perform()
-	{
-		$remote_action = $_GET['spbc_remote_call_action'];
-
-		$save_params         = array();
-		$remote_calls_config = $this->params->get('remote_calls') ? json_decode(json_encode($this->params->get('remote_calls')), true) : array('close_renew_banner' => array('last_call' => 0), 'sfw_update' => array('last_call' => 0), 'sfw_send_logs' => array('last_call' => 0), 'update_plugin' => array('last_call' => 0));
-		if ($remote_calls_config && is_array($remote_calls_config))
-		{
-			if (array_key_exists($remote_action, $remote_calls_config))
-			{
-
-				if (time() - $remote_calls_config[$remote_action]['last_call'] > self::CT_REMOTE_CALL_SLEEP || ($remote_action == 'sfw_update' && isset($_GET['file_url_hash'])))
-				{
-					$remote_calls_config[$remote_action]['last_call'] = time();
-					$save_params['remote_calls']                      = $remote_calls_config;
-					$this->saveCTConfig($save_params);
-
-					if (strtolower($_GET['spbc_remote_call_token']) == strtolower(md5($this->params->get('apikey'))))
-					{
-
-						// Close renew banner
-						if ($remote_action == 'close_renew_banner')
-						{
-							$save_params['trial'] = 0;
-							$save_params['renew'] = 0;
-							$save_params['show_notice'] = 0;
-							$this->saveCTConfig($save_params);
-							die('OK');
-							// SFW update
-						}
-						elseif ($remote_action == 'sfw_update')
-						{
-							$this->sfw_update($this->params->get('apikey'));
-							die(empty($result['error']) ? 'OK' : 'FAIL ' . json_encode(array('error' => $result['error_string'])));
-							// SFW send logs
-						}
-						elseif ($remote_action == 'sfw_send_logs')
-						{
-							$sfw                              = new CleantalkSFW($this->params->get('apikey'));
-							$result                           = $sfw->send_logs();
-							$save_params['sfw_last_send_log'] = time();
-							$this->saveCTConfig($save_params);
-							die(empty($result['error']) ? 'OK' : 'FAIL ' . json_encode(array('error' => $result['error_string'])));
-							// Update plugin
-						}
-						elseif ($remote_action == 'update_plugin')
-						{
-							//add_action('wp', 'apbct_update', 1);
-						}
-						else
-							die('FAIL ' . json_encode(array('error' => 'UNKNOWN_ACTION_2')));
-					}
-					else
-						die('FAIL ' . json_encode(array('error' => 'WRONG_TOKEN')));
-				}
-				else
-					die('FAIL ' . json_encode(array('error' => 'TOO_MANY_ATTEMPTS')));
-			}
-			else
-				die('FAIL ' . json_encode(array('error' => 'UNKNOWN_ACTION')));
-		}
-
 	}
 
 	static private function _cleantalk_user_has_role_id($role_id)
