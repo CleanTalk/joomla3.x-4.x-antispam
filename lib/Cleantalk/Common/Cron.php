@@ -21,21 +21,24 @@ abstract class Cron
     protected $tasks_completed = array(); // Result of executed tasks
     
     // Option name with cron data
-    const CRON_OPTION_NAME = 'cleantalk_cron';
+    protected $cron_option_name;
     
     // Interval in seconds for restarting the task
-    const TASK_EXECUTION_MIN_INTERVAL = 120;
+    protected $task_execution_min_interval;
 
     // Interval in seconds for cron work availability
-    const CRON_EXECUTION_MIN_INTERVAL = 600;
+    protected $cron_execution_min_interval;
 
     /**
      * Cron constructor.
      * Getting tasks option.
      */
-    public function __construct()
+    public function __construct($cron_option_name = 'cleantalk_cron', $task_execution_min_interval = 120, $cron_execution_min_interval = 600)
     {
-        if( time() - $this->getCronLastStart() > self::CRON_EXECUTION_MIN_INTERVAL ) {
+        $this->cron_option_name = $cron_option_name;
+        $this->task_execution_min_interval = $task_execution_min_interval;
+        $this->cron_execution_min_interval = $cron_execution_min_interval;
+        if( time() - $this->getCronLastStart() > $this->cron_execution_min_interval ) {
             $this->tasks = $this->getTasks();
         }
     }
@@ -152,7 +155,7 @@ abstract class Cron
             
             if(
                 ! isset( $task_data['processing'], $task_data['last_call'] ) ||
-                ( $task_data['processing'] === true && time() - $task_data['last_call'] > self::TASK_EXECUTION_MIN_INTERVAL )
+                ( $task_data['processing'] === true && time() - $task_data['last_call'] > $this->task_execution_min_interval )
             ){
                 $task_data['processing'] = false;
                 $task_data['last_call'] = 0;

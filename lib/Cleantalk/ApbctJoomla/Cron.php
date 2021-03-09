@@ -22,7 +22,7 @@ class Cron extends \Cleantalk\Common\Cron {
             $table = \JTable::getInstance('extension');
             $table->load((int) $plg->extension_id);
             $jparams = new \JRegistry($table->params);  
-            $jparams->set('apbct_cron', array('last_start' => time() , 'tasks' => $tasks));          
+            $jparams->set($this->cron_option_name, array('last_start' => time() , 'tasks' => $tasks));          
             $table->params = $jparams->toString();
             $table->store();
         }
@@ -38,7 +38,7 @@ class Cron extends \Cleantalk\Common\Cron {
         // TODO: Implement getTasks() method.
         $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
         $params = new \JRegistry($plugin->params);
-        return isset($params['apbct_cron']['tasks']) ? $params['apbct_cron']['tasks'] : null;
+        return isset($params[$this->cron_option_name]['tasks']) ? json_decode(json_encode($params[$this->cron_option_name]['tasks']),true) : null;
     }
 
     /**
@@ -51,7 +51,7 @@ class Cron extends \Cleantalk\Common\Cron {
         // TODO: Implement getCronLastStart() method.
         $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
         $params = new \JRegistry($plugin->params);
-        return isset($params['apbct_cron']['last_start']) ? $params['apbct_cron']['last_start'] : 0;
+        return isset($params[$this->cron_option_name]['last_start']) ? $params[$this->cron_option_name]['last_start'] : 0;
     }
 
     /**
@@ -77,7 +77,7 @@ class Cron extends \Cleantalk\Common\Cron {
             $table = \JTable::getInstance('extension');
             $table->load((int) $plg->extension_id);
             $jparams = new \JRegistry($table->params);  
-            $jparams->set('apbct_cron', array('last_start' => time() , 'tasks' => $this->getTasks()));          
+            $jparams->set($this->cron_option_name, array('last_start' => time() , 'tasks' => $this->getTasks()));          
             $table->params = $jparams->toString();
             $table->store();
         }

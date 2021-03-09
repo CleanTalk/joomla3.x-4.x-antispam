@@ -77,7 +77,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 * Plugin version string for server
      * @since         1.0
 	 */
-	const ENGINE = 'joomla34-17';
+	const ENGINE = 'joomla34-18';
 
 	/*
 	 * Flag marked JComments form initilization.
@@ -2144,7 +2144,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
 	        $firewall->run();
 
-	        apbct_run_cron();
+	        $this->apbct_run_cron();
 		}
 	}
 	private function apbct_run_cron()

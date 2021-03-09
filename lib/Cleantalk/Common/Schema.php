@@ -54,7 +54,7 @@ class Schema
         }
 
         if( array_key_exists( $table, self::$schemas ) ) {
-            return  self::$schemas[$table] ;
+            return self::$schemas[$table] ;
         }
 
         throw new \Exception( 'Called table scheme not exist.' );
