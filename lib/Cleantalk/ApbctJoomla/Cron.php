@@ -51,7 +51,7 @@ class Cron extends \Cleantalk\Common\Cron {
         // TODO: Implement getCronLastStart() method.
         $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
         $params = new \JRegistry($plugin->params);
-        return isset($params['apbct_cron']['last_start']) ? $params['apbct_cron']['last_start'] : null;
+        return isset($params['apbct_cron']['last_start']) ? $params['apbct_cron']['last_start'] : 0;
     }
 
     /**
