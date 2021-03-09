@@ -37,7 +37,7 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls {
         $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
         $params = new \JRegistry($plugin->params);
 
-        return (isset($params['remote_calls']) && !empty($params['remote_calls'])) ? json_decode($params['remote_calls'], true) : array('close_renew_banner' => array('last_call' => 0, 'cooldown' => self::COOLDOWN), 'sfw_update' => array('last_call' => 0, 'cooldown' => self::COOLDOWN), 'sfw_send_logs' => array('last_call' => 0, 'cooldown' => self::COOLDOWN), 'sfw_update__write_base' => array('last_call' => 0, 'cooldown' => 0));
+        return (isset($params['remote_calls']) && !empty($params['remote_calls'])) ? $params['remote_calls'] : array('close_renew_banner' => array('last_call' => 0, 'cooldown' => self::COOLDOWN), 'sfw_update' => array('last_call' => 0, 'cooldown' => self::COOLDOWN), 'sfw_send_logs' => array('last_call' => 0, 'cooldown' => self::COOLDOWN), 'sfw_update__write_base' => array('last_call' => 0, 'cooldown' => 0));
     }
 
     /**
@@ -66,7 +66,7 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls {
             $table = \JTable::getInstance('extension');
             $table->load((int) $plg->extension_id);
             $jparams = new \JRegistry($table->params);
-            $jparams->set('remote_calls', json_encode($remote_calls));          
+            $jparams->set('remote_calls', $remote_calls);          
             $table->params = $jparams->toString();
             $table->store();
         }
