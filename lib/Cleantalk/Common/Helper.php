@@ -730,7 +730,42 @@ class Helper
 		);
 
 		return $return_param;
+	}
+
+	/**
+	 * Masks a value with asterisks (*) Needed by the getFieldsAny()
+	 * @return string
+	 */
+	static public function obfuscate_param($value = null)
+	{
+		if ($value && (!is_object($value) || !is_array($value)))
+		{
+			$length = strlen($value);
+			$value  = str_repeat('*', $length);
+		}
+
+		return $value;
 	}	
+
+	/**
+	 * Print html form for external forms()
+	 * @return string
+	 */
+	static public function print_form($arr, $k)
+	{
+		foreach ($arr as $key => $value)
+		{
+			if (!is_array($value))
+			{
+
+				if ($k == '')
+					print '<textarea name="' . $key . '" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
+				else
+					print '<textarea name="' . $k . '[' . $key . ']" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
+			}
+		}
+	}	
+	
 	/**
 	 * Get URL form IP
 	 *
