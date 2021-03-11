@@ -795,7 +795,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				$post_info['comment_type'] = 'contact_form_joomla_acymailing';
 			if ($app->input->get('option') == 'com_virtuemart' && $app->input->get('task') == 'savecheckoutuser')
 				$post_info['comment_type'] = 'order';
-			if (isset($_POST['cart_id']) && strpos($_SERVER['REQUEST_URI'], '/checkout') !== FALSE {
+			if (isset($_POST['cart_id']) && strpos($_SERVER['REQUEST_URI'], '/checkout') !== FALSE) {
 				$post_info['comment_type'] = 'order';
 			}
 			//Rapid
