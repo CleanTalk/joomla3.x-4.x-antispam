@@ -199,7 +199,7 @@ class SFW extends FirewallModule {
 			
 			$sfw_die_page = file_get_contents( __DIR__ . "/die_page_sfw.html" );
 
-            $net_count = $this->db->fetch( 'SELECT COUNT(*) FROM ' . $this->db_data_table_name );
+            $net_count = $this->db->fetch( 'SELECT COUNT(*) as net_count FROM ' . $this->db_data_table_name )['net_count'];
 
             $status = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
