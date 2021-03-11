@@ -2166,7 +2166,9 @@ class plgSystemCleantalkantispam extends JPlugin
 	    }
 	}
 	static public function apbct_sfw_update($access_key) {
-
+		if (($this->params->get('other_settings') && !in_array('sfw_enable', $this->params->get('other_settings'))) || !$this->params->get('other_settings')) {
+			return false;
+		}
 		if (!isset($access_key) || empty($access_key)) {
 			$access_key = $this->params->get('apikey');
 		}
@@ -2184,7 +2186,9 @@ class plgSystemCleantalkantispam extends JPlugin
 	    
 	}
 	static public function apbct_sfw_send_logs($access_key) {
-
+		if (($this->params->get('other_settings') && !in_array('sfw_enable', $this->params->get('other_settings'))) || !$this->params->get('other_settings')) {
+			return false;
+		}
 		if (!isset($access_key) || empty($access_key)) {
 			$access_key = $this->params->get('apikey');
 		}

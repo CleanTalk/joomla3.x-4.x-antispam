@@ -43,7 +43,7 @@ class SFW extends FirewallModule {
     {
 		$results = array();
         $status = 0;
-		
+
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
 
@@ -77,8 +77,9 @@ class SFW extends FirewallModule {
 				return $results;
 			}
 		}
-		
+		$this->ip_array = array( 'ip' => '10.10.10.10');
 		// Common check
+
 		foreach( $this->ip_array as $origin => $current_ip )
 		{
 			$current_ip_v4 = sprintf("%u", ip2long($current_ip));
@@ -88,10 +89,9 @@ class SFW extends FirewallModule {
 				$needles[] = sprintf( "%u", bindec( $mask & base_convert( $current_ip_v4, 10, 2 ) ) );
 			}
 			$needles = array_unique( $needles );
-			
 			$db_results = $this->db->fetch_all("SELECT
 				network, mask, status
-				FROM " . $this->db__table__data . "
+				FROM " . $this->db_data_table_name . "
 				WHERE network IN (". implode( ',', $needles ) .")
 				AND	network = " . $current_ip_v4 . " & mask 
 				AND " . rand( 1, 100000 ) . "  
@@ -196,9 +196,9 @@ class SFW extends FirewallModule {
 		}
 		
 		// File exists?
-		if( file_exists( __DIR__ . "/lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html" ) ){
+		if( file_exists( __DIR__ . "/die_page_sfw.html" ) ){
 			
-			$sfw_die_page = file_get_contents( __DIR__ . "/lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html" );
+			$sfw_die_page = file_get_contents( __DIR__ . "/die_page_sfw.html" );
 
             $net_count = $this->db->fetch( 'SELECT COUNT(*) FROM ' . $this->db_data_table_name );
 

@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS `#__cleantalk_sfw`;
+DROP TABLE IF EXISTS `#__cleantalk_sfw_logs`;
+DROP TABLE IF EXISTS `#__cleantalk_sessions`;
 CREATE TABLE IF NOT EXISTS `#__cleantalk_sfw` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `network` int(11) unsigned NOT NULL,
@@ -24,5 +27,3 @@ CREATE TABLE IF NOT EXISTS `#__cleantalk_sessions` (
   `last_update` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`name`(40), `id`(64))
 );
-UPDATE `#__extensions` SET params = '{"form_protection":["check_register","check_contact_forms","check_search"],"comments_and_messages":["jcomments_check_comments"],"roles_exclusions":["7","8"],"cookies":["set_cookies"]}'
-WHERE element = 'cleantalkantispam' AND folder = 'system';
