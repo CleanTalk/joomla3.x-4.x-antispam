@@ -109,6 +109,7 @@ class FirewallUpdater
                 array(
                     'firewall_updating_id' => md5( rand( 0, 100000 ) ),
                     'firewall_updating_last_start' => time(),
+                    'firewall_update_percent' => 0
                 )
             );
         }

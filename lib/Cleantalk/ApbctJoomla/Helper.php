@@ -45,7 +45,7 @@ class Helper extends \Cleantalk\Common\Helper {
             $params = array();
             $params['firewall_updating_id'] = $fw_stats['firewall_updating_id'];
             $params['firewall_updating_last_start'] = $fw_stats['firewall_updating_last_start'];
-            $params['firewall_update_percent'] = 0;
+            $params['firewall_update_percent'] = $fw_stats['firewall_update_percent'];
             $jparams = new \JRegistry($table->params);
             foreach ($params as $k => $v)
                 $jparams->set($k, $v);           
