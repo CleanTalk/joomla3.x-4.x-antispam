@@ -77,7 +77,6 @@ class SFW extends FirewallModule {
 				return $results;
 			}
 		}
-		$this->ip_array = array( 'ip' => '10.10.10.10');
 		// Common check
 
 		foreach( $this->ip_array as $origin => $current_ip )

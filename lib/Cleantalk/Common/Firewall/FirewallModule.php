@@ -117,12 +117,12 @@ abstract class FirewallModule {
      * @param array $ips
      * @return void
      */
-    public function ipAppendAdditional( & $ips )
+    public function ipAppendAdditional( $ips )
 	{
 		$this->real_ip = isset($ips['real']) ? $ips['real'] : null;
 
 		if( Get::get('sfw_test_ip') && Helper::ip__validate( Get::get('sfw_test_ip') ) !== false ) {
-            $ips['sfw_test'] = Get::get( 'sfw_test_ip' );
+            $this->ip_array['sfw_test'] = Get::get( 'sfw_test_ip' );
             $this->test_ip   = Get::get( 'sfw_test_ip' );
             $this->test      = true;
         }
