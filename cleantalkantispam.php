@@ -480,8 +480,8 @@ class plgSystemCleantalkantispam extends JPlugin
 				$access_key = trim($new_config['apikey']);
 
 				if (isset($new_config['other_settings']) && in_array('sfw_enable', $new_config['other_settings'])) {
-					$this->apbct_sfw_update($access_key);
-					$this->apbct_sfw_send_logs($access_key);
+					self::apbct_sfw_update($access_key);
+					self::apbct_sfw_send_logs($access_key);
 				}
 				$this->ctSendFeedback($access_key, '0:' . self::ENGINE);
 
@@ -2168,7 +2168,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	static public function apbct_sfw_update($access_key) {
 	    if( empty( $access_key ) ){
 	        return false;
-	    }
+	    }     
         $firewall = new Firewall(
             $access_key,
             DB::getInstance(),
