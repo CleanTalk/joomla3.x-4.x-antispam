@@ -2146,12 +2146,16 @@ class plgSystemCleantalkantispam extends JPlugin
 
 	        $firewall->run();
 
-	        $this->apbct_run_cron();
 		}
+        $this->apbct_run_cron();
 	}
 	private function apbct_run_cron()
 	{
 	    $cron = new Cron();
+	    if (!$this->params->get($cron->getCronOptionName())) {
+	    	$cron->addTask( 'sfw_update', 'apbct_sfw_update', 86400, time() + 60 );
+    		$cron->addTask( 'sfw_send_logs', 'apbct_sfw_send_logs', 3600 );
+	    }
 	    $tasks_to_run = $cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
 	    if(
 	        ! empty( $tasks_to_run ) && // There is tasks to run
@@ -2165,9 +2169,15 @@ class plgSystemCleantalkantispam extends JPlugin
 	        // Handle the $cron_res for errors here.
 	    }
 	}
-	static public function apbct_sfw_update($access_key) {
+
+	static public function apbct_sfw_update($access_key = '') {
 	    if( empty( $access_key ) ){
-	        return false;
+	        $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
+        	$params = new \JRegistry($plugin->params);
+        	$access_key = $params->get('apikey');
+        	if (empty($access_key)) {
+        		return false;
+        	}
 	    }     
         $firewall = new Firewall(
             $access_key,
@@ -2179,10 +2189,15 @@ class plgSystemCleantalkantispam extends JPlugin
         $fw_updater->update();
 	    
 	}
-	static public function apbct_sfw_send_logs($access_key) {
+	static public function apbct_sfw_send_logs($access_key = '') {
 	    if( empty( $access_key ) ){
-	        return false;
-	    }
+	        $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
+        	$params = new \JRegistry($plugin->params);
+        	$access_key = $params->get('apikey');
+        	if (empty($access_key)) {
+        		return false;
+        	}
+	    } 
 
         $firewall = new Firewall( $access_key, DB::getInstance(), APBCT_TBL_FIREWALL_LOG );
 		$firewall->setSpecificHelper( new CleantalkHelper() );

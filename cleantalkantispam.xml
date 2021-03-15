@@ -125,7 +125,6 @@
          <schemapath type="sqlsrv">sql/sqlsrv/updates</schemapath>
       </schemas>
    </update>
-   <scriptfile>install.php</scriptfile>
 	<updateservers>
 		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla3.x-4.x-antispam/master/plugin-updates.xml</server>
 	</updateservers>

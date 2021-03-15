@@ -122,6 +122,15 @@ abstract class Cron
     }
 
     /**
+     * Get cron option name
+     *
+     * @return string
+     */
+    public function getCronOptionName() {
+        return $this->cron_option_name;
+    } 
+
+    /**
      * Updates cron task, create task if not exists.
      *
      * @param string $task
@@ -203,13 +212,13 @@ abstract class Cron
 
         foreach( $tasks as $task ){
 
-            if( function_exists( $this->tasks[$task]['handler'] ) ){
+            if( method_exists( '\plgSystemCleantalkantispam',$this->tasks[$task]['handler'] ) ){
 
                 if( $this->debug ) {
                     error_log( var_export( 'Task ' . $task . ' will be run.', 1 ) );
                 }
 
-                $result = call_user_func_array( $this->tasks[$task]['handler'], isset( $this->tasks[$task]['params'] ) ? $this->tasks[$task]['params'] : array() );
+                $result = call_user_func_array( '\plgSystemCleantalkantispam::'.$this->tasks[$task]['handler'], isset( $this->tasks[$task]['params'] ) ? $this->tasks[$task]['params'] : array() );
 
                 if( $this->debug ) {
                     error_log( var_export( 'Result:', 1 ) );
