@@ -257,6 +257,26 @@ class plgSystemCleantalkantispam extends JPlugin
 	}
 
     /**
+     * Checking curl/allow_url_fopen availability
+     */
+    private function checkCurlAUFopenAvailability() {
+        if(!function_exists('curl_init')) {
+            return array(
+                'error' => 'curl_not_unavailable',
+                'error_message' => 'PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_CURL_UNAVAILABLE'
+            );
+        }
+        if(!ini_get('allow_url_fopen')) {
+            return array(
+                'error' => 'allow_url_fopen_not_unavailable',
+                'error_message' => 'PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_AUFOPEN_UNAVAILABLE'
+            );
+        }
+
+        return false;
+    }
+
+    /**
      * This event is triggered after Joomla initialization
      * @since Joomla 1.5
      * @access public
@@ -591,6 +611,9 @@ class plgSystemCleantalkantispam extends JPlugin
 		{
 			if ($app->isAdmin())
 			{
+			    # Checking curl/allow_url_fopen availability
+                $ct_curl_aufopen_availability = $this->checkCurlAUFopenAvailability();
+
 				if ($config->get('apikey'))
 				{
 					$this->checkIsPaid($config->get('apikey'));
@@ -614,6 +637,12 @@ class plgSystemCleantalkantispam extends JPlugin
 
 				if ($show_notice == 1 && $renew == 1)
 					$notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $config->get('user_token'));
+
+                if (is_array($ct_curl_aufopen_availability)) {
+                    if(isset($ct_curl_aufopen_availability['error_message'])) {
+                        $notice = JText::_($ct_curl_aufopen_availability['error_message']);
+                    }
+                }
 
 				$connection_reports = $config->get('connection_reports') ? json_decode(json_encode($config->get('connection_reports')), true) : array();
 				$adminmail          = JFactory::getConfig()->get('mailfrom');
