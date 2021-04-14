@@ -874,23 +874,14 @@ class plgSystemCleantalkantispam extends JPlugin
 				$message = json_encode( $message );
 			}
 			
-			// Genertal test for any forms or form with custom fields
-			elseif (
-			    $this->params->get('form_protection') &&
-			    ( $this->params->get('form_protection') && in_array('check_custom_contact_forms', $this->params->get('form_protection')) ) ||
-			    ( $this->params->get('form_protection') && in_array('check_external', $this->params->get('form_protection')) )||
-				$app->input->get('option') == 'com_rsform' ||
-				$app->input->get('option') == 'com_virtuemart' ||
-				$app->input->get('option') == 'com_baforms' ||
-				$app->input->get('option') == 'com_acym' ||
-				$app->input->get('option') == 'com_acymailing'
-            )
+			// General test for any forms or form with custom fields
+			else
 			{
 				$ct_temp_msg_data = CleantalkHelper::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
 				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
 				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
-				$contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
+				//$contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
 				$message          = ($ct_temp_msg_data['message'] ? $ct_temp_msg_data['message'] : array());
 
 				if ($subject != '')
