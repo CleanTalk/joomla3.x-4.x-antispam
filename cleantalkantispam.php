@@ -577,7 +577,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		JHtml::_('jquery.framework');
 
-		if ($app->isSite())
+		if ($app->isSite() && ! $this->jot_cache_enabled())
 		{
 			$this->sfw_check();
 			$this->ct_cookie();
@@ -703,6 +703,22 @@ class plgSystemCleantalkantispam extends JPlugin
 		$view_cmd   = $app->input->get('view');
 		$task_cmd   = $app->input->get('task');
 		$page_cmd   = $app->input->get('page');
+
+        /**
+         * Integration with JotCache Plugin
+         */
+        if ($app->isSite() && $this->jot_cache_enabled())
+        {
+            $document = JFactory::getDocument();
+            $config   = $this->params;
+
+            $this->sfw_check();
+            $this->ct_cookie();
+            $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js?" . time());
+            $document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
+            if ($config->get('form_protection') && in_array('check_external', $config->get('form_protection')))
+                $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-external.js?" . time());
+        }
 
 		// constants can be found in  components/com_contact/views/contact/tmpl/default_form.php
 		// 'option' and 'view' constants are the same in all versions
@@ -2228,4 +2244,16 @@ class plgSystemCleantalkantispam extends JPlugin
 		return FALSE;
 	}
 
+    /**
+     * Integration with JotCache
+     *
+     * @since 1.9
+     */
+    private function jot_cache_enabled() {
+        if (JPluginHelper::isEnabled('system', 'jotcache')) {
+            return true;
+        }
+
+        return false;
+    }
 }
