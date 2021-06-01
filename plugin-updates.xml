@@ -6,15 +6,26 @@
         <element>cleantalkantispam</element>
         <type>plugin</type>
         <folder>system</folder>
-<<<<<<< HEAD
-        <version>1.8.2</version>
+        <version>1.9</version>
         <downloads>
-            <downloadurl type="full" format="zip">https://github.com/CleanTalk/joomla3.x-4.x-antispam/archive/1.8.2.zip</downloadurl>
-=======
-        <version>1.8.1</version>
+            <downloadurl type="full" format="zip">https://github.com/CleanTalk/joomla3.x-4.x-antispam/archive/1.9.zip</downloadurl>
+        </downloads>
+        <tags>
+            <tag>stable</tag>
+        </tags>
+        <section>Updates</section>
+        <targetplatform name="joomla" version="3.[1234567890]"/>
+        <client>0</client>
+    </update>
+    <update>
+        <name>CleanTalk Update Site</name>
+        <description>CleanTalk Update Site</description>
+        <element>cleantalkantispam</element>
+        <type>plugin</type>
+        <folder>system</folder>
+        <version>1.8</version>
         <downloads>
-            <downloadurl type="full" format="zip">https://github.com/CleanTalk/joomla3.x-4.x-antispam/archive/1.8.1.zip</downloadurl>
->>>>>>> origin/output_errors_related_to_curl_allow_url_fopen
+            <downloadurl type="full" format="zip">https://github.com/CleanTalk/joomla3.x-4.x-antispam/archive/1.8.zip</downloadurl>
         </downloads>
         <tags>
             <tag>stable</tag>

@@ -3,11 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
-<<<<<<< HEAD
- * @version       1.8.2
-=======
- * @version       1.8.1
->>>>>>> origin/output_errors_related_to_curl_allow_url_fopen
+ * @version       1.9
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -81,7 +77,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 * Plugin version string for server
      * @since         1.0
 	 */
-	const ENGINE = 'joomla34-18';
+	const ENGINE = 'joomla34-19';
 
 	/*
 	 * Flag marked JComments form initilization.
