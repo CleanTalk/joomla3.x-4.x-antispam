@@ -7,7 +7,11 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
+<<<<<<< HEAD
     <version>1.8.2</version>
+=======
+    <version>1.8.1</version>
+>>>>>>> origin/output_errors_related_to_curl_allow_url_fopen
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
     <files>
 		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>

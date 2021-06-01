@@ -3,7 +3,11 @@
 /**
  * CleanTalk joomla plugin
  *
+<<<<<<< HEAD
  * @version       1.8.2
+=======
+ * @version       1.8.1
+>>>>>>> origin/output_errors_related_to_curl_allow_url_fopen
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -255,6 +259,17 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		return isset($save_params) ? $save_params : null;
 	}
+
+    /**
+     * Checking curl/allow_url_fopen availability
+     */
+    private function checkCurlAUFopenAvailability() {
+        if(!function_exists('curl_init') && !ini_get('allow_url_fopen')) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * This event is triggered after Joomla initialization
@@ -591,6 +606,9 @@ class plgSystemCleantalkantispam extends JPlugin
 		{
 			if ($app->isAdmin())
 			{
+			    # Checking curl/allow_url_fopen availability
+                $ct_curl_aufopen_availability = $this->checkCurlAUFopenAvailability();
+
 				if ($config->get('apikey'))
 				{
 					$this->checkIsPaid($config->get('apikey'));
@@ -614,6 +632,10 @@ class plgSystemCleantalkantispam extends JPlugin
 
 				if ($show_notice == 1 && $renew == 1)
 					$notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $config->get('user_token'));
+
+                if (!$ct_curl_aufopen_availability) {
+                    $notice = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_CURL_AUFOPEN_UNAVAILABLE');
+                }
 
 				$connection_reports = $config->get('connection_reports') ? json_decode(json_encode($config->get('connection_reports')), true) : array();
 				$adminmail          = JFactory::getConfig()->get('mailfrom');

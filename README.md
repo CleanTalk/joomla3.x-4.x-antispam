@@ -1,7 +1,11 @@
 Anti-spam plugin for Joomla 3.X.-4.x
 ============
 
+<<<<<<< HEAD
 Version 1.8.2
+=======
+Version 1.8.1
+>>>>>>> origin/output_errors_related_to_curl_allow_url_fopen
 
 ## Simple antispam test
 
