@@ -1036,6 +1036,20 @@ class plgSystemCleantalkantispam extends JPlugin
 										)
 									);
 									die();
+								} elseif( $app->input->get('option') === 'com_komento' ) {
+									echo \json_encode(
+										array (
+											0 =>
+												array(
+													'type' => 'reject',
+													'data' =>
+														array (
+															0 => $ctResponse['comment'],
+														),
+												),
+										)
+									);
+									die();
 								}
 								else
 								{
