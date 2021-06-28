@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       1.8
+ * @version       1.9
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -77,7 +77,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 * Plugin version string for server
      * @since         1.0
 	 */
-	const ENGINE = 'joomla34-18';
+	const ENGINE = 'joomla34-19';
 
 	/*
 	 * Flag marked JComments form initilization.
@@ -255,6 +255,17 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		return isset($save_params) ? $save_params : null;
 	}
+
+    /**
+     * Checking curl/allow_url_fopen availability
+     */
+    private function checkCurlAUFopenAvailability() {
+        if(!function_exists('curl_init') && !ini_get('allow_url_fopen')) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * This event is triggered after Joomla initialization
@@ -591,6 +602,9 @@ class plgSystemCleantalkantispam extends JPlugin
 		{
 			if ($app->isAdmin())
 			{
+			    # Checking curl/allow_url_fopen availability
+                $ct_curl_aufopen_availability = $this->checkCurlAUFopenAvailability();
+
 				if ($config->get('apikey'))
 				{
 					$this->checkIsPaid($config->get('apikey'));
@@ -614,6 +628,10 @@ class plgSystemCleantalkantispam extends JPlugin
 
 				if ($show_notice == 1 && $renew == 1)
 					$notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $config->get('user_token'));
+
+                if (!$ct_curl_aufopen_availability) {
+                    $notice = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_CURL_AUFOPEN_UNAVAILABLE');
+                }
 
 				$connection_reports = $config->get('connection_reports') ? json_decode(json_encode($config->get('connection_reports')), true) : array();
 				$adminmail          = JFactory::getConfig()->get('mailfrom');
@@ -889,24 +907,29 @@ class plgSystemCleantalkantispam extends JPlugin
 					$message = array_merge(array('subject' => $subject), $message);
 				$message = json_encode( $message );
 			}
-			
-			// Genertal test for any forms or form with custom fields
-			elseif (
-			    $this->params->get('form_protection') &&
-			    ( $this->params->get('form_protection') && in_array('check_custom_contact_forms', $this->params->get('form_protection')) ) ||
-			    ( $this->params->get('form_protection') && in_array('check_external', $this->params->get('form_protection')) )||
-				$app->input->get('option') == 'com_rsform' ||
-				$app->input->get('option') == 'com_virtuemart' ||
-				$app->input->get('option') == 'com_baforms' ||
-				$app->input->get('option') == 'com_acym' ||
-				$app->input->get('option') == 'com_acymailing'
-            )
+			elseif( $app->input->get('option') === 'com_komento' ) {
+				echo \json_encode(
+					array (
+						0 =>
+							array(
+								'type' => 'reject',
+								'data' =>
+									array (
+										0 => $ctResponse['comment'],
+									),
+							),
+					)
+				);
+				die();
+			}			
+			// General test for any forms or form with custom fields
+			else
 			{
 				$ct_temp_msg_data = CleantalkHelper::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
 				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
 				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
-				$contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
+				//$contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
 				$message          = ($ct_temp_msg_data['message'] ? $ct_temp_msg_data['message'] : array());
 
 				if ($subject != '')
