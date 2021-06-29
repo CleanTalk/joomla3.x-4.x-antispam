@@ -7,10 +7,11 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>1.9</version>
+    <version>2.0</version>
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
     <files>
 		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
+		<filename plugin="cleantalkantispam">lib/autoload.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/Cleantalk.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkRequest.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkResponse.php</filename>

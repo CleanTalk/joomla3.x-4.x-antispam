@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       1.9
+ * @version       2.0
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -21,30 +21,8 @@ jimport('joomla.application.component.helper');
 define('APBCT_SESSION__LIVE_TIME', 86400*2);
 define('APBCT_SESSION__CHANCE_TO_CLEAN', 100);
 
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/Cleantalk.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/CleantalkRequest.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Antispam/CleantalkResponse.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/API.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Helper.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/Helper.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Cron.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/Cron.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/DB.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/DB.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/RemoteCalls.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/ApbctJoomla/RemoteCalls.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Schema.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/ServerVariables.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Cookie.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Get.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Post.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Request.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Variables/Server.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Firewall/Firewall.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Firewall/FirewallModule.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Firewall/FirewallUpdater.php');
-require_once(dirname(__FILE__) . '/lib/Cleantalk/Common/Firewall/Modules/SFW.php');
-
+// Autoload
+require_once(dirname(__FILE__) . '/lib/autoload.php');
 
 //Antispam classes
 use Cleantalk\Antispam\Cleantalk as Cleantalk;
