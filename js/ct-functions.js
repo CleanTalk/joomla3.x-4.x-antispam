@@ -85,10 +85,8 @@ function ct_ready(){
 			if (!form.name && !form.id) {
 				continue;
 			}
-			
-			form.onsubmit_prev = form.onsubmit;
-			form.onsubmit = function(event){
 
+			form.addEventListener('submit', function () {
 				// Get only fields
 				var elements = [];
 				for(var key in this.elements){
@@ -138,14 +136,7 @@ function ct_ready(){
 
 				ctSetCookie("ct_visible_fields", visible_fields);
 				ctSetCookie("ct_visible_fields_count", visible_fields_count);
-
-				// Call previous submit action
-				if(event !== undefined && event.target.onsubmit_prev instanceof Function){
-					setTimeout(function(){
-						event.target.onsubmit_prev.call(event.target, event);
-					}, 500);
-				}
-			};
+			});
 		}
 	}, 1000);
 }
