@@ -199,6 +199,10 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 		$api_key = trim($ct_api_key);
 
+		if (empty($api_key)) {
+			return null;
+		}
+		
 		if (($this->params->get('acc_status_last_check') && ($this->params->get('acc_status_last_check') < time() - 86400)) || $force_check || !$this->params->get('ct_key_is_ok'))
 		{
 			$ct_key_is_ok = 0;
@@ -1812,7 +1816,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	private function ct_cookies_test()
 	{
-        if ($this->params->get('cookies') && ! in_array('set_cookies', $this->params->get('cookies') ) ) {
+        if (! $this->params->get('cookies') || ! in_array( 'set_cookies', $this->params->get('cookies')) ) {
             return null;
         }
 		if ($this->params->get('cookies') && in_array('use_alternative_cookies', $this->params->get('cookies') ) ) {
