@@ -575,7 +575,11 @@ class plgSystemCleantalkantispam extends JPlugin
 			$this->sfw_check();
 			$this->ct_cookie();
 			$document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js?" . time());
-			$document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
+			$set_cookies = $this->params->get('cookies');
+			$document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
+			if ($set_cookies) {
+				$document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
+			}
 			if ($config->get('form_protection') && in_array('check_external', $config->get('form_protection')))
 				$document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-external.js?" . time());
 		}
@@ -1816,28 +1820,31 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	private function ct_cookies_test()
 	{
-        if (! $this->params->get('cookies') || ! in_array( 'set_cookies', $this->params->get('cookies')) ) {
-            return null;
-        }
+		if( ! $this->params->get('cookies') || ! in_array( 'set_cookies', $this->params->get('cookies')) || headers_sent() ) {
+			return null;
+		}
 		if ($this->params->get('cookies') && in_array('use_alternative_cookies', $this->params->get('cookies') ) ) {
 			return 1;
 		}
+		if (isset($_COOKIE['apbct_cookies_test'])) {
+			$cookie_test = json_decode(stripslashes(self::ct_getcookie('apbct_cookies_test')), true);
 
-		$cookie_test = json_decode(stripslashes(self::ct_getcookie('apbct_cookies_test')), true);
+			if (is_null($cookie_test)) {
+				return null;
+			}
+			$check_string = trim($this->params->get('apikey'));
+			foreach ($cookie_test['cookies_names'] as $cookie_name) {
+				$check_string .= self::ct_getcookie($cookie_name);
+			}
+			unset($cokie_name);
 
-		if (is_null($cookie_test)) {
-			return null;
-		}
-		$check_string = trim($this->params->get('apikey'));
-		foreach ($cookie_test['cookies_names'] as $cookie_name) {
-			$check_string .= self::ct_getcookie($cookie_name);
-		}
-		unset($cokie_name);
-
-		if ($cookie_test['check_value'] == md5($check_string)) {
-			return 1;
+			if ($cookie_test['check_value'] == md5($check_string)) {
+				return 1;
+			} else {
+				return 0;
+			}			
 		} else {
-			return 0;
+			return null;
 		}
 	}
 

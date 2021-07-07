@@ -1,11 +1,8 @@
 function ctSetCookie(c_name, value) {
-	document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/";
+	if (typeof ct_setcookie !== undefined && ct_setcookie) {
+		document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/";
+	}	
 }
-
-ctSetCookie("ct_ps_timestamp", Math.floor(new Date().getTime()/1000));
-ctSetCookie("ct_fkp_timestamp", "0");
-ctSetCookie("ct_pointer_data", "0");
-ctSetCookie("ct_timezone", new Date().getTimezoneOffset()/60*(-1));
 
 ct_attach_event_handler(window, "DOMContentLoaded", ct_ready);
 
@@ -76,6 +73,10 @@ if(typeof window.addEventListener == "function"){
 }
 // Ready function
 function ct_ready(){
+	ctSetCookie("ct_ps_timestamp", Math.floor(new Date().getTime()/1000));
+	ctSetCookie("ct_fkp_timestamp", "0");
+	ctSetCookie("ct_pointer_data", "0");
+	ctSetCookie("ct_timezone", new Date().getTimezoneOffset()/60*(-1));
 	ctSetCookie("ct_visible_fields", 0);
 	ctSetCookie("ct_visible_fields_count", 0);
 	setTimeout(function(){
