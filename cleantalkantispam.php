@@ -893,21 +893,6 @@ class plgSystemCleantalkantispam extends JPlugin
 					$message = array_merge(array('subject' => $subject), $message);
 				$message = json_encode( $message );
 			}
-			elseif( $app->input->get('option') === 'com_komento' ) {
-				echo \json_encode(
-					array (
-						0 =>
-							array(
-								'type' => 'reject',
-								'data' =>
-									array (
-										0 => $ctResponse['comment'],
-									),
-							),
-					)
-				);
-				die();
-			}			
 			// General test for any forms or form with custom fields
 			else
 			{
