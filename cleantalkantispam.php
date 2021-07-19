@@ -501,6 +501,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			$option_cmd == 'com_user' ||
 			$option_cmd == 'com_login' ||
 			$option_cmd == 'com_akeebasubs' ||
+			$option_cmd == 'com_jchat' ||
 			$option_cmd == 'com_easysocial' ||
 			($module_cmd == 'shoutbox' && $method_cmd == 'getPosts') ||
 			($option_cmd == 'com_virtuemart' && $task_cmd == 'addJS') ||
