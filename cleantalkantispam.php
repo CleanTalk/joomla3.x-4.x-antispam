@@ -720,6 +720,8 @@ class plgSystemCleantalkantispam extends JPlugin
             $this->sfw_check();
             $this->ct_cookie();
             $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js?" . time());
+			$set_cookies = $this->params->get('cookies');
+			$document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
             $document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
             if ($config->get('form_protection') && in_array('check_external', $config->get('form_protection')))
                 $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-external.js?" . time());
