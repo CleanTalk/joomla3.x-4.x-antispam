@@ -490,6 +490,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 		$option_cmd = JFactory::getApplication()->input->get('option');
 		$task_cmd   = JFactory::getApplication()->input->get('task');
+		$ctask_cmd  = JFactory::getApplication()->input->get('ctask');
 		$module_cmd = JFactory::getApplication()->input->get('module');
 		$method_cmd = JFactory::getApplication()->input->get('method');
 
@@ -506,7 +507,8 @@ class plgSystemCleantalkantispam extends JPlugin
 			($module_cmd == 'shoutbox' && $method_cmd == 'getPosts') ||
 			($option_cmd == 'com_virtuemart' && $task_cmd == 'addJS') ||
 			($option_cmd == 'com_virtuemart' && $task_cmd == 'cart') ||
-			($option_cmd == 'com_rsform' && $task_cmd == 'ajaxValidate') // RSFrom ajax validation on multipage form
+			($option_cmd == 'com_rsform' && $task_cmd == 'ajaxValidate') || // RSFrom ajax validation on multipage form
+			($option_cmd == 'com_virtuemart' && !empty($ctask_cmd) && $ctask_cmd !== 'savebtaddress')
 		)
 			return true;
 
@@ -707,6 +709,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		$option_cmd = $app->input->get('option');
 		$view_cmd   = $app->input->get('view');
 		$task_cmd   = $app->input->get('task');
+		$ctask_cmd  = $app->input->get('ctask');
 		$page_cmd   = $app->input->get('page');
 
         /**
@@ -1033,6 +1036,14 @@ class plgSystemCleantalkantispam extends JPlugin
 										)
 									);
 									die();
+								} elseif (($option_cmd === 'com_virtuemart' && !empty($ctask_cmd) && $ctask_cmd === 'savebtaddress')) {
+									echo \json_encode(
+										array(
+											'error' => 1,
+											'msg' => $ctResponse['comment']
+										)
+									);
+									die;
 								} elseif( $app->input->get('option') === 'com_komento' ) {
 									echo \json_encode(
 										array (
