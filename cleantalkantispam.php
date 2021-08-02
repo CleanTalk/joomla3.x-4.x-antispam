@@ -1509,133 +1509,140 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function ctSendRequest($method, $params)
 	{
-		// URL Exclusions
-		$url_check = true;
-		$url_exclusion = $this->params->get('url_exclusions');
-		if (! is_null( $url_exclusion ) && !empty( $url_exclusion ) )
-		{
-			$url_exclusion = explode(',', $url_exclusion);
+		static $executed_check = true;
 
-			// Not always we have 'HTTP_X_REQUESTED_WITH' :(
-			// @ToDo need to detect ajax request
+		if ($executed_check) {
 
-			// @ToDo implement support for a regexp
-			$check_type = 0;
-			foreach ($url_exclusion as $key => $value) {
-				if( $check_type == 1 ) { // If RegExp
-					if( @preg_match( '/' . $value . '/', $_SERVER['REQUEST_URI'] ) ) {
-						$url_check = false;
+			$executed_check = false;
+			// URL Exclusions
+			$url_check = true;
+			$url_exclusion = $this->params->get('url_exclusions');
+			if (! is_null( $url_exclusion ) && !empty( $url_exclusion ) )
+			{
+				$url_exclusion = explode(',', $url_exclusion);
+
+				// Not always we have 'HTTP_X_REQUESTED_WITH' :(
+				// @ToDo need to detect ajax request
+
+				// @ToDo implement support for a regexp
+				$check_type = 0;
+				foreach ($url_exclusion as $key => $value) {
+					if( $check_type == 1 ) { // If RegExp
+						if( @preg_match( '/' . $value . '/', $_SERVER['REQUEST_URI'] ) ) {
+							$url_check = false;
+						}
+					} else {
+						if( strpos($_SERVER['HTTP_REFERER'], $value) !== false) { // Simple string checking
+							$url_check = false;
+						}
 					}
-				} else {
-					if( strpos($_SERVER['HTTP_REFERER'], $value) !== false) { // Simple string checking
-						$url_check = false;
-					}
-				}
 
-			}
-		}
-		if (!$url_check)
-			return;
-		// END URL Exclusions
-
-		// Roles Exclusions
-		$roles = $this->params->get('roles_exclusions');
-		if ( ! is_null( $roles ) ) {
-
-			$set_check = true;
-
-			foreach ($roles as $role_id) {
-				if (self::_cleantalk_user_has_role_id($role_id)) {
-					$set_check = false;
 				}
 			}
-
-			if (!$set_check) {
+			if (!$url_check)
 				return;
+			// END URL Exclusions
+
+			// Roles Exclusions
+			$roles = $this->params->get('roles_exclusions');
+			if ( ! is_null( $roles ) ) {
+
+				$set_check = true;
+
+				foreach ($roles as $role_id) {
+					if (self::_cleantalk_user_has_role_id($role_id)) {
+						$set_check = false;
+					}
+				}
+
+				if (!$set_check) {
+					return;
+				}
 			}
+			// END Roles Exclusions
+
+			if ($this->params->get('ct_key_is_ok') && $this->params->get('ct_key_is_ok') == 0)
+				return;
+			
+			//Skip backend or admin checking
+			if (JFactory::getApplication()->isAdmin() || JFactory::getUser()->authorise('core.admin'))
+				return;
+
+			if ($this->params->get('data_processing') && in_array('skip_registered_users', $this->params->get('data_processing')) && !JFactory::getUser()->guest)
+				return;
+
+			$ct_request = new CleantalkRequest;
+
+			foreach ($params as $k => $v)
+			{
+				$ct_request->$k = $v;
+			}
+
+			$ct_request->auth_key        = $this->params->get('apikey');
+			$ct_request->agent           = self::ENGINE;
+			$ct_request->submit_time     = $this->submit_time_test();
+			$ct_request->sender_ip       = CleantalkHelper::ip__get(array('real'), false);
+			$ct_request->x_forwarded_for = CleantalkHelper::ip__get(array('x_forwarded_for'), false);
+			$ct_request->x_real_ip       = CleantalkHelper::ip__get(array('x_real_ip'), false);
+			$ct_request->sender_info     = $this->get_sender_info();
+			$ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
+
+			$result             = null;
+			$ct                 = new Cleantalk();
+			$ct->server_url     = 'https://moderate.cleantalk.org';
+			$ct->work_url       = $this->params->get('work_url') ? $this->params->get('work_url') : '';
+			$ct->server_ttl     = $this->params->get('server_ttl') ? $this->params->get('server_ttl') : 0;
+			$ct->server_changed = $this->params->get('server_changed') ? $this->params->get('server_changed') : 0;
+
+			switch ($method)
+			{
+				case 'check_message':
+					$result = $ct->isAllowMessage($ct_request);
+					break;
+				case 'send_feedback':
+					$result = $ct->sendFeedback($ct_request);
+					break;
+				case 'check_newuser':
+					$result = $ct->isAllowUser($ct_request);
+					break;
+				default:
+					return null;
+			}
+
+			if ($ct->server_change)
+			{
+				self::dbSetServer($ct->work_url, $ct->server_ttl, time());
+			}
+			// Result should be an 	associative array
+			$result = json_decode(json_encode($result), true);
+
+			$connection_reports = $this->params->get('connection_reports') ? json_decode(json_encode($this->params->get('connection_reports')), true) : array('success' => 0, 'negative' => 0, 'negative_report' => null);
+			if (isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on) == 1)
+			{
+				$result['allow'] = 1;
+				$result['errno'] = 0;
+				$connection_reports['negative']++;
+				if (isset($result['errstr']))
+					$connection_reports['negative_report'][] = array('date' => date("Y-m-d H:i:s"), 'page_url' => $_SERVER['REQUEST_URI'], 'lib_report' => $result['errstr']);
+			}
+			if (isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on) != 1)
+			{
+				$result['allow']      = 0;
+				$result['spam']       = 1;
+				$result['stop_queue'] = 1;
+				$result['comment']    = 'Forbidden. Please, enable Javascript.';
+				$result['errno']      = 0;
+				$connection_reports['negative']++;
+			}
+			if (isset($result['errno']) && intval($result['errno']) === 0 && $result['errstr'] == '')
+				$connection_reports['success']++;
+
+			$save_params['connection_reports'] = $connection_reports;
+			$this->saveCTConfig($save_params);
+
+			return $result;
 		}
-		// END Roles Exclusions
-
-		if ($this->params->get('ct_key_is_ok') && $this->params->get('ct_key_is_ok') == 0)
-			return;
-		
-		//Skip backend or admin checking
-		if (JFactory::getApplication()->isAdmin() || JFactory::getUser()->authorise('core.admin'))
-			return;
-
-		if ($this->params->get('data_processing') && in_array('skip_registered_users', $this->params->get('data_processing')) && !JFactory::getUser()->guest)
-			return;
-
-		$ct_request = new CleantalkRequest;
-
-		foreach ($params as $k => $v)
-		{
-			$ct_request->$k = $v;
-		}
-
-		$ct_request->auth_key        = $this->params->get('apikey');
-		$ct_request->agent           = self::ENGINE;
-		$ct_request->submit_time     = $this->submit_time_test();
-		$ct_request->sender_ip       = CleantalkHelper::ip__get(array('real'), false);
-		$ct_request->x_forwarded_for = CleantalkHelper::ip__get(array('x_forwarded_for'), false);
-		$ct_request->x_real_ip       = CleantalkHelper::ip__get(array('x_real_ip'), false);
-		$ct_request->sender_info     = $this->get_sender_info();
-		$ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
-
-		$result             = null;
-		$ct                 = new Cleantalk();
-		$ct->server_url     = 'https://moderate.cleantalk.org';
-		$ct->work_url       = $this->params->get('work_url') ? $this->params->get('work_url') : '';
-		$ct->server_ttl     = $this->params->get('server_ttl') ? $this->params->get('server_ttl') : 0;
-		$ct->server_changed = $this->params->get('server_changed') ? $this->params->get('server_changed') : 0;
-
-		switch ($method)
-		{
-			case 'check_message':
-				$result = $ct->isAllowMessage($ct_request);
-				break;
-			case 'send_feedback':
-				$result = $ct->sendFeedback($ct_request);
-				break;
-			case 'check_newuser':
-				$result = $ct->isAllowUser($ct_request);
-				break;
-			default:
-				return null;
-		}
-
-		if ($ct->server_change)
-		{
-			self::dbSetServer($ct->work_url, $ct->server_ttl, time());
-		}
-		// Result should be an 	associative array
-		$result = json_decode(json_encode($result), true);
-
-		$connection_reports = $this->params->get('connection_reports') ? json_decode(json_encode($this->params->get('connection_reports')), true) : array('success' => 0, 'negative' => 0, 'negative_report' => null);
-		if (isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on) == 1)
-		{
-			$result['allow'] = 1;
-			$result['errno'] = 0;
-			$connection_reports['negative']++;
-			if (isset($result['errstr']))
-				$connection_reports['negative_report'][] = array('date' => date("Y-m-d H:i:s"), 'page_url' => $_SERVER['REQUEST_URI'], 'lib_report' => $result['errstr']);
-		}
-		if (isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on) != 1)
-		{
-			$result['allow']      = 0;
-			$result['spam']       = 1;
-			$result['stop_queue'] = 1;
-			$result['comment']    = 'Forbidden. Please, enable Javascript.';
-			$result['errno']      = 0;
-			$connection_reports['negative']++;
-		}
-		if (isset($result['errno']) && intval($result['errno']) === 0 && $result['errstr'] == '')
-			$connection_reports['success']++;
-
-		$save_params['connection_reports'] = $connection_reports;
-		$this->saveCTConfig($save_params);
-
-		return $result;
+		return false;
 	}
 
 	/**
