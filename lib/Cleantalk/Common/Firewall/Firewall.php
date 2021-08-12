@@ -123,7 +123,7 @@ class Firewall
 	{
 	    $this->api_key        = $api_key;
 		$this->db             = $db;
-		$this->log_table_name = $log_table_name;
+		$this->log_table_name = $db->prefix . $log_table_name;
 		$this->debug          = (bool) Get::get('debug');
 		$this->ip_array       = $this->ipGet( 'real', true );
 		$this->helper         = new Helper();

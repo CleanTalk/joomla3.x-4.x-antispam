@@ -40,12 +40,12 @@ use Cleantalk\ApbctJoomla\RemoteCalls as RemoteCalls;
 use Cleantalk\Common\Variables\Server;
 use Cleantalk\Common\Variables\ServerVariables;
 
-define('APBCT_TBL_FIREWALL_DATA', '#__cleantalk_sfw');      // Table with firewall data.
-define('APBCT_TBL_FIREWALL_LOG',  '#__cleantalk_sfw_logs'); // Table with firewall logs.
-define('APBCT_TBL_AC_LOG',        '#__cleantalk_ac_log');   // Table with firewall logs.
-define('APBCT_TBL_AC_UA_BL',      '#__cleantalk_ua_bl');    // Table with User-Agents blacklist.
-define('APBCT_TBL_SESSIONS',      '#__cleantalk_sessions'); // Table with session data.
-define('APBCT_SPAMSCAN_LOGS',     '#__cleantalk_spamscan_logs'); // Table with session data.
+define('APBCT_TBL_FIREWALL_DATA', 'cleantalk_sfw');      // Table with firewall data.
+define('APBCT_TBL_FIREWALL_LOG',  'cleantalk_sfw_logs'); // Table with firewall logs.
+define('APBCT_TBL_AC_LOG',        'cleantalk_ac_log');   // Table with firewall logs.
+define('APBCT_TBL_AC_UA_BL',      'cleantalk_ua_bl');    // Table with User-Agents blacklist.
+define('APBCT_TBL_SESSIONS',      'cleantalk_sessions'); // Table with session data.
+define('APBCT_SPAMSCAN_LOGS',     'cleantalk_spamscan_logs'); // Table with session data.
 define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
 define('APBCT_WRITE_LIMIT',       5000); // Write limit for firewall data.
 
