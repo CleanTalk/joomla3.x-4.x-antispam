@@ -260,7 +260,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 		$app = JFactory::getApplication();
 
-		if (!$app->isAdmin())
+		if (!$this->isAdmin())
 		{
 			// Remote calls
 			if (isset($_GET['spbc_remote_call_token'], $_GET['spbc_remote_call_action'], $_GET['plugin_name']) && in_array($_GET['plugin_name'], array('antispam', 'anti-spam', 'apbct')))
@@ -273,7 +273,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			}
 		}
 
-		if ($app->isAdmin() && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id)
+		if ($this->isAdmin() && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id)
 		{
 			$output      = null;
 			$save_params = array();
@@ -574,7 +574,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		JHtml::_('jquery.framework');
 
-		if ($app->isSite() && ! $this->jot_cache_enabled())
+		if ($this->isSite() && ! $this->jot_cache_enabled())
 		{
 			$this->sfw_check();
 			$this->ct_cookie();
@@ -590,7 +590,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		if ($user->get('isRoot'))
 		{
-			if ($app->isAdmin())
+			if ($this->isAdmin())
 			{
 			    # Checking curl/allow_url_fopen availability
                 $ct_curl_aufopen_availability = $this->checkCurlAUFopenAvailability();
@@ -716,7 +716,7 @@ class plgSystemCleantalkantispam extends JPlugin
         /**
          * Integration with JotCache Plugin
          */
-        if ($app->isSite() && $this->jot_cache_enabled())
+        if ($this->isSite() && $this->jot_cache_enabled())
         {
             $document = JFactory::getDocument();
             $config   = $this->params;
@@ -2177,7 +2177,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	{
 		$app = JFactory::getApplication();
 
-		if (!$app->isAdmin() && $this->params->get('other_settings') && in_array('sfw_enable', $this->params->get('other_settings')) && $_SERVER["REQUEST_METHOD"] == 'GET')
+		if (!$this->isAdmin() && $this->params->get('other_settings') && in_array('sfw_enable', $this->params->get('other_settings')) && $_SERVER["REQUEST_METHOD"] == 'GET')
 		{
 	        $firewall = new Firewall(
 	            $this->params->get('apikey'),
@@ -2288,5 +2288,44 @@ class plgSystemCleantalkantispam extends JPlugin
         }
 
         return false;
+    }
+
+    /**
+     * isAdmin for 3-4 compatible
+     */
+    private function isAdmin() {
+        $app = JFactory::getApplication();
+
+        if($this->getCmsMajorVersion() === 4) {
+            return $app->isClient('administrator');
+        }
+
+        return $app->isAdmin();
+    }
+
+    /**
+     * isSite for 3-4 compatible
+     */
+    private function isSite() {
+        $app = JFactory::getApplication();
+
+        if($this->getCmsMajorVersion() === 4) {
+            return $app->isClient('site');
+        }
+
+        return $app->isSite();
+    }
+
+    /**
+     * Check major version CMS
+     */
+    private function getCmsMajorVersion () {
+        if(class_exists('\Joomla\CMS\Version')) {
+            if(\Joomla\CMS\Version::MAJOR_VERSION !== null) {
+                return (int)\Joomla\CMS\Version::MAJOR_VERSION;
+            }
+        }
+
+        return  3;
     }
 }
