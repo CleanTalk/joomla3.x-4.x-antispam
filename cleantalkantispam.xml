@@ -91,11 +91,11 @@
 					<option value="tell_about_cleantalk">PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT</option>
 				</field>
 			</fieldset>
-			<fieldset name="exclusions">
+			<fieldset name="exclusions" addfieldpath="/plugins/system/cleantalkantispam/models/fields">
 				<field type="note" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_NOTE" />
 				<field name="url_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL_DESC" />
 				<field name="fields_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS_DESC" />
-				<field name="roles_exclusions" type="usergroup" multiple="true" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
+				<field name="roles_exclusions" multiple="multiple" type="clusergrouplist" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
 			</fieldset>
 			<fieldset name="checkuserscomments">
 
