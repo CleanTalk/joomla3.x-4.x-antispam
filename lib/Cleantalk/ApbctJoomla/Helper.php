@@ -16,7 +16,12 @@ class Helper extends \Cleantalk\Common\Helper {
         //die( __METHOD__ . ' method must be overloaded in the CMS-based Helper class' );
         $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
         $params = new \JRegistry($plugin->params);
-        return array('firewall_updating_id' => isset($params['firewall_updating_id']) ? $params['firewall_updating_id'] : null, 'firewall_updating_last_start' => isset($params['firewall_updating_last_start']) ? $params['firewall_updating_last_start'] : 0, 'firewall_update_percent' => isset($params['firewall_update_percent']) ? $params['firewall_update_percent'] : 0);
+
+        return array(
+            'firewall_updating_id' => $params->get('firewall_updating_id'),
+            'firewall_updating_last_start' => $params->get('firewall_updating_last_start', 0),
+            'firewall_update_percent' => $params->get('firewall_update_percent', 0)
+        );
     }
 
     /**

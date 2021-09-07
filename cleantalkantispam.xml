@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3.0" type="plugin" group="system" method="upgrade" >
-    <name>PLG_SYSTEM_CLEANTALKANTISPAM_NAME</name>
+    <name>plg_system_cleantalkantispam</name>
     <author>CleanTalk team</author>
     <creationDate>24.07.2019</creationDate>
     <copyright>(C) CleanTalk</copyright>
