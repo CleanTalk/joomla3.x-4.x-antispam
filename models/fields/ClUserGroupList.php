@@ -1,11 +1,8 @@
 <?php
-// Check to ensure this file is included in Joomla!
-use Joomla\CMS\Access\Access;
-use Joomla\CMS\Helper\UserGroupsHelper;
-
 defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.form.formfield');
+JLoader::register('UsersHelper', JPATH_ADMINISTRATOR.DIRECTORY_SEPARATOR.'components'.DIRECTORY_SEPARATOR.'com_users'.DIRECTORY_SEPARATOR.'helpers'.DIRECTORY_SEPARATOR.'/users.php');
 
 class JFormFieldClUserGroupList extends JFormField {
 
@@ -16,7 +13,7 @@ class JFormFieldClUserGroupList extends JFormField {
     public function getInput() {
 
         $out_html = '<select multiple id="' . $this->name . '" name="' . $this->name . '" class="form-select valid form-control-success" aria-describedby="' . $this->name . '" aria-invalid="false">';
-        foreach ($this->getOptions()[0] as $option) {
+        foreach ($this->getOptions() as $option) {
 
             $selected = '';
             if(in_array($option->value, $this->value)) {
@@ -39,32 +36,6 @@ class JFormFieldClUserGroupList extends JFormField {
      */
     public function getOptions()
     {
-        $checkSuperUser = (int) $this->getAttribute('checksuperusergroup', 0);
-
-        // Cache user groups base on checksuperusergroup attribute value
-        if (true)
-        {
-            $groups       = UserGroupsHelper::getInstance()->getAll();
-            $cacheOptions = array();
-
-            foreach ($groups as $group)
-            {
-                // Don't list super user groups.
-                if ($checkSuperUser && Access::checkGroup($group->id, 'core.admin'))
-                {
-                    continue;
-                }
-
-                $cacheOptions[] = (object) array(
-                    'text'  => str_repeat('- ', $group->level) . $group->title,
-                    'value' => $group->id,
-                    'level' => $group->level,
-                );
-            }
-
-            $options[$checkSuperUser] = $cacheOptions;
-        }
-
-        return $options;
+        return UsersHelper::getGroups();
     }
 }
