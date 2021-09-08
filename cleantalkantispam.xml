@@ -37,6 +37,7 @@
 		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/DB.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/Helper.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/RemoteCalls.php</filename>
+		<filename plugin="cleantalkantispam">models/fields/ClUserGroupList.php</filename>
 		<filename plugin="cleantalkantispam">js/ct-settings.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-functions.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-external.js</filename>
