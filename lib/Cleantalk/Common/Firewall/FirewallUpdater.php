@@ -310,8 +310,8 @@ class FirewallUpdater
             $sql = sprintf( Schema::getSchema('sfw'), $this->db->prefix );
             $this->db->execute( $sql );
         }
-        $this->db->execute( 'CREATE TABLE IF NOT EXISTS `' . APBCT_TBL_FIREWALL_DATA . '_temp` LIKE `' . APBCT_TBL_FIREWALL_DATA . '`;' );
-        $this->db->execute( 'TRUNCATE TABLE `' . APBCT_TBL_FIREWALL_DATA . '_temp`;' );
+        $this->db->execute( 'CREATE TABLE IF NOT EXISTS `' . $this->fw_data_table_name . '_temp` LIKE `' . $this->fw_data_table_name . '`;' );
+        $this->db->execute( 'TRUNCATE TABLE `' . $this->fw_data_table_name . '_temp`;' );
     }
 
     /**

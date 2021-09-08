@@ -36,7 +36,27 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls {
     {
         $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
         $params = new \JRegistry($plugin->params);
-        return (isset($params['remote_calls']) && !empty($params['remote_calls'])) ? json_decode(json_encode($params['remote_calls']),true) : array('close_renew_banner' => array('last_call' => 0, 'cooldown' => self::COOLDOWN), 'sfw_update' => array('last_call' => 0, 'cooldown' => self::COOLDOWN), 'sfw_send_logs' => array('last_call' => 0, 'cooldown' => self::COOLDOWN), 'sfw_update__write_base' => array('last_call' => 0, 'cooldown' => 0));
+        $remote_calls = $params->get('remote_calls');
+        return (!empty($remote_calls))
+            ? json_decode(json_encode($remote_calls),true)
+            : array(
+                'close_renew_banner' => array(
+                    'last_call' => 0,
+                    'cooldown' => self::COOLDOWN
+                ),
+                'sfw_update' => array(
+                    'last_call' => 0,
+                    'cooldown' => self::COOLDOWN
+                ),
+                'sfw_send_logs' => array(
+                    'last_call' => 0,
+                    'cooldown' => self::COOLDOWN
+                ),
+                'sfw_update__write_base' => array(
+                    'last_call' => 0,
+                    'cooldown' => 0
+                )
+            );
     }
 
     /**

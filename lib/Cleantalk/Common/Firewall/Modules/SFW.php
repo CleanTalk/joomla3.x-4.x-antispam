@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Common\Firewall\Modules;
 
+use Cleantalk\ApbctJoomla\DB;
 use Cleantalk\Common\Firewall\Firewall;
 use Cleantalk\Common\Firewall\FirewallModule;
 use Cleantalk\Common\Schema;
@@ -27,7 +28,8 @@ class SFW extends FirewallModule {
      */
 	public function __construct( $data_table, $params = array() )
     {
-		$this->db_data_table_name = $data_table ?: null;
+        $this->db = DB::getInstance();
+        $this->db_data_table_name = $this->db->prefix . $data_table ?: null;
 		
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
