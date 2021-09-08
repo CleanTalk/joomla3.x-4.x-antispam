@@ -118,3 +118,19 @@
     color: #BBB;
     text-decoration: underline;
 }
+fieldset.checkboxes ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+fieldset.checkboxes ul li {
+    display: flex;
+    align-items: center;
+    padding: 7px 0;
+}
+fieldset.checkboxes ul li input {
+    margin: 0 10px 0 0;
+}
+fieldset.checkboxes ul li label {
+    margin: 0;
+}
