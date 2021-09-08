@@ -16,7 +16,7 @@ class JFormFieldClUserGroupList extends JFormField {
         foreach ($this->getOptions() as $option) {
 
             $selected = '';
-            if(in_array($option->value, $this->value)) {
+            if(is_array($this->value) && in_array($option->value, $this->value)) {
                 $selected = 'selected';
             }
 
