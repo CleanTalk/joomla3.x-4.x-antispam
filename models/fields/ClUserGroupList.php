@@ -12,7 +12,7 @@ class JFormFieldClUserGroupList extends JFormField {
 
     public function getInput() {
 
-        $out_html = '<select multiple id="' . $this->name . '" name="' . $this->name . '" class="form-select valid form-control-success" aria-describedby="' . $this->name . '" aria-invalid="false">';
+        $out_html = '<select multiple id="' . $this->id . '" name="' . $this->name . '" class="form-select valid form-control-success" aria-describedby="' . $this->name . '" aria-invalid="false">';
         foreach ($this->getOptions() as $option) {
 
             $selected = '';
