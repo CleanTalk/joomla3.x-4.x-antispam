@@ -1572,7 +1572,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 return;
 
             //Skip backend or admin checking
-            if (JFactory::getApplication()->isAdmin() || JFactory::getUser()->authorise('core.admin'))
+            if ($this->isAdmin() || JFactory::getUser()->authorise('core.admin'))
                 return;
 
             if ($this->params->get('data_processing') && in_array('skip_registered_users', $this->params->get('data_processing')) && !JFactory::getUser()->guest)
