@@ -52,10 +52,10 @@ jQuery(document).ready(function(){
 	jQuery('#attrib-checkuserscomments,#options-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
 	jQuery('#attrib-connectionreports,#options-connectionreports').append("<div id='connection_reports'></div>");
 	jQuery('<br/><h3>'+ct_form_settings_title+'</h3><label id="jform_params_hr_spacer-lbl" class=""><hr></label>').insertBefore(jQuery('.control-group')[2]);
-	jQuery('#attrib-checkuserscomments').append("<center><div id ='spam_results'></div>");
-	jQuery('#attrib-checkuserscomments,#attrib-connectionreports').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/cleantalkantispam/img/preloader.gif' />");
+	jQuery('#attrib-checkuserscomments,#options-checkuserscomments').append("<center><div id ='spam_results'></div>");
+	jQuery('#attrib-checkuserscomments,#options-checkuserscomments,#attrib-connectionreports,#options-connectionreports').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/cleantalkantispam/img/preloader.gif' />");
 	//dev
-	jQuery('#attrib-dev').append("<button class='btn btn-info' id='dev_btn_insert_spam_users' type='button'>insert 30 spam users</button><br/><br/>")
+	jQuery('#attrib-dev, #options-dev').append("<button class='btn btn-info' id='dev_btn_insert_spam_users' type='button'>insert 30 spam users</button><br/><br/>")
 	// Viewing button to access CP
 	if(ct_key_is_ok == 1){
 
@@ -75,8 +75,6 @@ jQuery(document).ready(function(){
 				.append("<a target='_blank'></a>").children('a')
 				.attr('href', 'https://cleantalk.org/my/support/open')
 				.append("<button class='btn btn-info' id='ct_support_button' type='button'><span class='icon-question-sign'></span>"+ct_supportbtn_label+"</button>");
-
-			jQuery('#key_buttons_wrapper').closest('.control-label').css('width', 'auto').next().empty();
 
 		}
 		// Viewing buttons to get key
