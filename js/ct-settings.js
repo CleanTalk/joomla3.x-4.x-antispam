@@ -102,6 +102,8 @@ jQuery(document).ready(function(){
 				.append("<br><br>")
 				.append("<a id='ct_license_agreement' href='https://cleantalk.org/publicoffer' target='_blank'>"+ct_license_notice+"</a>");
 
+				jQuery('#key_buttons_wrapper').closest('.control-label').css('width', 'auto').next().empty();
+
 		}
 	}
 	if (ct_connection_reports_negative > 0 && ct_connection_reports_negative_report)
