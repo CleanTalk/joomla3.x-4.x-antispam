@@ -1447,7 +1447,10 @@ class plgSystemCleantalkantispam extends JPlugin
                             }
                         }
 
-                        $redirect = str_replace('?task=registration.register', '', $redirect);
+                        if(version_compare($this->cms_version, '4.0.0') < 0) {
+                            $redirect = str_replace('?task=registration.register', '', $redirect);
+                        }
+                        
                         $app->redirect($redirect);
                         die();
                     }
