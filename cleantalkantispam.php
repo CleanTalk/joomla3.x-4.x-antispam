@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       2.0
+ * @version       2.1
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
