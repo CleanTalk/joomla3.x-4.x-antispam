@@ -572,12 +572,16 @@ class plgSystemCleantalkantispam extends JPlugin
      * @return void
      * @throws Exception
      */
-    public function onBeforeCompileHead()
-    {
-        $config   = $this->params;
-        $user     = JFactory::getUser();
-        $app      = JFactory::getApplication();
-        $document = JFactory::getDocument();
+	public function onBeforeCompileHead()
+	{
+		global $apbct_original_post;
+		
+		$apbct_original_post = $_POST;
+		
+		$config   = $this->params;
+		$user     = JFactory::getUser();
+		$app      = JFactory::getApplication();
+		$document = JFactory::getDocument();
 
         JHtml::_('jquery.framework');
 
@@ -903,19 +907,21 @@ class plgSystemCleantalkantispam extends JPlugin
                 $contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
                 $message          = ($ct_temp_msg_data['message'] ? $ct_temp_msg_data['message'] : array());
 
-                if ($subject != '')
-                    $message = array_merge(array('subject' => $subject), $message);
-                $message = json_encode( $message );
-            }
-            // General test for any forms or form with custom fields
-            else
-            {
-                $ct_temp_msg_data = CleantalkHelper::get_fields_any($_POST, $this->params->get('fields_exclusions'));
-                $sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
-                $sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
-                $subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
-                //$contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
-                $message          = ($ct_temp_msg_data['message'] ? $ct_temp_msg_data['message'] : array());
+				if ($subject != '')
+					$message = array_merge(array('subject' => $subject), $message);
+				$message = json_encode( $message );
+			}
+			// General test for any forms or form with custom fields
+			else
+			{
+				global $apbct_original_post;
+				
+				$ct_temp_msg_data = CleantalkHelper::get_fields_any($apbct_original_post, $this->params->get('fields_exclusions'));
+				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
+				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
+				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
+				//$contact_form     = ($ct_temp_msg_data['contact'] ? $ct_temp_msg_data['contact'] : true);
+				$message          = ($ct_temp_msg_data['message'] ? $ct_temp_msg_data['message'] : array());
 
                 if ($subject != '')
                     $message = array_merge(array('subject' => $subject), $message);
