@@ -46,6 +46,11 @@ class SFW extends FirewallModule {
 		$results = array();
         $status = 0;
 
+        if (!$this->db->is_table_exists($this->db_data_table_name)) {
+            $sql = sprintf( Schema::getSchema('sfw'), $this->db->prefix );
+            $this->db->execute( $sql );
+        }
+        
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
 

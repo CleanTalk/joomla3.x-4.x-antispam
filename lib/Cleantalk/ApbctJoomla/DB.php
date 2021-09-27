@@ -76,4 +76,17 @@ class DB extends \Cleantalk\Common\DB {
         
         return $this->result;
     }
+
+    /**
+     * Checks if the table exists
+     *
+     * @param $table_name
+     *
+     * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function is_table_exists($table_name)
+    {
+        return (bool)$this->execute('SHOW TABLES LIKE "' . $table_name . '"');
+    }
 }
