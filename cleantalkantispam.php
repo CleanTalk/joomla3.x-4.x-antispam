@@ -718,6 +718,9 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         $app = JFactory::getApplication();
 
+        if (!$this->isSite()) {
+            return;
+        }
         $option_cmd = $app->input->get('option');
         $view_cmd   = $app->input->get('view');
         $task_cmd   = $app->input->get('task');
@@ -727,7 +730,7 @@ class plgSystemCleantalkantispam extends JPlugin
         /**
          * Integration with JotCache Plugin
          */
-        if ($this->isSite() && $this->jot_cache_enabled())
+        if ($this->jot_cache_enabled())
         {
             $document = JFactory::getDocument();
             $config   = $this->params;
