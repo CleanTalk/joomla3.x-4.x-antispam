@@ -574,9 +574,10 @@ class plgSystemCleantalkantispam extends JPlugin
      */
 	public function onBeforeCompileHead()
 	{
-		global $apbct_original_post;
-		
-		$apbct_original_post = $_POST;
+        if (isset($_POST) && is_array($_POST) && count($_POST)) {
+            global $apbct_original_post;
+            $apbct_original_post = $_POST;
+        }
 		
 		$config   = $this->params;
 		$user     = JFactory::getUser();
