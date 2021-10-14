@@ -573,12 +573,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * @throws Exception
      */
 	public function onBeforeCompileHead()
-	{
-        if (isset($_POST) && is_array($_POST) && count($_POST)) {
-            global $apbct_original_post;
-            $apbct_original_post = $_POST;
-        }
-		
+	{		
 		$config   = $this->params;
 		$user     = JFactory::getUser();
 		$app      = JFactory::getApplication();
@@ -917,10 +912,8 @@ class plgSystemCleantalkantispam extends JPlugin
 			}
 			// General test for any forms or form with custom fields
 			else
-			{
-				global $apbct_original_post;
-				
-				$ct_temp_msg_data = CleantalkHelper::get_fields_any($apbct_original_post, $this->params->get('fields_exclusions'));
+			{				
+				$ct_temp_msg_data = CleantalkHelper::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
 				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
 				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
