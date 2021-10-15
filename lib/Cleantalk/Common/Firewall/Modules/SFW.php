@@ -135,7 +135,12 @@ class SFW extends FirewallModule {
 	 */
 	public function update_log( $ip, $status )
     {
+		$ip_version = \Cleantalk\Common\Helper::ip__validate( $ip );
 
+		if (!$ip_version || $ip_version === 'v6') {
+			return;
+		}
+		
 		$id   = md5( $ip . $this->module_name );
 		$time = time();
 		
