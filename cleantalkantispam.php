@@ -765,6 +765,7 @@ class plgSystemCleantalkantispam extends JPlugin
             elseif ($task_cmd == 'registercartuser'
                 || $task_cmd == 'registercheckoutuser'
                 || $task_cmd == 'checkout' // OPC
+                || $task_cmd == 'saveUser' // VirtueMart registration
             )
             {
                 $this->moderateUser();
