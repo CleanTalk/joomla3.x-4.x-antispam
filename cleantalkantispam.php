@@ -206,11 +206,7 @@ class plgSystemCleantalkantispam extends JPlugin
     private function checkIsPaid($ct_api_key = '', $force_check = false)
     {
         $api_key = trim($ct_api_key);
-
-        if (empty($api_key)) {
-            return null;
-        }
-
+        
         if (($this->params->get('acc_status_last_check') && ($this->params->get('acc_status_last_check') < time() - 86400)) || $force_check || !$this->params->get('ct_key_is_ok'))
         {
             $ct_key_is_ok = 0;
