@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       2.1
+ * @version       2.2
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -1144,7 +1144,6 @@ class plgSystemCleantalkantispam extends JPlugin
         );
         if ($ctResponse)
         {
-            $app = JFactory::getApplication();
             if (!empty($ctResponse) && is_array($ctResponse))
             {
                 if ($ctResponse['errno'] != 0)
@@ -1155,15 +1154,9 @@ class plgSystemCleantalkantispam extends JPlugin
                 {
                     if ($ctResponse['allow'] == 0)
                     {
-                        $res_str = $ctResponse['comment'];
-                        $app->setUserState('com_contact.contact.data', $data);  // not used in 1.5 :(
-                        $stub = JFactory::getApplication()->input->get('id');
-                        // Redirect back to the contact form.
-                        // see http://docs.joomla.org/JApplication::redirect/11.1 - what does last param mean?
-                        // but it works! AZ
-                        $app->redirect(JRoute::_('index.php?option=com_contact&view=contact&id=' . $stub, false), $res_str, 'error');
-
-                        return new Exception($res_str); // $res_str not used in com_contact code - see source :(
+                        $error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
+                        print str_replace('%ERROR_TEXT%', $ctResponse['comment'], $error_tpl);
+                        die();
                     }
                 }
             }
@@ -1554,12 +1547,22 @@ class plgSystemCleantalkantispam extends JPlugin
             // END URL Exclusions
 
             // Roles Exclusions
-            $roles = $this->params->get('roles_exclusions');
-            if ( ! is_null( $roles ) ) {
+            $excluded_roles = $this->params->get('roles_exclusions');
+
+            if ( ! is_null( $excluded_roles ) ) {
+                $excluded_roles = explode(',', $excluded_roles);
+                $default_roles = self::getGroups();
+                $excluded_roles_ids = array();
+
+                foreach ($default_roles as $default_role) {
+                    if (in_array(strtolower($default_role->title), $excluded_roles)) {
+                        $excluded_roles_ids[] = $default_role->id;
+                    }
+                }
 
                 $set_check = true;
 
-                foreach ($roles as $role_id) {
+                foreach ($excluded_roles_ids as $role_id) {
                     if (self::_cleantalk_user_has_role_id($role_id)) {
                         $set_check = false;
                     }
@@ -2285,6 +2288,22 @@ class plgSystemCleantalkantispam extends JPlugin
         }
 
         return FALSE;
+    }
+
+    /**
+     * Get all user groups
+     */
+    static private function getGroups()
+    {
+        $db = JFactory::getDBO();
+
+        $query = $db->getQuery(true);
+        $query
+            ->select(array('*'))
+            ->from($db->quoteName('#__usergroups'));
+        $db->setQuery($query);
+
+        return $db->loadObjectList();
     }
 
     /**
