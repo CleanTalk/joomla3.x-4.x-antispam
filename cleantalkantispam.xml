@@ -9,10 +9,8 @@
     <authorUrl>cleantalk.org</authorUrl>
     <version>2.2</version>
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
-	<scriptfile>updater.php</scriptfile>
     <files>
 		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
-		<filename>updater.php</filename>
 		<filename plugin="cleantalkantispam">lib/autoload.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/Cleantalk.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkRequest.php</filename>

@@ -1573,7 +1573,7 @@ class plgSystemCleantalkantispam extends JPlugin
             // Roles Exclusions
             $excluded_roles = $this->params->get('roles_exclusions');
 
-            if ( ! is_null( $excluded_roles ) ) {
+            if ( is_string($excluded_roles) && !empty($excluded_roles) ) {
                 $excluded_roles = explode(',', $excluded_roles);
                 $default_roles = self::getGroups();
                 $excluded_roles_ids = array();
