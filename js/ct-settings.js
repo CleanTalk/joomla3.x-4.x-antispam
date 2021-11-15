@@ -76,6 +76,7 @@ jQuery(document).ready(function(){
 				.attr('href', 'https://cleantalk.org/my/support/open')
 				.append("<button class='btn btn-info' id='ct_support_button' type='button'><span class='icon-question-sign'></span>"+ct_supportbtn_label+"</button>");
 
+			jQuery('#key_buttons_wrapper').closest('.control-label').css('width', 'auto').next().empty();
 		}
 		// Viewing buttons to get key
 	}else{
