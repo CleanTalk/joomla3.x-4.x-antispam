@@ -694,8 +694,13 @@ class plgSystemCleantalkantispam extends JPlugin
                     $document->addScriptDeclaration('var ct_show_feedback=false;');
 
             }
-            if (isset($notice))
-                JFactory::getApplication()->enqueueMessage($notice, 'notice');
+            if (isset($notice)) {
+                if(version_compare($this->cms_version, '4.0.0') >= 0) {
+                    JFactory::getDocument()->addScriptOptions('joomla.messages', array('info' => array(array($notice))));
+                } else {
+                    JFactory::getApplication()->enqueueMessage($notice, 'notice');
+                }
+            }
         }
 
     }
