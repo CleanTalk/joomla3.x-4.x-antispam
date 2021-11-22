@@ -49,7 +49,7 @@ function banner_check() {
 jQuery(document).ready(function(){
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
-	jQuery('#attrib-checkuserscomments,#options-checkuserscomments').append("<center><button style=\"width:20%;\" id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button style=\"width:20%;\" id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
+	jQuery('#attrib-checkuserscomments,#options-checkuserscomments').append("<center><button id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
 	jQuery('#attrib-connectionreports,#options-connectionreports').append("<div id='connection_reports'></div>");
 	jQuery('<br/><h3>'+ct_form_settings_title+'</h3><label id="jform_params_hr_spacer-lbl" class=""><hr></label>').insertBefore(jQuery('.control-group')[2]);
 	jQuery('#attrib-checkuserscomments,#options-checkuserscomments').append("<center><div id ='spam_results'></div>");
@@ -76,6 +76,7 @@ jQuery(document).ready(function(){
 				.attr('href', 'https://cleantalk.org/my/support/open')
 				.append("<button class='btn btn-info' id='ct_support_button' type='button'><span class='icon-question-sign'></span>"+ct_supportbtn_label+"</button>");
 
+			jQuery('#key_buttons_wrapper').closest('.control-label').css('width', 'auto').next().empty();
 		}
 		// Viewing buttons to get key
 	}else{

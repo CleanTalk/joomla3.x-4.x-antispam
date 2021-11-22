@@ -7,10 +7,12 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>2.1</version>
+    <version>2.2</version>
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
+	<scriptfile>updater.php</scriptfile>
     <files>
 		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
+		<filename>updater.php</filename>
 		<filename plugin="cleantalkantispam">lib/autoload.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/Cleantalk.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkRequest.php</filename>
@@ -37,7 +39,6 @@
 		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/DB.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/Helper.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/RemoteCalls.php</filename>
-		<filename plugin="cleantalkantispam">models/fields/ClUserGroupList.php</filename>
 		<filename plugin="cleantalkantispam">js/ct-settings.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-functions.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-external.js</filename>
@@ -92,11 +93,11 @@
 					<option value="tell_about_cleantalk">PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT</option>
 				</field>
 			</fieldset>
-			<fieldset name="exclusions" addfieldpath="/plugins/system/cleantalkantispam/models/fields">
+			<fieldset name="exclusions">
 				<field type="note" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_NOTE" />
 				<field name="url_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL_DESC" />
 				<field name="fields_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS_DESC" />
-				<field name="roles_exclusions" multiple="multiple" type="clusergrouplist" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
+				<field name="roles_exclusions" type="textarea" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
 			</fieldset>
 			<fieldset name="checkuserscomments">
 
