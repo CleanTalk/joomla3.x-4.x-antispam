@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Common\Firewall\Modules;
 
+use Cleantalk\ApbctJoomla\DB;
 use Cleantalk\Common\Firewall\Firewall;
 use Cleantalk\Common\Firewall\FirewallModule;
 use Cleantalk\Common\Schema;
@@ -27,7 +28,8 @@ class SFW extends FirewallModule {
      */
 	public function __construct( $data_table, $params = array() )
     {
-		$this->db_data_table_name = $data_table ?: null;
+        $this->db = DB::getInstance();
+        $this->db_data_table_name = $this->db->prefix . $data_table ?: null;
 		
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
@@ -43,6 +45,11 @@ class SFW extends FirewallModule {
     {
 		$results = array();
         $status = 0;
+
+		// @ToDo add counter check to avoid direct db request
+        if (!$this->db->is_table_exists($this->db_data_table_name)) {
+            return $results;
+        }
 
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
@@ -128,7 +135,12 @@ class SFW extends FirewallModule {
 	 */
 	public function update_log( $ip, $status )
     {
+		$ip_version = \Cleantalk\Common\Helper::ip__validate( $ip );
 
+		if (!$ip_version || $ip_version === 'v6') {
+			return;
+		}
+		
 		$id   = md5( $ip . $this->module_name );
 		$time = time();
 		

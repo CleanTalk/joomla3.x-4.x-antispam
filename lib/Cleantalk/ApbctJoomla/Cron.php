@@ -38,7 +38,13 @@ class Cron extends \Cleantalk\Common\Cron {
         // TODO: Implement getTasks() method.
         $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
         $params = new \JRegistry($plugin->params);
-        return isset($params[$this->cron_option_name]->tasks) ? json_decode(json_encode($params[$this->cron_option_name]->tasks),true) : null;
+        $cron_option_name = $params->get($this->cron_option_name);
+        
+        if(is_object($cron_option_name) && $cron_option_name->tasks) {
+            return json_decode(json_encode($cron_option_name->tasks),true);
+        }
+        
+        return null;
     }
 
     /**
@@ -51,7 +57,13 @@ class Cron extends \Cleantalk\Common\Cron {
         // TODO: Implement getCronLastStart() method.
         $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
         $params = new \JRegistry($plugin->params);
-        return isset($params[$this->cron_option_name]) ? $params[$this->cron_option_name]->last_start : 0;
+        $cron_option_name = $params->get($this->cron_option_name);
+
+        if(is_object($cron_option_name) && $cron_option_name->last_start) {
+            return $cron_option_name->last_start;
+        }
+
+        return 0;
     }
 
     /**

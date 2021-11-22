@@ -1,5 +1,5 @@
 function ctSetCookie(c_name, value) {
-	if (typeof ct_setcookie !== undefined && ct_setcookie) {
+	if (typeof ct_setcookie !== "undefined" && ct_setcookie) {
 		document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/";
 	}	
 }

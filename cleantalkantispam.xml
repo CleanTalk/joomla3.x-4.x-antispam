@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3.0" type="plugin" group="system" method="upgrade" >
-    <name>PLG_SYSTEM_CLEANTALKANTISPAM_NAME</name>
+    <name>plg_system_cleantalkantispam_name</name>
     <author>CleanTalk team</author>
     <creationDate>24.07.2019</creationDate>
     <copyright>(C) CleanTalk</copyright>
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>2.0</version>
+    <version>2.2</version>
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
+	<scriptfile>updater.php</scriptfile>
     <files>
 		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
+		<filename>updater.php</filename>
 		<filename plugin="cleantalkantispam">lib/autoload.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/Cleantalk.php</filename>
 		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkRequest.php</filename>
@@ -95,7 +97,7 @@
 				<field type="note" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_NOTE" />
 				<field name="url_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL_DESC" />
 				<field name="fields_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS_DESC" />
-				<field name="roles_exclusions" type="usergroup" multiple="true" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
+				<field name="roles_exclusions" type="textarea" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
 			</fieldset>
 			<fieldset name="checkuserscomments">
 
@@ -122,7 +124,7 @@
 	<update> 
       <schemas>
          <schemapath type="mysql">sql/mysql/updates</schemapath> 
-         <schemapath type="mariadb">sql/mariadb/updates</schemapath> 
+         <schemapath type="mariadb">sql/mariadb/updates</schemapath>
          <schemapath type="sqlsrv">sql/sqlsrv/updates</schemapath>
       </schemas>
    </update>

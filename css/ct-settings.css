@@ -15,12 +15,15 @@
 #key_buttons_wrapper{
     margin: 10px 0 0 0;
 }
+#key_buttons_wrapper a[target=_blank]:before {
+    display: none;
+}
 #spam_results h2, #spam_results table, #connection_reports h2, #connection_reports table, #connection_reports button {
     -webkit-animation: fadein 1s; /* Safari, Chrome and Opera > 12.1 */
-       -moz-animation: fadein 1s; /* Firefox < 16 */
-        -ms-animation: fadein 1s; /* Internet Explorer */
-         -o-animation: fadein 1s; /* Opera < 12.1 */
-            animation: fadein 1s;
+    -moz-animation: fadein 1s; /* Firefox < 16 */
+    -ms-animation: fadein 1s; /* Internet Explorer */
+    -o-animation: fadein 1s; /* Opera < 12.1 */
+    animation: fadein 1s;
 }
 @keyframes fadein {
     from { opacity: 0; }
@@ -60,7 +63,7 @@
     float:right;
 }
 #ct_preloader_spam_results{
-            width: 20px; height: 20px;
+    width: 20px; height: 20px;
     margin: 0;
     position: relative;
     top: 50%;
@@ -68,7 +71,7 @@
     margin-top:20px;
     margin-right: -50%;
     transform: translate(-50%, -50%)
-        }
+}
 .key_buttons{
     text-decoration: none;
     text-align:center;
@@ -88,28 +91,28 @@
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-        background: #66a966;
-        border-color: #3c763d;
-        -webkit-box-shadow: inset 0 1px 0 rgba(120,200,230,.5), 0 1px 0 rgba(0,0,0,.15);
-        box-shadow: inset 0 1px 0 rgba(120,200,230,.5), 0 1px 0 rgba(0,0,0,.15);
-        color: #fff;
+    background: #66a966;
+    border-color: #3c763d;
+    -webkit-box-shadow: inset 0 1px 0 rgba(120,200,230,.5), 0 1px 0 rgba(0,0,0,.15);
+    box-shadow: inset 0 1px 0 rgba(120,200,230,.5), 0 1px 0 rgba(0,0,0,.15);
+    color: #fff;
 }
-    .key_buttons:hover{color: #000 !important;}
-    #ct_auto_button, #ct_manual_button, #ct_cp_button, #ct_support_button
-    {
-        margin-right: 10px;
-    }
-        #ct_preloader{
-            width: 20px; height: 20px;
-            margin: 4px 8px 0 0;
-        } 
-        input[name=ct_impspamcheck_checkbox]   
-        {
-             display: inline-block;
-             position: relative;
-             top: -5px;
+.key_buttons:hover{color: #000 !important;}
+#ct_auto_button, #ct_manual_button, #ct_cp_button, #ct_support_button
+{
+    margin-right: 10px;
+}
+#ct_preloader{
+    width: 20px; height: 20px;
+    margin: 4px 8px 0 0;
+}
+input[name=ct_impspamcheck_checkbox]
+{
+    display: inline-block;
+    position: relative;
+    top: -5px;
     margin: 10px 5px 2px 0;
-        }     
+}
 #ct_email_warning{
     display: inline-block;
     margin: 10px 0 2px 0;
@@ -117,4 +120,20 @@
 #ct_license_agreement{
     color: #BBB;
     text-decoration: underline;
+}
+fieldset.checkboxes ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+fieldset.checkboxes ul li {
+    display: flex;
+    align-items: center;
+    padding: 7px 0;
+}
+fieldset.checkboxes ul li input {
+    margin: 0 10px 0 0;
+}
+fieldset.checkboxes ul li label {
+    margin: 0;
 }
