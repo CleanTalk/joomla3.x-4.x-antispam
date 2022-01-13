@@ -152,14 +152,14 @@ class SFW extends FirewallModule {
 			all_entries = 1,
 			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 			entries_timestamp = '" . $time . "',
-			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'
+			ua_name = '" . addslashes(Server::get('HTTP_USER_AGENT')) . "'
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 			entries_timestamp = '" . intval( $time ) . "',
-			ua_name = '" . Server::get('HTTP_USER_AGENT') . "'";
+			ua_name = '" . addslashes(Server::get('HTTP_USER_AGENT')) . "'";
 		
 		$this->db->execute( $query );
 	}
