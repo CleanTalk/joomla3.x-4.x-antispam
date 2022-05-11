@@ -51,7 +51,8 @@ jQuery(document).ready(function(){
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
 	jQuery('#attrib-checkuserscomments,#options-checkuserscomments').append("<center><button id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
 	jQuery('#attrib-connectionreports,#options-connectionreports').append("<div id='connection_reports'></div>");
-	jQuery('<br/><h3>'+ct_form_settings_title+'</h3><label id="jform_params_hr_spacer-lbl" class=""><hr></label>').insertBefore(jQuery('.control-group')[2]);
+	jQuery('<br/><h3>'+ct_form_settings_title+'</h3><label id="jform_params_hr_spacer-lbl" class=""><hr></label>')
+		.insertBefore(jQuery('#jform_params_apikey').closest('.control-group').next().next());
 	jQuery('#attrib-checkuserscomments,#options-checkuserscomments').append("<center><div id ='spam_results'></div>");
 	jQuery('#attrib-checkuserscomments,#options-checkuserscomments,#attrib-connectionreports,#options-connectionreports').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/cleantalkantispam/img/preloader.gif' />");
 	//dev
