@@ -724,6 +724,7 @@ class plgSystemCleantalkantispam extends JPlugin
         $task_cmd   = $app->input->get('task');
         $ctask_cmd  = $app->input->get('ctask');
         $page_cmd   = $app->input->get('page');
+		$ff_task    = $app->input->get('ff_task'); // Breezingform Integration
 
         /**
          * Integration with JotCache Plugin
@@ -928,6 +929,19 @@ class plgSystemCleantalkantispam extends JPlugin
                 $message = json_encode( $message );
 
             }
+
+			/**
+			 * Empty email in the Breezingform
+			 */
+			if (
+				empty($sender_email) &&
+				$option_cmd === 'com_breezingforms' &&
+				$ff_task === 'submit'
+			) {
+				$error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
+				print str_replace('%ERROR_TEXT%', 'Please, fill email.', $error_tpl);
+				die();
+			}
 
             if (
                 ! empty( $_POST ) &&
