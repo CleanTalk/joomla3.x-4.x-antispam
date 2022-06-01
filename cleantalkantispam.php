@@ -939,7 +939,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				$ff_task === 'submit'
 			) {
 				$error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
-				print str_replace('%ERROR_TEXT%', 'Please, fill email.', $error_tpl);
+				print str_replace('%ERROR_TEXT%', 'Please, fill the email field.', $error_tpl);
 				die();
 			}
 
