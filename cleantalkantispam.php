@@ -1087,6 +1087,20 @@ class plgSystemCleantalkantispam extends JPlugin
                                     );
                                     die();
                                 }
+                                //PWEB AJAX CONTACT FORMS integration
+                                elseif (
+                                    JFactory::getApplication()->input->get('module') == 'pwebcontact' &&
+                                    JFactory::getApplication()->input->get('method') == 'sendEmail' &&
+                                    JFactory::getApplication()->input->get('option') == 'com_ajax'
+                                ) {
+                                    $json_msg = array(
+                                        'debug' => 'CAPTCHA check failed',
+                                        'message' => $ctResponse['comment'],
+                                        'success' => false
+                                    );
+                                    print json_encode($json_msg);
+                                    die();
+                                }
                                 else
                                 {
                                     $error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
