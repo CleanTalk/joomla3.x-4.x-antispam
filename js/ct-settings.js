@@ -49,6 +49,9 @@ function banner_check() {
 jQuery(document).ready(function(){
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
+	//notice about exclusion rules
+	jQuery('#attrib-exclusions,#options-exclusions').append("<br><p>" + ct_exclusions_common_notice + "</p>")
+	// misc notices
 	jQuery('#attrib-checkuserscomments,#options-checkuserscomments').append("<center><button id=\"check_spam_users\" class=\"btn btn-success \" type=\"button\"><span class=\"icon-users levels\"></span>"+ct_spamcheck_checksusers+"</button>&nbsp;&nbsp;&nbsp;<button id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
 	jQuery('#attrib-connectionreports,#options-connectionreports').append("<div id='connection_reports'></div>");
 	jQuery('<br/><h3>'+ct_form_settings_title+'</h3><label id="jform_params_hr_spacer-lbl" class=""><hr></label>')
