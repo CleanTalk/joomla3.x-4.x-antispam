@@ -287,7 +287,7 @@ class FirewallUpdater
 
                 $gz_data = $helper::http__request__get_content( $file_url );
 
-                if( empty( $gz_data['error'] ) ){
+                if( is_string($gz_data) ){
 
                     if( Helper::get_mime_type( $gz_data, 'application/x-gzip' ) ){
 
