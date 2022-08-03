@@ -224,7 +224,7 @@ class FirewallUpdater
                         //Files array is empty update sfw stats
                         $helper::SfwUpdate_DoFinisnAction();
 
-                        if ( $fw_stats['firewall_subnets_count'] == $this->getSfwBlacklists($this->api_key, true) ) {
+                        if ( $fw_stats['firewall_subnets_count'] == $this->getSfwBlacklistsCount($this->api_key) ) {
                             $fw_stats['last_update_is_success'] = true;
                         }
                         $fw_stats['firewall_update_percent'] = 0;
@@ -254,17 +254,21 @@ class FirewallUpdater
 
     }
 
-    private function getSfwBlacklists( $api_key , $take_count_of_subnets = null)
+    private function getSfwBlacklists( $api_key )
     {
         $api = $this->api;
 
-        if ( $take_count_of_subnets ) {
-            $result = count($api::method__get_2s_blacklists_db($api_key, null, '2_0'));
-            sleep(4);
-            return $result;
-        }
-
         $result = $api::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_0' );
+        sleep(4);
+
+        return $result;
+    }
+
+    private function getSfwBlacklistsCount( $api_key )
+    {
+        $api = $this->api;
+        //todo if somewhen we would filter UserAgents on Joomla we need to upgrade multifiles version
+        $result = count($api::method__get_2s_blacklists_db($api_key, null, '2_0'));
         sleep(4);
 
         return $result;
