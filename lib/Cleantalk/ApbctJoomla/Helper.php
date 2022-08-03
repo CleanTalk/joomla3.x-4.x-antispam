@@ -20,7 +20,9 @@ class Helper extends \Cleantalk\Common\Helper {
         return array(
             'firewall_updating_id' => $params->get('firewall_updating_id'),
             'firewall_updating_last_start' => $params->get('firewall_updating_last_start', 0),
-            'firewall_update_percent' => $params->get('firewall_update_percent', 0)
+            'firewall_update_percent' => $params->get('firewall_update_percent', 0),
+            'firewall_subnets_count' => $params->get('firewall_subnets_count', 0),
+            'last_update_is_success' => $params->get('last_update_is_success', 0)
         );
     }
 
@@ -51,6 +53,11 @@ class Helper extends \Cleantalk\Common\Helper {
             $params['firewall_updating_id'] = $fw_stats['firewall_updating_id'];
             $params['firewall_updating_last_start'] = $fw_stats['firewall_updating_last_start'];
             $params['firewall_update_percent'] = $fw_stats['firewall_update_percent'];
+            $params['firewall_subnets_count'] = $fw_stats['firewall_subnets_count'];
+            if (isset($fw_stats['last_update_is_success'])){
+                $params['last_update_is_success'] = $fw_stats['last_update_is_success'];
+            }
+
             $jparams = new \JRegistry($table->params);
             foreach ($params as $k => $v)
                 $jparams->set($k, $v);           

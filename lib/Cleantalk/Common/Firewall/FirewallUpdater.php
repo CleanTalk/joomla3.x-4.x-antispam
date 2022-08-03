@@ -109,7 +109,9 @@ class FirewallUpdater
                 array(
                     'firewall_updating_id' => md5( rand( 0, 100000 ) ),
                     'firewall_updating_last_start' => time(),
-                    'firewall_update_percent' => 0
+                    'firewall_update_percent' => 0,
+                    'firewall_subnets_count' => 0,
+                    'last_update_is_success' => false
                 )
             );
         }
@@ -156,7 +158,7 @@ class FirewallUpdater
                 }
 
             // Doing updating here.
-            }elseif( $file_urls && $url_count > $current_url ){
+            }elseif( $url_count > $current_url ){
 
                 $file_url = 'https://' . str_replace( 'multifiles', $current_url, $file_urls );
 
@@ -165,6 +167,10 @@ class FirewallUpdater
 
                     // Do writing to the DB
                     reset( $lines );
+                    $subnets_count_from_stats = isset($helper::getFwStats()['firewall_subnets_count'])
+                        ? $helper::getFwStats()['firewall_subnets_count']
+                        : 0;
+                    $subnets_count = $subnets_count_from_stats ?: 0;
                     for( $count_result = 0; current($lines) !== false; ) {
                         $query = "INSERT INTO ".$this->fw_data_table_name."_temp (network, mask, status) VALUES ";
                         for( $i = 0, $values = array(); self::WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
@@ -172,6 +178,7 @@ class FirewallUpdater
                             if(empty($entry)) {
                                 continue;
                             }
+                            $subnets_count++;
                             if ( self::WRITE_LIMIT !== $i ) {
                                 // Cast result to int
                                 $ip   = preg_replace('/[^\d]*/', '', $entry[0]);
@@ -187,6 +194,8 @@ class FirewallUpdater
                     }
                     $current_url++;
                     $fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
+                    $fw_stats['firewall_subnets_count'] = $subnets_count;
+
                     $helper::setFwStats( $fw_stats );
 
                     // Updating continue: Do next remote call.
@@ -215,6 +224,9 @@ class FirewallUpdater
                         //Files array is empty update sfw stats
                         $helper::SfwUpdate_DoFinisnAction();
 
+                        if ( $fw_stats['firewall_subnets_count'] == $this->getSfwBlacklists($this->api_key, true) ) {
+                            $fw_stats['last_update_is_success'] = true;
+                        }
                         $fw_stats['firewall_update_percent'] = 0;
                         $fw_stats['firewall_updating_id'] = null;
                         $helper::setFwStats( $fw_stats );
@@ -242,11 +254,19 @@ class FirewallUpdater
 
     }
 
-    private function getSfwBlacklists( $api_key )
+    private function getSfwBlacklists( $api_key , $take_count_of_subnets = null)
     {
         $api = $this->api;
+
+        if ( $take_count_of_subnets ) {
+            $result = count($api::method__get_2s_blacklists_db($api_key, null, '2_0'));
+            sleep(4);
+            return $result;
+        }
+
         $result = $api::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_0' );
         sleep(4);
+
         return $result;
     }
 
@@ -263,7 +283,7 @@ class FirewallUpdater
 
                 $gz_data = $helper::http__request__get_content( $file_url );
 
-                if( is_string($gz_data) ){
+                if( empty( $gz_data['error'] ) ){
 
                     if( Helper::get_mime_type( $gz_data, 'application/x-gzip' ) ){
 

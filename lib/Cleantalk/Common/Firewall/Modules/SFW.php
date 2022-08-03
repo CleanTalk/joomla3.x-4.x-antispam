@@ -46,11 +46,6 @@ class SFW extends FirewallModule {
 		$results = array();
         $status = 0;
 
-		// @ToDo add counter check to avoid direct db request
-        if (!$this->db->is_table_exists($this->db_data_table_name)) {
-            return $results;
-        }
-
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
 

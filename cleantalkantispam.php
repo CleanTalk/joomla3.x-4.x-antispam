@@ -2227,9 +2227,13 @@ class plgSystemCleantalkantispam extends JPlugin
     private function sfw_check()
     {
         $app = JFactory::getApplication();
+        $fw_db_is_updated = CleantalkHelper::getFwStats()['last_update_is_success'];
 
-        if (!$this->isAdmin() && $this->params->get('other_settings') && in_array('sfw_enable', $this->params->get('other_settings')) && $_SERVER["REQUEST_METHOD"] == 'GET')
-        {
+        if ( $fw_db_is_updated
+            && !$this->isAdmin()
+            && $this->params->get('other_settings')
+            && in_array('sfw_enable', $this->params->get('other_settings'))
+            && $_SERVER["REQUEST_METHOD"] == 'GET' ) {
             $firewall = new Firewall(
                 $this->params->get('apikey'),
                 DB::getInstance(),
