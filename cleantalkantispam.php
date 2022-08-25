@@ -617,11 +617,16 @@ class plgSystemCleantalkantispam extends JPlugin
                 if (!$ct_key_is_ok)
                     $notice = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_APIKEY');
 
-                if ($show_notice == 1 && $trial == 1)
-                    $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_TRIAL', $config->get('user_token'));
+                if ($show_notice == 1 && $trial == 1) {
+					if ( ! $this->isDismissedNotice('trial_' . $user->id) || $this->isPluginSettingsPage() ) {
+						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_TRIAL', $config->get('user_token'));
+					}
+                }
 
                 if ($show_notice == 1 && $renew == 1)
-                    $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $config->get('user_token'));
+	                if ( ! $this->isDismissedNotice('renew_' . $user->id) || $this->isPluginSettingsPage() ) {
+		                $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $config->get('user_token'));
+	                }
 
                 if (!$ct_curl_aufopen_availability) {
                     $notice = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_CURL_AUFOPEN_UNAVAILABLE');
@@ -645,6 +650,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_connection_reports_negative ="' . (isset($connection_reports['negative']) ? $connection_reports['negative'] : 0) . '",
 						ct_connection_reports_negative_report = "' . (isset($connection_reports['negative_report']) ? addslashes(json_encode($connection_reports['negative_report'])) : null) . '",
 						ct_notice_review_done ='.(($config->get('show_review_done') && $config->get('show_review_done') === 1)?'true':'false').',
+						ct_extension_id = ' . $this->_id . ',
 
 					//Translation
 					    ct_autokey_label = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_AUTOKEY_LABEL') . '",
@@ -697,8 +703,16 @@ class plgSystemCleantalkantispam extends JPlugin
 
             }
             if (isset($notice)) {
+				$notice_type = '';
+				if ( $trial == 1 ) {
+					$notice_type = 'data-notice-type="trial"';
+				}
+				if ( $renew == 1 ) {
+					$notice_type = 'data-notice-type="renew"';
+				}
+				$notice = '<div id="apbct_joomla_notice" ' . $notice_type . '>' . $notice . '</div>';
                 if(version_compare($this->cms_version, '4.0.0') >= 0) {
-                    JFactory::getDocument()->addScriptOptions('joomla.messages', array('info' => array(array($notice))));
+	                $app->getDocument()->addScriptOptions('joomla.messages', array('info' => array(array($notice))));
                 } else {
                     JFactory::getApplication()->enqueueMessage($notice, 'notice');
                 }
