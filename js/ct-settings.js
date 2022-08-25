@@ -46,6 +46,69 @@ function banner_check() {
 		});
 	}, 60000);
 }
+
+// Get system messages and handle these
+document.addEventListener('DOMContentLoaded', () => {
+	setTimeout(dispatchJoomlaNotices, 0);
+});
+function dispatchJoomlaNotices() {
+	const joomlaAlertWrapper = document.getElementById("system-message-container");
+	if ( joomlaAlertWrapper !== null ) {
+		const joomlaAlerts = joomlaAlertWrapper.getElementsByTagName('joomla-alert');
+		if ( joomlaAlerts.length > 0 ) {
+			for ( let i = 0; i < joomlaAlerts.length; i++ ) {
+				dispatchApbctJoomlaNotice(joomlaAlerts[i]);
+			}
+		}
+	}
+}
+function dispatchApbctJoomlaNotice(element) {
+	const apbctNotice = element.querySelector("#apbct_joomla_notice");
+
+	if ( apbctNotice !== null ) {
+		// Disable notice dismissing on the plugin settings page
+		const currentUrl = new URL(location.href);
+		if ( currentUrl.searchParams.get('layout') === 'edit' && +currentUrl.searchParams.get('extension_id') === ct_extension_id ) {
+			element.destroyCloseButton();
+		}
+
+		// Listen close event only on the TRIAL of RENEW banner
+		if ( apbctNotice.dataset.noticeType === 'trial' || apbctNotice.dataset.noticeType === 'renew' ) {
+			element.addEventListener('joomla.alert.close', (event) => {
+				let data = {
+					'action' : 'dismiss_notice',
+					'data': {
+						'notice_type' : apbctNotice.dataset.noticeType
+					}
+				};
+				Joomla.request({
+					url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=json',
+					method: 'POST',
+					data: JSON.stringify(data),
+					headers: {
+						'Cache-Control' : 'no-cache'
+					},
+					onSuccess: function (response, xhr){
+						try {
+							let responseData = JSON.parse(response);
+							responseData = responseData.data[0];
+							if ( responseData.error ) {
+								// Do something with the error
+							} else {
+								// Do something with the regular result
+							}
+						} catch (e) {
+							console.log(e.toString());
+							console.log(e.fileName);
+							console.log(e.lineNumber);
+						}
+					}
+				})
+			});
+		}
+	}
+}
+
 jQuery(document).ready(function(){
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
