@@ -58,11 +58,16 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     const ENGINE = 'joomla34-23';
 
-    /*
-     * Flag marked JComments form initilization.
-     * @since         1.0
-     */
-    private $JCReady = false;
+	/**
+	 * Flag marked JComments form initilization.
+	 * @since         1.0
+	 */
+	private $JCReady = false;
+
+	/**
+	 * Days to hide trial notice banner
+	 */
+	const DAYS_INTERVAL_HIDING_NOTICE = 30;
 
     /**
      * Form submited without page load
@@ -1348,6 +1353,54 @@ class plgSystemCleantalkantispam extends JPlugin
 
     ////////////////////////////
     // Private methods
+
+	/**
+	 * Store the notice dismissed flag
+	 * @param array $notice_info
+	 */
+	private function setNoticeDismissed($notice_info)
+	{
+		if ( ! isset($notice_info['notice_type']) ) {
+			// @ToDo add an error throwing here
+			return;
+		}
+
+		$filter = JFilterInput::getInstance();
+
+		$user = Factory::getUser();
+		$notice       = $filter->clean($notice_info['notice_type']);
+		$uid          = $user->id;
+		$notice_uid   = $notice . '_' . $uid;
+		$current_date = time();
+
+		$this->saveCTConfig(['cleantalk_' . $notice_uid . '_dismissed' => $current_date]);
+	}
+
+	/**
+	 * Check dismiss status of the notice
+	 *
+	 * @param string $notice_uid
+	 *
+	 * @return bool
+	 */
+	private function isDismissedNotice($notice_uid)
+	{
+		$option_name = 'cleantalk_' . $notice_uid . '_dismissed';
+		$notice_date_option = $this->params->get($option_name, false);
+
+		if ( $notice_date_option === false ) {
+			return true;
+		}
+
+		$current_time = time();
+		$notice_time  = (int) $notice_date_option;
+
+		if ( $current_time - $notice_time <= self::DAYS_INTERVAL_HIDING_NOTICE * 24 * 60 * 60 ) {
+			return true;
+		}
+
+		return false;
+	}
 
     /**
      * Include in head adn fill form
