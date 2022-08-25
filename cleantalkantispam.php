@@ -40,6 +40,10 @@ use Cleantalk\Common\Firewall\Modules\SFW;
 use Cleantalk\ApbctJoomla\RemoteCalls as RemoteCalls;
 use Cleantalk\Common\Variables\Server;
 use Cleantalk\Common\Variables\ServerVariables;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Session\Session;
+use Joomla\CMS\Uri\Uri;
 
 define('APBCT_TBL_FIREWALL_DATA', 'cleantalk_sfw');      // Table with firewall data.
 define('APBCT_TBL_FIREWALL_LOG',  'cleantalk_sfw_logs'); // Table with firewall logs.
@@ -1350,6 +1354,30 @@ class plgSystemCleantalkantispam extends JPlugin
 
         return true;
     }
+
+	/**
+	 * The spot to handle all ajax request for the plugin
+	 *
+	 * @return string[]|void
+	 *
+	 * @throws Exception
+	 * @since version
+	 */
+	public function onAjaxCleantalkantispam() {
+		Session::checkToken('get') or die(Text::_('JINVALID_TOKEN'));
+		$data = Factory::getApplication()->input->json->getArray();
+		if ( isset($data['action']) ) {
+			switch ($data['action']) {
+				case 'dismiss_notice' :
+					$this->setNoticeDismissed($data['data']);
+					// @ToDo add an error handling here
+					return ['success' => 'The notice dismissing was remembered'];
+				default :
+					return ['error' => 'Wrong action was provided'];
+			}
+		}
+		return ['error' => 'No action was provided'];
+	}
 
     ////////////////////////////
     // Private methods
