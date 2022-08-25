@@ -2515,4 +2515,20 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
     }
+
+	/**
+	 * Check is the current page is the plugin settings page
+	 * @return bool
+	 *
+	 * @since version
+	 */
+	private function isPluginSettingsPage() {
+		$uri = Uri::getInstance();
+		$layout = $uri->getVar('layout');
+		$ext_id = $uri->getVar('extension_id');
+		if ( isset($layout, $ext_id) && $layout === 'edit' && $ext_id == $this->_id ) {
+			return true;
+		}
+		return false;
+	}
 }
