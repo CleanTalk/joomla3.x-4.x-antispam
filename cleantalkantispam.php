@@ -576,8 +576,6 @@ class plgSystemCleantalkantispam extends JPlugin
 		$app      = JFactory::getApplication();
 		$document = JFactory::getDocument();
 
-        JHtml::_('jquery.framework');
-
         if ($this->isSite() && ! $this->jot_cache_enabled())
         {
             $this->sfw_check();
@@ -684,6 +682,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_form_settings_title = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_SETTINGS_TITLE') . '";
 				');
                 //Admin JS and CSS
+				JHtml::_('jquery.framework');
                 $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-settings.js?" . time());
                 $document->addStyleSheet(JURI::root(true) . "/plugins/system/cleantalkantispam/css/ct-settings.css?" . time());
 
