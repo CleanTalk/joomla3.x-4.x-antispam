@@ -1417,7 +1417,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		$notice_date_option = $this->params->get($option_name, false);
 
 		if ( $notice_date_option === false ) {
-			return true;
+			return false;
 		}
 
 		$current_time = time();
