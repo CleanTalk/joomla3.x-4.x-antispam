@@ -401,11 +401,6 @@ class plgSystemCleantalkantispam extends JPlugin
                 $save_params['connection_reports'] = array('success' => 0, 'negative' => 0, 'negative_report' => null);
             }
 
-            if (isset($_POST['check_renew_banner'])) {
-                $output['result'] = 'success';
-                $output['close_renew_banner'] = $this->params->get('show_notice') == 0 ? 1 : 0;
-            }
-
             if (isset($_POST['dev_insert_spam_users']) && $_POST['dev_insert_spam_users'] === 'yes')
                 // @ToDo This code block not used!
                 $output = self::dev_insert_spam_users();

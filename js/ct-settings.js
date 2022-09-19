@@ -29,23 +29,6 @@ function animate_banner(to){
 		jQuery('#feedback_notice').fadeTo(300,to);
 	}
 }
-function banner_check() {
-	var bannerChecker = setInterval( function() {
-		jQuery.ajax({
-			type: "POST",
-			url: location.href,
-			data: {'check_renew_banner' : 1},
-			// dataType: 'json',
-			success: function(msg){
-				msg=jQuery.parseJSON(msg);
-				if (msg.close_renew_banner == 1) {
-					jQuery('.alert-info').hide('slow');
-					clearInterval(bannerChecker);
-				}
-			}
-		});
-	}, 60000);
-}
 
 // Get system messages and handle these
 document.addEventListener('DOMContentLoaded', () => {
@@ -207,10 +190,6 @@ jQuery(document).ready(function(){
 	// Notice for moderate IP
 	if(ct_moderate_ip == 1)
 		jQuery('#jform_params_apikey').parent().parent().append("<br /><h4>The anti-spam service is paid by your hosting provider. License #"+ct_ip_license+"</h4>");
-
-	//Check banner
-	if (jQuery('.alert').length && jQuery('.alert').hasClass('alert-info'))
-		banner_check();
 
 	// Handler for review banner
 	jQuery('#ct_review_link').click(function(){
