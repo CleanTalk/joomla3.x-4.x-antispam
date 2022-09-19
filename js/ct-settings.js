@@ -37,7 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function dispatchJoomlaNotices() {
 	const joomlaAlertWrapper = document.getElementById("system-message-container");
 	if ( joomlaAlertWrapper !== null ) {
-		const joomlaAlerts = joomlaAlertWrapper.getElementsByTagName('joomla-alert');
+		let joomlaAlerts = joomlaAlertWrapper.getElementsByTagName('joomla-alert');
+		if ( joomlaAlerts.length === 0 ) {
+			joomlaAlerts = joomlaAlertWrapper.getElementsByClassName('alert');
+		}
 		if ( joomlaAlerts.length > 0 ) {
 			for ( let i = 0; i < joomlaAlerts.length; i++ ) {
 				dispatchApbctJoomlaNotice(joomlaAlerts[i]);
@@ -47,17 +50,29 @@ function dispatchJoomlaNotices() {
 }
 function dispatchApbctJoomlaNotice(element) {
 	const apbctNotice = element.querySelector("#apbct_joomla_notice");
+	let oldWay = element.tagName !== 'JOOMLA-ALERT';
 
 	if ( apbctNotice !== null ) {
 		// Disable notice dismissing on the plugin settings page
 		const currentUrl = new URL(location.href);
 		if ( currentUrl.searchParams.get('layout') === 'edit' && +currentUrl.searchParams.get('extension_id') === ct_extension_id ) {
-			element.destroyCloseButton();
+			if ( typeof element.destroyCloseButton === "function" ) {
+				element.destroyCloseButton();
+			} else {
+				element.getElementsByClassName('close')[0].remove();
+			}
 		}
 
 		// Listen close event only on the TRIAL of RENEW banner
 		if ( apbctNotice.dataset.noticeType === 'trial' || apbctNotice.dataset.noticeType === 'renew' ) {
-			element.addEventListener('joomla.alert.close', (event) => {
+			const dispatchedElement = oldWay ? element.getElementsByClassName('close')[0] : element;
+			const dispatchedEvent = oldWay ? 'click' : 'joomla.alert.close';
+
+			if ( typeof dispatchedElement === 'undefined' ) {
+				return;
+			}
+
+			dispatchedElement.addEventListener(dispatchedEvent, (event) => {
 				let data = {
 					'action' : 'dismiss_notice',
 					'data': {
