@@ -40,6 +40,10 @@ use Cleantalk\Common\Firewall\Modules\SFW;
 use Cleantalk\ApbctJoomla\RemoteCalls as RemoteCalls;
 use Cleantalk\Common\Variables\Server;
 use Cleantalk\Common\Variables\ServerVariables;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Session\Session;
+use Joomla\CMS\Uri\Uri;
 
 define('APBCT_TBL_FIREWALL_DATA', 'cleantalk_sfw');      // Table with firewall data.
 define('APBCT_TBL_FIREWALL_LOG',  'cleantalk_sfw_logs'); // Table with firewall logs.
@@ -58,11 +62,16 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     const ENGINE = 'joomla34-23';
 
-    /*
-     * Flag marked JComments form initilization.
-     * @since         1.0
-     */
-    private $JCReady = false;
+	/**
+	 * Flag marked JComments form initilization.
+	 * @since         1.0
+	 */
+	private $JCReady = false;
+
+	/**
+	 * Days to hide trial notice banner
+	 */
+	const DAYS_INTERVAL_HIDING_NOTICE = 30;
 
     /**
      * Form submited without page load
@@ -392,11 +401,6 @@ class plgSystemCleantalkantispam extends JPlugin
                 $save_params['connection_reports'] = array('success' => 0, 'negative' => 0, 'negative_report' => null);
             }
 
-            if (isset($_POST['check_renew_banner'])) {
-                $output['result'] = 'success';
-                $output['close_renew_banner'] = $this->params->get('show_notice') == 0 ? 1 : 0;
-            }
-
             if (isset($_POST['dev_insert_spam_users']) && $_POST['dev_insert_spam_users'] === 'yes')
                 // @ToDo This code block not used!
                 $output = self::dev_insert_spam_users();
@@ -617,11 +621,16 @@ class plgSystemCleantalkantispam extends JPlugin
                 if (!$ct_key_is_ok)
                     $notice = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_APIKEY');
 
-                if ($show_notice == 1 && $trial == 1)
-                    $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_TRIAL', $config->get('user_token'));
+                if ($show_notice == 1 && $trial == 1) {
+					if ( ! $this->isDismissedNotice('trial_' . $user->id) || $this->isPluginSettingsPage() ) {
+						$notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_TRIAL', $config->get('user_token'));
+					}
+                }
 
                 if ($show_notice == 1 && $renew == 1)
-                    $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $config->get('user_token'));
+	                if ( ! $this->isDismissedNotice('renew_' . $user->id) || $this->isPluginSettingsPage() ) {
+		                $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $config->get('user_token'));
+	                }
 
                 if (!$ct_curl_aufopen_availability) {
                     $notice = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_CURL_AUFOPEN_UNAVAILABLE');
@@ -645,6 +654,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_connection_reports_negative ="' . (isset($connection_reports['negative']) ? $connection_reports['negative'] : 0) . '",
 						ct_connection_reports_negative_report = "' . (isset($connection_reports['negative_report']) ? addslashes(json_encode($connection_reports['negative_report'])) : null) . '",
 						ct_notice_review_done ='.(($config->get('show_review_done') && $config->get('show_review_done') === 1)?'true':'false').',
+						ct_extension_id = ' . $this->_id . ',
 
 					//Translation
 					    ct_autokey_label = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_AUTOKEY_LABEL') . '",
@@ -697,8 +707,16 @@ class plgSystemCleantalkantispam extends JPlugin
 
             }
             if (isset($notice)) {
+				$notice_type = '';
+				if ( $trial == 1 ) {
+					$notice_type = 'data-notice-type="trial"';
+				}
+				if ( $renew == 1 ) {
+					$notice_type = 'data-notice-type="renew"';
+				}
+				$notice = '<div id="apbct_joomla_notice" ' . $notice_type . '>' . $notice . '</div>';
                 if(version_compare($this->cms_version, '4.0.0') >= 0) {
-                    JFactory::getDocument()->addScriptOptions('joomla.messages', array('info' => array(array($notice))));
+	                $app->getDocument()->addScriptOptions('joomla.messages', array('info' => array(array($notice))));
                 } else {
                     JFactory::getApplication()->enqueueMessage($notice, 'notice');
                 }
@@ -1332,8 +1350,80 @@ class plgSystemCleantalkantispam extends JPlugin
         return true;
     }
 
+	/**
+	 * The spot to handle all ajax request for the plugin
+	 *
+	 * @return string[]|void
+	 *
+	 * @throws Exception
+	 * @since version
+	 */
+	public function onAjaxCleantalkantispam() {
+		Session::checkToken('get') or die(Text::_('JINVALID_TOKEN'));
+		$data = Factory::getApplication()->input->json->getArray();
+		if ( isset($data['action']) ) {
+			switch ($data['action']) {
+				case 'dismiss_notice' :
+					$this->setNoticeDismissed($data['data']);
+					// @ToDo add an error handling here
+					return ['success' => 'The notice dismissing was remembered'];
+				default :
+					return ['error' => 'Wrong action was provided'];
+			}
+		}
+		return ['error' => 'No action was provided'];
+	}
+
     ////////////////////////////
     // Private methods
+
+	/**
+	 * Store the notice dismissed flag
+	 * @param array $notice_info
+	 */
+	private function setNoticeDismissed($notice_info)
+	{
+		if ( ! isset($notice_info['notice_type']) ) {
+			// @ToDo add an error throwing here
+			return;
+		}
+
+		$filter = JFilterInput::getInstance();
+
+		$user = Factory::getUser();
+		$notice       = $filter->clean($notice_info['notice_type']);
+		$uid          = $user->id;
+		$notice_uid   = $notice . '_' . $uid;
+		$current_date = time();
+
+		$this->saveCTConfig(['cleantalk_' . $notice_uid . '_dismissed' => $current_date]);
+	}
+
+	/**
+	 * Check dismiss status of the notice
+	 *
+	 * @param string $notice_uid
+	 *
+	 * @return bool
+	 */
+	private function isDismissedNotice($notice_uid)
+	{
+		$option_name = 'cleantalk_' . $notice_uid . '_dismissed';
+		$notice_date_option = $this->params->get($option_name, false);
+
+		if ( $notice_date_option === false ) {
+			return false;
+		}
+
+		$current_time = time();
+		$notice_time  = (int) $notice_date_option;
+
+		if ( $current_time - $notice_time <= self::DAYS_INTERVAL_HIDING_NOTICE * 24 * 60 * 60 ) {
+			return true;
+		}
+
+		return false;
+	}
 
     /**
      * Include in head adn fill form
@@ -2448,4 +2538,20 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
     }
+
+	/**
+	 * Check is the current page is the plugin settings page
+	 * @return bool
+	 *
+	 * @since version
+	 */
+	private function isPluginSettingsPage() {
+		$uri = Uri::getInstance();
+		$layout = $uri->getVar('layout');
+		$ext_id = $uri->getVar('extension_id');
+		if ( isset($layout, $ext_id) && $layout === 'edit' && $ext_id == $this->_id ) {
+			return true;
+		}
+		return false;
+	}
 }

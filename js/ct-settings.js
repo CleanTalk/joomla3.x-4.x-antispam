@@ -29,23 +29,84 @@ function animate_banner(to){
 		jQuery('#feedback_notice').fadeTo(300,to);
 	}
 }
-function banner_check() {
-	var bannerChecker = setInterval( function() {
-		jQuery.ajax({
-			type: "POST",
-			url: location.href,
-			data: {'check_renew_banner' : 1},
-			// dataType: 'json',
-			success: function(msg){
-				msg=jQuery.parseJSON(msg);
-				if (msg.close_renew_banner == 1) {
-					jQuery('.alert-info').hide('slow');
-					clearInterval(bannerChecker);
-				}
+
+// Get system messages and handle these
+document.addEventListener('DOMContentLoaded', () => {
+	setTimeout(dispatchJoomlaNotices, 0);
+});
+function dispatchJoomlaNotices() {
+	const joomlaAlertWrapper = document.getElementById("system-message-container");
+	if ( joomlaAlertWrapper !== null ) {
+		let joomlaAlerts = joomlaAlertWrapper.getElementsByTagName('joomla-alert');
+		if ( joomlaAlerts.length === 0 ) {
+			joomlaAlerts = joomlaAlertWrapper.getElementsByClassName('alert');
+		}
+		if ( joomlaAlerts.length > 0 ) {
+			for ( let i = 0; i < joomlaAlerts.length; i++ ) {
+				dispatchApbctJoomlaNotice(joomlaAlerts[i]);
 			}
-		});
-	}, 60000);
+		}
+	}
 }
+function dispatchApbctJoomlaNotice(element) {
+	const apbctNotice = element.querySelector("#apbct_joomla_notice");
+	let oldWay = element.tagName !== 'JOOMLA-ALERT';
+
+	if ( apbctNotice !== null ) {
+		// Disable notice dismissing on the plugin settings page
+		const currentUrl = new URL(location.href);
+		if ( currentUrl.searchParams.get('layout') === 'edit' && +currentUrl.searchParams.get('extension_id') === ct_extension_id ) {
+			if ( typeof element.destroyCloseButton === "function" ) {
+				element.destroyCloseButton();
+			} else {
+				element.getElementsByClassName('close')[0].remove();
+			}
+		}
+
+		// Listen close event only on the TRIAL of RENEW banner
+		if ( apbctNotice.dataset.noticeType === 'trial' || apbctNotice.dataset.noticeType === 'renew' ) {
+			const dispatchedElement = oldWay ? element.getElementsByClassName('close')[0] : element;
+			const dispatchedEvent = oldWay ? 'click' : 'joomla.alert.close';
+
+			if ( typeof dispatchedElement === 'undefined' ) {
+				return;
+			}
+
+			dispatchedElement.addEventListener(dispatchedEvent, (event) => {
+				let data = {
+					'action' : 'dismiss_notice',
+					'data': {
+						'notice_type' : apbctNotice.dataset.noticeType
+					}
+				};
+				Joomla.request({
+					url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=json',
+					method: 'POST',
+					data: JSON.stringify(data),
+					headers: {
+						'Cache-Control' : 'no-cache'
+					},
+					onSuccess: function (response, xhr){
+						try {
+							let responseData = JSON.parse(response);
+							responseData = responseData.data[0];
+							if ( responseData.error ) {
+								// Do something with the error
+							} else {
+								// Do something with the regular result
+							}
+						} catch (e) {
+							console.log(e.toString());
+							console.log(e.fileName);
+							console.log(e.lineNumber);
+						}
+					}
+				})
+			});
+		}
+	}
+}
+
 jQuery(document).ready(function(){
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
@@ -144,10 +205,6 @@ jQuery(document).ready(function(){
 	// Notice for moderate IP
 	if(ct_moderate_ip == 1)
 		jQuery('#jform_params_apikey').parent().parent().append("<br /><h4>The anti-spam service is paid by your hosting provider. License #"+ct_ip_license+"</h4>");
-
-	//Check banner
-	if (jQuery('.alert').length && jQuery('.alert').hasClass('alert-info'))
-		banner_check();
 
 	// Handler for review banner
 	jQuery('#ct_review_link').click(function(){
