@@ -146,9 +146,7 @@ class Firewall
 
             // Configure the Module Obj
             $module->setApiKey( $this->api_key );
-			$module->setDb( $this->db );
 			$module->setLogTableName( $this->log_table_name );
-			$module->setHelper( $this->helper );
             $module->setIpArray( $this->ip_array );
             $module->setIsDebug( $this->debug );
 			$module->ipAppendAdditional( $this->ip_array );

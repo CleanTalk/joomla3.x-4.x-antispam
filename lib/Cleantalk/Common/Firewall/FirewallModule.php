@@ -13,6 +13,7 @@ namespace Cleantalk\Common\Firewall;
  * @since 2.49
  */
 
+use Cleantalk\Common\DependencyContainer\DependencyContainer;
 use Cleantalk\Common\Variables\Get;
 
 abstract class FirewallModule {
@@ -84,7 +85,11 @@ abstract class FirewallModule {
 	 * @param string $data_table
 	 * @param array $params
 	 */
-	abstract public function __construct( $data_table, $params = array() );
+	public function __construct( $data_table, $params = array() )
+	{
+		$this->db = DependencyContainer::getInstance()->get('Db');
+		$this->helper = DependencyContainer::getInstance()->get('Helper');
+	}
 
     /**
      * Use this method to execute main logic of the module.

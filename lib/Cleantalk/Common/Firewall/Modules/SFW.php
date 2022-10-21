@@ -25,7 +25,8 @@ class SFW extends FirewallModule {
      */
 	public function __construct( $data_table, $params = array() )
     {
-		$this->helper = DependencyContainer::getInstance()->get('Helper');
+		parent::__construct($data_table, $params);
+
 		$this->db_data_table_name = $data_table ?: null;
 		
 		foreach( $params as $param_name => $param ){
