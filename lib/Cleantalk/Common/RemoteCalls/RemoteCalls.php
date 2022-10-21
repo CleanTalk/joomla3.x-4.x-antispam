@@ -1,13 +1,16 @@
 <?php
 
-namespace Cleantalk\Common;
+namespace Cleantalk\Common\RemoteCalls;
 
-use Cleantalk\Common\Variables\Get;
+use Cleantalk\Common\Variables\Request;
+use Cleantalk\Common\StorageHandler\StorageHandler;
 
-abstract class RemoteCalls
+class RemoteCalls
 {
 
     const COOLDOWN = 10;
+
+    const OPTION_NAME = 'remote_calls';
 
     /**
      * @var bool
@@ -38,10 +41,10 @@ abstract class RemoteCalls
     public static function check()
     {
         return
-            Get::get( 'spbc_remote_call_token' ) &&
-            Get::get( 'spbc_remote_call_action' ) &&
-            Get::get( 'plugin_name' ) &&
-            in_array( Get::get( 'plugin_name' ), array( 'antispam','anti-spam', 'apbct' ) );
+            Request::get( 'spbc_remote_call_token' ) &&
+            Request::get( 'spbc_remote_call_action' ) &&
+            Request::get( 'plugin_name' ) &&
+            in_array( Request::get( 'plugin_name' ), array( 'antispam','anti-spam', 'apbct' ) );
     }
 
     /**
@@ -51,8 +54,8 @@ abstract class RemoteCalls
      */
     public function perform()
     {
-        $action = strtolower( Get::get( 'spbc_remote_call_action' ) );
-        $token  = strtolower( Get::get( 'spbc_remote_call_token' ) );
+        $action = strtolower( Request::get( 'spbc_remote_call_action' ) );
+        $token  = strtolower( Request::get( 'spbc_remote_call_token' ) );
 
         $actions = $this->available_rc_actions;
 
@@ -61,7 +64,7 @@ abstract class RemoteCalls
             $cooldown = isset( $actions[$action]['cooldown'] ) ? $actions[$action]['cooldown'] : self::COOLDOWN;
 
             // Return OK for test remote calls
-            if ( Get::get( 'test' ) ) {
+            if ( Request::get( 'test' ) ) {
                 die('OK');
             }
 
@@ -69,7 +72,7 @@ abstract class RemoteCalls
 
                 $actions[$action]['last_call'] = time();
 
-                $this->setLastCall( $action );
+                $this->setLastCall($action);
 
                 // Check API key
                 if( $token === strtolower( md5( $this->api_key ) ) ){
@@ -82,8 +85,8 @@ abstract class RemoteCalls
                     if( method_exists( static::class, $action_method ) ){
 
                         // Delay before perform action;
-                        if ( Get::get( 'delay' ) ) {
-                            sleep(Get::get('delay'));
+                        if ( Request::get( 'delay' ) ) {
+                            sleep(Request::get('delay'));
                         }
 
                         $action_result = static::$action_method();
@@ -92,7 +95,7 @@ abstract class RemoteCalls
                             ? 'OK'
                             : 'FAIL ' . json_encode( array( 'error' => $action_result['error'] ) );
 
-                        if( ! Get::get( 'continue_execution' ) ){
+                        if( ! Request::get( 'continue_execution' ) ){
 
                             die( $response );
 
@@ -117,14 +120,20 @@ abstract class RemoteCalls
      *
      * @return array
      */
-    abstract protected function getAvailableRcActions();
+    protected function getAvailableRcActions()
+    {
+        return StorageHandler::get(static::OPTION_NAME);
+    }
 
     /**
      * Set last call timestamp and save it to the storage.
      *
-     * @param array $action
+     * @param string $action
      * @return bool
      */
-    abstract protected function setLastCall( $action );
-
+    protected function setLastCall($action)
+    {
+        $this->available_rc_actions[$action]['last_call'] = time();
+        return StorageHandler::set(static::OPTION_NAME, $this->available_rc_actions);
+    }
 }

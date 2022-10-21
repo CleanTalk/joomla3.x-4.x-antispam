@@ -2,12 +2,9 @@
 
 namespace Cleantalk\Common\Firewall\Modules;
 
-use Cleantalk\ApbctJoomla\DB;
-use Cleantalk\Common\Firewall\Firewall;
+use Cleantalk\Common\DependencyContainer\DependencyContainer;
 use Cleantalk\Common\Firewall\FirewallModule;
-use Cleantalk\Common\Schema;
 use Cleantalk\Common\Variables\Cookie;
-use Cleantalk\Common\Variables\Get;
 use Cleantalk\Common\Variables\Server;
 
 class SFW extends FirewallModule {
@@ -28,8 +25,8 @@ class SFW extends FirewallModule {
      */
 	public function __construct( $data_table, $params = array() )
     {
-        $this->db = DB::getInstance();
-        $this->db_data_table_name = $this->db->prefix . $data_table ?: null;
+		$this->helper = DependencyContainer::getInstance()->get('Helper');
+		$this->db_data_table_name = $data_table ?: null;
 		
 		foreach( $params as $param_name => $param ){
 			$this->$param_name = isset( $this->$param_name ) ? $param : false;
@@ -45,12 +42,7 @@ class SFW extends FirewallModule {
     {
 		$results = array();
         $status = 0;
-
-		// @ToDo add counter check to avoid direct db request
-        if (!$this->db->is_table_exists($this->db_data_table_name)) {
-            return $results;
-        }
-
+		
 		// Skip by cookie
 		foreach( $this->ip_array as $current_ip ){
 
@@ -59,7 +51,7 @@ class SFW extends FirewallModule {
                 if( Cookie::get( 'ct_sfw_passed' ) ){
 
                     if( ! headers_sent() ){
-                        \Cleantalk\Common\Helper::apbct_cookie__set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, false, true, 'Lax' );
+                        Cookie::set( 'ct_sfw_passed', '0', time() + 86400 * 3, '/', null, true, 'Lax' );
                     } else {
                         $results[] = array( 'ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_SFW__BY_COOKIE', );
                     }
@@ -84,8 +76,8 @@ class SFW extends FirewallModule {
 				return $results;
 			}
 		}
+		
 		// Common check
-
 		foreach( $this->ip_array as $origin => $current_ip )
 		{
 			$current_ip_v4 = sprintf("%u", ip2long($current_ip));
@@ -95,6 +87,7 @@ class SFW extends FirewallModule {
 				$needles[] = sprintf( "%u", bindec( $mask & base_convert( $current_ip_v4, 10, 2 ) ) );
 			}
 			$needles = array_unique( $needles );
+			
 			$db_results = $this->db->fetch_all("SELECT
 				network, mask, status
 				FROM " . $this->db_data_table_name . "
@@ -133,14 +126,9 @@ class SFW extends FirewallModule {
 	 * @param string $ip
 	 * @param string $status
 	 */
-	public function update_log( $ip, $status )
+	public function updateLog( $ip, $status )
     {
-		$ip_version = \Cleantalk\Common\Helper::ip__validate( $ip );
 
-		if (!$ip_version || $ip_version === 'v6') {
-			return;
-		}
-		
 		$id   = md5( $ip . $this->module_name );
 		$time = time();
 		
@@ -152,14 +140,14 @@ class SFW extends FirewallModule {
 			all_entries = 1,
 			blocked_entries = " . ( strpos( $status, 'DENY' ) !== false ? 1 : 0 ) . ",
 			entries_timestamp = '" . $time . "',
-			ua_name = '" . addslashes(Server::get('HTTP_USER_AGENT')) . "'
+			ua_name = '" . addslashes( Server::get('HTTP_USER_AGENT') ) . "'
 		ON DUPLICATE KEY
 		UPDATE
 			status = '$status',
 			all_entries = all_entries + 1,
 			blocked_entries = blocked_entries" . ( strpos( $status, 'DENY' ) !== false ? ' + 1' : '' ) . ",
 			entries_timestamp = '" . intval( $time ) . "',
-			ua_name = '" . addslashes(Server::get('HTTP_USER_AGENT')) . "'";
+			ua_name = '" . addslashes( Server::get('HTTP_USER_AGENT') ) . "'";
 		
 		$this->db->execute( $query );
 	}
@@ -182,8 +170,7 @@ class SFW extends FirewallModule {
 		if( $this->set_cookies &&  ! headers_sent() ) {
 		    $status = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
             $cookie_val = md5( $result['ip'] . $this->api_key ) . $status;
-            $helper = $this->helper;
-            $helper::apbct_cookie__set( 'ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
+            Cookie::set( 'ct_sfw_pass_key', $cookie_val, time() + 86400 * 30, '/', null, false );
         }
 	}
 
@@ -207,9 +194,9 @@ class SFW extends FirewallModule {
 		}
 		
 		// File exists?
-		if( file_exists( __DIR__ . "/die_page_sfw.html" ) ){
+		if( file_exists( __DIR__ . "/lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html" ) ){
 			
-			$sfw_die_page = file_get_contents( __DIR__ . "/die_page_sfw.html" );
+			$sfw_die_page = file_get_contents( __DIR__ . "/lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html" );
 
             $net_count = $this->db->fetch( 'SELECT COUNT(*) as net_count FROM ' . $this->db_data_table_name )['net_count'];
 

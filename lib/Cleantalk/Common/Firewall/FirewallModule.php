@@ -13,8 +13,6 @@ namespace Cleantalk\Common\Firewall;
  * @since 2.49
  */
 
-use Cleantalk\Common\DB;
-use Cleantalk\Common\Helper;
 use Cleantalk\Common\Variables\Get;
 
 abstract class FirewallModule {
@@ -35,7 +33,7 @@ abstract class FirewallModule {
 	protected $ip_array = array();
 
     /**
-     * @var DB
+     * @var \Cleantalk\Common\Db\DB
      */
 	protected $db;
 
@@ -50,7 +48,7 @@ abstract class FirewallModule {
 	protected $db_data_table_name;
 
     /**
-     * @var Helper
+     * @var \Cleantalk\Common\Helper\Helper
      */
 	protected $helper;
 
@@ -121,21 +119,11 @@ abstract class FirewallModule {
 	{
 		$this->real_ip = isset($ips['real']) ? $ips['real'] : null;
 
-		if( Get::get('sfw_test_ip') && Helper::ip__validate( Get::get('sfw_test_ip') ) !== false ) {
+		if( Get::get('sfw_test_ip') && $this->helper::ipValidate( Get::get('sfw_test_ip') ) !== false ) {
             $this->ip_array['sfw_test'] = Get::get( 'sfw_test_ip' );
             $this->test_ip   = Get::get( 'sfw_test_ip' );
             $this->test      = true;
         }
-	}
-	
-	/**
-     * Set specify CMS based DB instance
-     *
-	 * @param DB $db
-	 */
-	public function setDb( DB $db )
-    {
-		$this->db = $db;
 	}
 
     /**
@@ -145,17 +133,8 @@ abstract class FirewallModule {
      */
     public function setLogTableName( $log_table_name )
     {
+        $this->db_data_table_name = $this->db->prefix . $this->db_data_table_name;
         $this->db_log_table_name = $log_table_name;
-    }
-
-    /**
-     * Set specify CMS based Helper instance
-     *
-     * @param Helper $helper
-     */
-    public function setHelper( Helper $helper )
-    {
-        $this->helper = $helper;
     }
 
     /**

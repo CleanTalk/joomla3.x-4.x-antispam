@@ -2,12 +2,10 @@
 
 namespace Cleantalk\Common\Firewall;
 
-use Cleantalk\Common\API;
-use Cleantalk\Common\DB;
-use Cleantalk\Common\Helper;
-use Cleantalk\Common\RemoteCalls;
-use Cleantalk\Common\Schema;
+use Cleantalk\Common\DependencyContainer\DependencyContainer;
+use Cleantalk\Common\Db\Schema;
 use Cleantalk\Common\Variables\Get;
+use Cleantalk\Common\Variables\Server;
 
 class FirewallUpdater
 {
@@ -22,17 +20,17 @@ class FirewallUpdater
     private $api_key;
 
     /**
-     * @var Helper
+     * @var \Cleantalk\Common\Helper\Helper
      */
     private $helper;
 
     /**
-     * @var API
+     * @var \Cleantalk\Common\Api\API
      */
     private $api;
 
     /**
-     * @var DB
+     * @var \Cleantalk\Common\Db\DB
      */
     private $db;
 
@@ -41,63 +39,53 @@ class FirewallUpdater
      */
     private $fw_data_table_name;
 
+	/**
+	 * @var \Cleantalk\Common\RemoteCalls\RemoteCalls
+	 * @since version
+	 */
+	private $rc;
 
-    /**
+
+	/**
      * FirewallUpdater constructor.
      *
      * @param string $api_key
-     * @param DB $db
+     * @param \Cleantalk\Common\Db\DB $db
      * @param string $fw_data_table_name
      */
-    public function __construct( $api_key, DB $db, $fw_data_table_name )
+    public function __construct( $api_key, \Cleantalk\Common\Db\DB $db, $fw_data_table_name )
     {
         $this->api_key            = $api_key;
         $this->db                 = $db;
         $this->fw_data_table_name = $db->prefix . $fw_data_table_name;
-        $this->helper             = new Helper();
-        $this->api                = new API();
+        $this->helper             = DependencyContainer::getInstance()->get('Helper');
+        $this->api                = DependencyContainer::getInstance()->get('Api');
+	    $this->rc                 = DependencyContainer::getInstance()->get('RemoteCalls');
     }
-
-    /**
-     * Set specify CMS based Helper instance
-     *
-     * @param Helper $helper
-     */
-    public function setSpecificHelper( Helper $helper )
-    {
-        $this->helper = $helper;
-    }
-
-    /**
-     * Set specify CMS based API instance
-     *
-     * @param API $api
-     */
-    public function setSpecificApi( API $api )
-    {
-        $this->api = $api;
-    }
-
 
     public function update()
     {
-        $helper = $this->helper;
+	    $helper = $this->helper;
         $fw_stats = $helper::getFwStats();
 
         // Prevent start another update at a time
-        if( ! Get::get('firewall_updating_id') &&
+        if(
+			Get::get('spbc_remote_call_action') === 'sfw_update__write_base' &&
+            ! Get::get('firewall_updating_id') &&
             $fw_stats['firewall_updating_id'] &&
-            Get::get('spbc_remote_call_action') == 'sfw_update__write_base' &&
-            time() - $fw_stats['firewall_updating_last_start'] < 60 ){
-            return true;
+            time() - $fw_stats['firewall_updating_last_start'] < 60
+        ){
+            //return true;
         }
 
         // Check if the update performs right now. Blocks remote calls with different ID
-        if( Get::get('spbc_remote_call_action') == 'sfw_update__write_base' && Get::get('firewall_updating_id') &&
+        if( Get::get('spbc_remote_call_action') === 'sfw_update__write_base' &&
+            Get::get('firewall_updating_id') &&
             Get::get('firewall_updating_id') !== $fw_stats['firewall_updating_id']
         ) {
             return array( 'error' => 'FIREWALL_IS_UPDATING' );
         }
+
         // No updating without api key
         if( empty( $this->api_key ) ){
             return true;
@@ -109,13 +97,12 @@ class FirewallUpdater
                 array(
                     'firewall_updating_id' => md5( rand( 0, 100000 ) ),
                     'firewall_updating_last_start' => time(),
-                    'firewall_update_percent' => 0
                 )
             );
         }
 
-        if( RemoteCalls::check() ) {
-            // Remote call is in process, do updating
+        if( $this->rc::check() ) {
+            // Remote call is in process, run updating
 
             $file_urls   = Get::get('file_urls');
             $url_count   = Get::get('url_count');
@@ -133,7 +120,7 @@ class FirewallUpdater
                     if( ! empty( $blacklists['file_url'] ) ){
                         $data = $this->unpackData( $blacklists['file_url'] );
                         if( empty( $data['error'] ) ) {
-                            return Helper::http__request__rc_to_host(
+                            return $this->helper::http__request__rc_to_host(
                                 'sfw_update__write_base',
                                 array(
                                     'spbc_remote_call_token'  => md5( $this->api_key ),
@@ -156,7 +143,7 @@ class FirewallUpdater
                 }
 
             // Doing updating here.
-            }elseif( $file_urls && $url_count > $current_url ){
+            }elseif( $url_count > $current_url ){
 
                 $file_url = 'https://' . str_replace( 'multifiles', $current_url, $file_urls );
 
@@ -191,7 +178,7 @@ class FirewallUpdater
 
                     // Updating continue: Do next remote call.
                     if ( $url_count > $current_url ) {
-                        return Helper::http__request__rc_to_host(
+                        return $this->helper::http__request__rc_to_host(
                             'sfw_update__write_base',
                             array(
                                 'spbc_remote_call_token'  => md5( $this->api_key ),
@@ -207,23 +194,31 @@ class FirewallUpdater
                     // Updating end: Do finish actions.
                     } else {
 
-                        // @todo We have to handle errors here
-                        $this->deleteMainDataTables();
-                        // @todo We have to handle errors here
-                        $this->renameDataTables();
+                        // Write local IP as whitelisted
+                        $result = $this->writeDbExclusions();
 
-                        //Files array is empty update sfw stats
-                        $helper::SfwUpdate_DoFinisnAction();
+                        if( empty( $result['error'] ) && is_int( $result ) ) {
 
-                        $fw_stats['firewall_update_percent'] = 0;
-                        $fw_stats['firewall_updating_id'] = null;
-                        $helper::setFwStats( $fw_stats );
+                            // @todo We have to handle errors here
+                            $this->deleteMainDataTables();
+                            // @todo We have to handle errors here
+                            $this->renameDataTables();
 
-                        return true;
+                            //Files array is empty update sfw stats
+                            $helper::SfwUpdate_DoFinisnAction();
 
+                            $fw_stats['firewall_update_percent'] = 0;
+                            $fw_stats['firewall_updating_id'] = null;
+                            $helper::setFwStats( $fw_stats );
+
+                            return true;
+
+                        } else {
+                            return array( 'error' => 'SFW_UPDATE: EXCLUSIONS: ' . $result['error'] );
+                        }
                     }
                 } else {
-                    return $data;
+                    return array('error' => $lines['error']);
                 }
             }else {
                 return array('error' => 'SFW_UPDATE WRONG_FILE_URLS');
@@ -245,7 +240,7 @@ class FirewallUpdater
     private function getSfwBlacklists( $api_key )
     {
         $api = $this->api;
-        $result = $api::method__get_2s_blacklists_db( $api_key, 'multifiles', '3_0' );
+        $result = $api::methodGet2sBlacklistsDb( $api_key, 'multifiles', '3_0' );
         sleep(4);
         return $result;
     }
@@ -265,7 +260,7 @@ class FirewallUpdater
 
                 if( is_string($gz_data) ){
 
-                    if( Helper::get_mime_type( $gz_data, 'application/x-gzip' ) ){
+                    if( $this->helper::getMimeType( $gz_data, 'application/x-gzip' ) ){
 
                         if( function_exists( 'gzdecode' ) ){
 
@@ -273,7 +268,7 @@ class FirewallUpdater
 
                             if( $data !== false ){
 
-                                return Helper::buffer__parse__csv( $data );
+                                return $this->helper::bufferParseCsv( $data );
 
                             }else {
                                 return array('error' => 'COULD_DECODE_FILE');
@@ -296,10 +291,47 @@ class FirewallUpdater
     }
 
     /**
-     * Creatin a temporary updating table
+     * Writing to the DB self IPs
      *
-     * @param DB $db database handler
-     * @throws \Exception
+     * @return array|int
+     */
+    private function writeDbExclusions()
+    {
+        $query = "INSERT INTO ".$this->fw_data_table_name."_temp (network, mask, status) VALUES ";
+
+        $exclusions = array();
+
+        //Exclusion for servers IP (SERVER_ADDR)
+        if ( Server::get('HTTP_HOST') ) {
+
+            // Exceptions for local hosts
+
+            if( ! in_array( Server::getDomain(), array( 'lc', 'loc', 'lh' ) ) ){
+                $exclusions[] = $this->helper::dnsResolve( Server::get( 'HTTP_HOST' ) );
+                $exclusions[] = '127.0.0.1';
+            }
+        }
+
+        foreach ( $exclusions as $exclusion ) {
+            if ( $this->helper::ipValidate( $exclusion ) && sprintf( '%u', ip2long( $exclusion ) ) ) {
+                $query .= '(' . sprintf( '%u', ip2long( $exclusion ) ) . ', ' . sprintf( '%u', bindec( str_repeat( '1', 32 ) ) ) . ', 1),';
+            }
+        }
+
+        if( $exclusions ){
+
+            $sql_result = $this->db->execute( substr( $query, 0, - 1 ) . ';' );
+
+            return $sql_result === false
+                ? array( 'error' => 'COULD_NOT_WRITE_TO_DB 4: ' . $this->db->getLastError() )
+                : count( $exclusions );
+        }
+
+        return 0;
+    }
+
+    /**
+     * Creating a temporary updating table
      */
     private function createTempTables()
     {
@@ -307,7 +339,7 @@ class FirewallUpdater
         $sql = sprintf( $sql, $this->db->prefix ); // Adding current blog prefix
         $result = $this->db->fetch( $sql );
         if( ! $result ){
-            $sql = sprintf( Schema::getSchema('sfw'), $this->db->prefix );
+            $sql = sprintf( Schema::getStructureSchemas()['sfw'], $this->db->prefix );
             $this->db->execute( $sql );
         }
         $this->db->execute( 'CREATE TABLE IF NOT EXISTS `' . $this->fw_data_table_name . '_temp` LIKE `' . $this->fw_data_table_name . '`;' );
@@ -316,8 +348,6 @@ class FirewallUpdater
 
     /**
      * Removing a temporary updating table
-     *
-     * @param DB $db database handler
      */
     private function deleteMainDataTables()
     {
@@ -326,8 +356,6 @@ class FirewallUpdater
 
     /**
      * Renamin a temporary updating table into production table name
-     *
-     * @param DB $db database handler
      */
     private function renameDataTables()
     {
