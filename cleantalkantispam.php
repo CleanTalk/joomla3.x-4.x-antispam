@@ -26,15 +26,15 @@ define('APBCT_SESSION__CHANCE_TO_CLEAN', 100);
 require_once(dirname(__FILE__) . '/lib/autoload.php');
 
 //Antispam classes
-use Cleantalk\Antispam\Cleantalk as Cleantalk;
-use Cleantalk\Antispam\CleantalkRequest as CleantalkRequest;
-use Cleantalk\Antispam\CleantalkRequest as CleantalkResponse;
+use Cleantalk\Common\Antispam\Cleantalk as Cleantalk;
+use Cleantalk\Common\Antispam\CleantalkRequest as CleantalkRequest;
+use Cleantalk\Common\Antispam\CleantalkRequest as CleantalkResponse;
 
 use Cleantalk\ApbctJoomla\DB;
-use Cleantalk\Common\API as CleantalkAPI;
+use Cleantalk\Common\Api\API as CleantalkAPI;
 use Cleantalk\ApbctJoomla\Helper as CleantalkHelper;
 use Cleantalk\ApbctJoomla\Cron;
-use Cleantalk\Common\Schema;
+use Cleantalk\Common\Db\Schema;
 use Cleantalk\Common\Firewall\Firewall;
 use Cleantalk\Common\Firewall\Modules\SFW;
 use Cleantalk\ApbctJoomla\RemoteCalls as RemoteCalls;
@@ -144,6 +144,8 @@ class plgSystemCleantalkantispam extends JPlugin
         $this->loadLanguage();
 
         $this->cms_version = $this->getCmsVersion();
+
+		$this->setCustomDependencies();
     }
     private function getId()
     {
@@ -219,11 +221,11 @@ class plgSystemCleantalkantispam extends JPlugin
         if (($this->params->get('acc_status_last_check') && ($this->params->get('acc_status_last_check') < time() - 86400)) || $force_check || !$this->params->get('ct_key_is_ok'))
         {
             $ct_key_is_ok = 0;
-            $key_is_valid = CleantalkHelper::key_is_correct($api_key);
+            $key_is_valid = CleantalkHelper::isApikeyCorrect($api_key);
             $save_params = array();
             $result = null;
             if ($key_is_valid){
-                $result      = CleantalkAPI::method__notice_paid_till($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
+                $result      = CleantalkAPI::methodNoticePaidTill($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
                 $ct_key_is_ok = (empty($result['error']) && $result['valid']) ? 1 : 0;
             }
 
@@ -2322,7 +2324,6 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $firewall = new Firewall(
                 $this->params->get('apikey'),
-                DB::getInstance(),
                 APBCT_TBL_FIREWALL_LOG
             );
             $firewall->loadFwModule( new SFW(
@@ -2360,6 +2361,13 @@ class plgSystemCleantalkantispam extends JPlugin
         }
     }
 
+	private function setCustomDependencies() {
+		\Cleantalk\Common\DependencyContainer\DependencyContainer::getInstance()->set('Db', new \Cleantalk\ApbctJoomla\DB());
+		\Cleantalk\Common\DependencyContainer\DependencyContainer::getInstance()->set('Helper', new \Cleantalk\ApbctJoomla\Helper());
+		\Cleantalk\Common\DependencyContainer\DependencyContainer::getInstance()->set('Cron', new \Cleantalk\ApbctJoomla\Cron());
+		\Cleantalk\Common\DependencyContainer\DependencyContainer::getInstance()->set('RemoteCalls', new \Cleantalk\ApbctJoomla\RemoteCalls($this->params->get('apikey')));
+	}
+
     static public function apbct_sfw_update($access_key = '') {
         if( empty( $access_key ) ){
             $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
@@ -2369,12 +2377,11 @@ class plgSystemCleantalkantispam extends JPlugin
                 return false;
             }
         }
+
         $firewall = new Firewall(
             $access_key,
-            DB::getInstance(),
             APBCT_TBL_FIREWALL_LOG
         );
-        $firewall->setSpecificHelper( new CleantalkHelper() );
         $fw_updater = $firewall->getUpdater( APBCT_TBL_FIREWALL_DATA );
         $fw_updater->update();
 
@@ -2389,8 +2396,7 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
 
-        $firewall = new Firewall( $access_key, DB::getInstance(), APBCT_TBL_FIREWALL_LOG );
-        $firewall->setSpecificHelper( new CleantalkHelper() );
+        $firewall = new Firewall( $access_key, APBCT_TBL_FIREWALL_LOG );
         $result = $firewall->sendLogs();
 
         return true;

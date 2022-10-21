@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctJoomla;
 
-class Helper extends \Cleantalk\Common\Helper {
+class Helper extends \Cleantalk\Common\Helper\Helper {
 
     /**
      * Get fw stats from the storage.
@@ -50,7 +50,7 @@ class Helper extends \Cleantalk\Common\Helper {
             $params = array();
             $params['firewall_updating_id'] = $fw_stats['firewall_updating_id'];
             $params['firewall_updating_last_start'] = $fw_stats['firewall_updating_last_start'];
-            $params['firewall_update_percent'] = $fw_stats['firewall_update_percent'];
+            $params['firewall_update_percent'] = isset($fw_stats['firewall_update_percent']) ? $fw_stats['firewall_update_percent'] : 0;
             $jparams = new \JRegistry($table->params);
             foreach ($params as $k => $v)
                 $jparams->set($k, $v);           
@@ -86,4 +86,87 @@ class Helper extends \Cleantalk\Common\Helper {
             $table->store();
         }
     }
+
+	/**
+	 * Wrapper for http_request
+	 * Requesting HTTP response code for $url
+	 *
+	 * @param string $url
+	 *
+	 * @return array|mixed|string
+	 */
+	public static function http__request__get_response_code($url ){
+		return static::httpRequest( $url, array(), 'get_code');
+	}
+
+	/**
+	 * Wrapper for http_request
+	 * Requesting data via HTTP request with GET method
+	 *
+	 * @param string $url
+	 *
+	 * @return array|mixed|string
+	 */
+	public static function http__request__get_content($url ){
+		return static::httpRequest( $url, array(), 'get dont_split_to_array');
+	}
+
+	/**
+	 * Do the remote call to the host.
+	 *
+	 * @param string $rc_action
+	 * @param array $request_params
+	 * @param array $patterns
+	 * @return array|bool
+	 * @todo Have to replace this method to the new class like HttpHelper
+	 */
+	public static function http__request__rc_to_host($rc_action, $request_params, $patterns = array() )
+	{
+		$request_params__default = array(
+			'spbc_remote_call_action' => $rc_action,
+			'plugin_name'             => 'apbct',
+		);
+
+		$result__rc_check_website = static::httpRequest(
+			static::getSiteUrl(),
+			array_merge( $request_params__default, $request_params, array( 'test' => 'test' ) ),
+			array( 'get', 'dont_split_to_array' )
+		);
+
+		if( empty( $result__rc_check_website['error'] ) ){
+
+			if (is_string($result__rc_check_website) && preg_match('@^.*?OK$@', $result__rc_check_website)) {
+
+				static::httpRequest(
+					static::getSiteUrl(),
+					array_merge( $request_params__default, $request_params ),
+					array_merge( array( 'get', ), $patterns )
+				);
+
+			}else
+				return array(
+					'error' => 'WRONG_SITE_RESPONSE ACTION: ' . $rc_action . ' RESPONSE: ' . htmlspecialchars( substr(
+							! is_string( $result__rc_check_website )
+								? print_r( $result__rc_check_website, true )
+								: $result__rc_check_website,
+							0,
+							400
+						) )
+				);
+		}else
+			return array( 'error' => 'WRONG_SITE_RESPONSE TEST ACTION: ' . $rc_action . ' ERROR: ' . $result__rc_check_website['error'] );
+
+		return true;
+	}
+
+	/**
+	 * Get site url for remote calls.
+	 *
+	 * @return string@important This method can be overloaded in the CMS-based Helper class.
+	 *
+	 */
+	private static function getSiteUrl()
+	{
+		return ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . ( isset($_SERVER['SCRIPT_URL'] ) ? $_SERVER['SCRIPT_URL'] : '' );
+	}
 }

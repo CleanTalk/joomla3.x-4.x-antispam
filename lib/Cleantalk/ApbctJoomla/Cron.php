@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctJoomla;
 
-class Cron extends \Cleantalk\Common\Cron {
+class Cron extends \Cleantalk\Common\Cron\Cron {
 
     public function saveTasks($tasks)
     {

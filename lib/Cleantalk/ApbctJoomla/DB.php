@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctJoomla;
 
-class DB extends \Cleantalk\Common\DB {
+class DB extends \Cleantalk\Common\Db\DB {
     /**
      * Alternative constructor.
      * Initilize Database object and write it to property.

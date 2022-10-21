@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctJoomla;
 
-class RemoteCalls extends \Cleantalk\Common\RemoteCalls {
+class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls {
     /**
      * SFW update
      *
