@@ -437,6 +437,21 @@ class Helper extends \Cleantalk\Common\Helper\Helper {
 	}
 
 	/**
+	 * Masks a value with asterisks (*) Needed by the getFieldsAny()
+	 * @return string
+	 */
+	static public function obfuscate_param($value = null)
+	{
+		if ($value && (!is_object($value) || !is_array($value)))
+		{
+			$length = strlen($value);
+			$value  = str_repeat('*', $length);
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Print html form for external forms()
 	 * @return string
 	 */
