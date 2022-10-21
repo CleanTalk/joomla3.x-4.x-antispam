@@ -58,7 +58,7 @@ class SFW extends FirewallModule {
                     }
 
                     // Do logging an one passed request
-                    $this->update_log( $current_ip, 'PASS_SFW' );
+                    $this->updateLog( $current_ip, 'PASS_SFW' );
 
                     if( $this->sfw_counter ){
                         // @ToDo have to implement the logic of incrementing and saving count of all handled requests.
