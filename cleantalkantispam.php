@@ -300,11 +300,11 @@ class plgSystemCleantalkantispam extends JPlugin
             // Getting key automatically
             if (isset($_POST['get_auto_key']) && $_POST['get_auto_key'] === 'yes')
             {
-                $output = CleantalkAPI::method__get_api_key('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
+                $output = CleantalkAPI::methodGetApiKey('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
                 // Checks if the user token is empty, then get user token by notice_paid_till()
                 if( empty( $output['user_token'] ) && ! empty( $output['auth_key'] ) ){
 
-                    $result_tmp = CleantalkAPI::method__notice_paid_till($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
+                    $result_tmp = CleantalkAPI::methodNoticePaidTill($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
 
                     if( empty( $result_tmp['error'] ) )
                         $output['user_token'] = $result_tmp['user_token'];
@@ -1724,9 +1724,9 @@ class plgSystemCleantalkantispam extends JPlugin
             $ct_request->auth_key        = $this->params->get('apikey');
             $ct_request->agent           = self::ENGINE;
             $ct_request->submit_time     = $this->submit_time_test();
-            $ct_request->sender_ip       = CleantalkHelper::ip__get(array('real'), false);
-            $ct_request->x_forwarded_for = CleantalkHelper::ip__get(array('x_forwarded_for'), false);
-            $ct_request->x_real_ip       = CleantalkHelper::ip__get(array('x_real_ip'), false);
+            $ct_request->sender_ip       = CleantalkHelper::ipGet('real', false);
+            $ct_request->x_forwarded_for = CleantalkHelper::ipGet('x_forwarded_for', false);
+            $ct_request->x_real_ip       = CleantalkHelper::ipGet('x_real_ip', false);
             $ct_request->sender_info     = $this->get_sender_info();
             $ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
 
@@ -2081,7 +2081,7 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     static private function _apbct_alt_session__id__get()
     {
-        $id = CleantalkHelper::ip__get(array('real'))
+        $id = CleantalkHelper::ipGet('real')
             . filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
             . filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
         return hash('sha256', $id);
@@ -2144,13 +2144,13 @@ class plgSystemCleantalkantispam extends JPlugin
                         foreach ($data as $date => $values)
                         {
                             $values = implode(',', $values);
-                            $result = CleantalkAPI::method__spam_check_cms($this->params->get('apikey'), $values, $date);
+                            $result = CleantalkAPI::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
                         }
                     }
                     else
                     {
                         $values = implode(',', $data);
-                        $result = CleantalkAPI::method__spam_check_cms($this->params->get('apikey'), $values);
+                        $result = CleantalkAPI::methodSpamCheckCms($this->params->get('apikey'), $values);
                     }
                     if ($result)
                     {
@@ -2251,13 +2251,13 @@ class plgSystemCleantalkantispam extends JPlugin
                     foreach ($data as $date => $values)
                     {
                         $values = implode(',', $values);
-                        $result = CleantalkAPI::method__spam_check_cms($this->params->get('apikey'), $values, $date);
+                        $result = CleantalkAPI::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
                     }
                 }
                 else
                 {
                     $values = implode(',', $data);
-                    $result = CleantalkAPI::method__spam_check_cms($this->params->get('apikey'), $values);
+                    $result = CleantalkAPI::methodSpamCheckCms($this->params->get('apikey'), $values);
                 }
                 if ($result)
                 {
