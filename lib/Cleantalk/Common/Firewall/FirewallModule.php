@@ -177,7 +177,7 @@ abstract class FirewallModule {
      *
      * @param array $result
      */
-    public function _die( $result )
+    public function diePage( $result )
     {
 		// Headers
 		if( headers_sent() === false ){

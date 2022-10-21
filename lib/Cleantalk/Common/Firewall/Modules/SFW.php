@@ -178,10 +178,10 @@ class SFW extends FirewallModule {
     /**
      * @inheritdoc
      */
-	public function _die( $result )
+	public function diePage( $result )
     {
 		
-		parent::_die( $result );
+		parent::diePage( $result );
 		
 		// Statistics
 		if( ! empty( $this->blocked_ips ) ){
@@ -195,9 +195,9 @@ class SFW extends FirewallModule {
 		}
 		
 		// File exists?
-		if( file_exists( __DIR__ . "/lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html" ) ){
+		if( file_exists( __DIR__ . "/die_page_sfw.html" ) ){
 			
-			$sfw_die_page = file_get_contents( __DIR__ . "/lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html" );
+			$sfw_die_page = file_get_contents( __DIR__ . "/die_page_sfw.html" );
 
             $net_count = $this->db->fetch( 'SELECT COUNT(*) as net_count FROM ' . $this->db_data_table_name )['net_count'];
 
