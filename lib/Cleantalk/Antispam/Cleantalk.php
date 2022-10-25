@@ -385,27 +385,23 @@ class Cleantalk {
      */
     private function httpRequest($msg) {
         $result = false;
-    
-    if($msg->method_name != 'send_feedback'){
-      $ct_tmp = apache_request_headers();
-      
-      if(isset($ct_tmp['Cookie']))
-        $cookie_name = 'Cookie';
-      elseif(isset($ct_tmp['cookie']))
-        $cookie_name = 'cookie';
-      else
-        $cookie_name = 'COOKIE';
-      
-      if(isset($tmp[$cookie_name]))
-        $ct_tmp[$cookie_name] = preg_replace(array(
-          '/\s{0,1}ct_checkjs=[a-z0-9]*[;|$]{0,1}/',
-          '/\s{0,1}ct_timezone=.{0,1}\d{1,2}[;|$]/', 
-          '/\s{0,1}ct_pointer_data=.*5D[;|$]{0,1}/', 
-          '/;{0,1}\s{0,3}$/'
-        ), '', $ct_tmp[$cookie_name]);
-        
-      $msg->all_headers=json_encode($ct_tmp);
-    }
+
+        // Wiping session cookies from request
+        $ct_tmp = apache_request_headers();
+
+        if (isset($ct_tmp['Cookie'])) {
+          $cookie_name = 'Cookie';
+        } elseif (isset($ct_tmp['cookie'])) {
+          $cookie_name = 'cookie';
+        } else {
+          $cookie_name = 'COOKIE';
+        }
+
+        if (isset($ct_tmp[$cookie_name])) {
+          unset($ct_tmp[$cookie_name]);
+        }
+
+        $msg->all_headers = !empty($ct_tmp) ? json_encode($ct_tmp) : '';
     
         //$msg->remote_addr=$_SERVER['REMOTE_ADDR'];
         //$msg->sender_info['remote_addr']=$_SERVER['REMOTE_ADDR'];
