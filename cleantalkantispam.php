@@ -579,8 +579,9 @@ class plgSystemCleantalkantispam extends JPlugin
 		$user     = JFactory::getUser();
 		$app      = JFactory::getApplication();
 		$document = JFactory::getDocument();
+        $urls     = $config->get('url_exclusions');
 
-        if ($this->isSite() && ! $this->jot_cache_enabled())
+        if ($this->isSite() && ! $this->jot_cache_enabled() && !$this->pageExcluded($urls))
         {
             $this->sfw_check();
             $this->ct_cookie();
@@ -743,11 +744,12 @@ class plgSystemCleantalkantispam extends JPlugin
         $ctask_cmd  = $app->input->get('ctask');
         $page_cmd   = $app->input->get('page');
 		$ff_task    = $app->input->get('ff_task'); // Breezingform Integration
+        $urls       = $this->params->get('url_exclusions');
 
         /**
          * Integration with JotCache Plugin
          */
-        if ($this->jot_cache_enabled())
+        if ($this->jot_cache_enabled() && !$this->pageExcluded($urls))
         {
             $document = JFactory::getDocument();
             $config   = $this->params;
@@ -2553,4 +2555,32 @@ class plgSystemCleantalkantispam extends JPlugin
 		}
 		return false;
 	}
+
+    /**
+     * Checking the page in the exception
+     *
+     * @param string $urls
+     * @return boolean
+     */
+    public function pageExcluded($urls) {
+        if (empty($urls)) {
+            return false;
+        }
+
+        $urls = explode(',', $urls);
+
+        foreach ($urls as $url) {
+            // @ToDo need to detect ajax request
+            // @ToDo implement support for a regexp
+            $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+            $current_page_url = explode('?', $current_page_url);
+            $current_page_url = $current_page_url[0];
+
+            if( strpos($current_page_url, $url) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
