@@ -2,8 +2,9 @@
 
 namespace Cleantalk\Common\RemoteCalls;
 
+use Cleantalk\Common\Errors\Errors;
+use Cleantalk\Common\Mloader\Mloader;
 use Cleantalk\Common\Variables\Request;
-use Cleantalk\Common\StorageHandler\StorageHandler;
 
 class RemoteCalls
 {
@@ -13,11 +14,6 @@ class RemoteCalls
     const OPTION_NAME = 'remote_calls';
 
     /**
-     * @var bool
-     */
-    private $rc_running;
-
-    /**
      * @var string
      */
     protected $api_key;
@@ -25,7 +21,7 @@ class RemoteCalls
     /**
      * @var array
      */
-    private $available_rc_actions;
+    protected $available_rc_actions;
 
     public function __construct( $api_key )
     {
@@ -52,7 +48,7 @@ class RemoteCalls
      *
      * @return void|string
      */
-    public function perform()
+    public function process()
     {
         $action = strtolower( Request::get( 'spbc_remote_call_action' ) );
         $token  = strtolower( Request::get( 'spbc_remote_call_token' ) );
@@ -89,19 +85,23 @@ class RemoteCalls
                             sleep(Request::get('delay'));
                         }
 
-                        $action_result = static::$action_method();
+						try {
+							$action_result = static::$action_method();
 
-                        $response = empty( $action_result['error'] )
-                            ? 'OK'
-                            : 'FAIL ' . json_encode( array( 'error' => $action_result['error'] ) );
+							$response = empty( $action_result['error'] )
+								? 'OK'
+								: 'FAIL ' . json_encode( array( 'error' => $action_result['error'] ) );
 
-                        if( ! Request::get( 'continue_execution' ) ){
+							if( ! Request::get( 'continue_execution' ) ){
 
-                            die( $response );
+								die( $response );
 
-                        }
+							}
 
-                        return $response;
+							return $response;
+						} catch ( \Exception $exception ) {
+							error_log('RC error: ' . var_export($exception->getMessage(),1));
+						}
 
                     }else
                         $out = 'FAIL '.json_encode(array('error' => 'UNKNOWN_ACTION_METHOD'));
@@ -122,7 +122,10 @@ class RemoteCalls
      */
     protected function getAvailableRcActions()
     {
-        return StorageHandler::get(static::OPTION_NAME);
+	    /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+	    $storage_handler_class = Mloader::get('StorageHandler');
+        $actions = $storage_handler_class::getSetting(static::OPTION_NAME);
+		return $actions ?: $this->available_rc_actions;
     }
 
     /**
@@ -133,7 +136,113 @@ class RemoteCalls
      */
     protected function setLastCall($action)
     {
+	    /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+	    $storage_handler_class = Mloader::get('StorageHandler');
         $this->available_rc_actions[$action]['last_call'] = time();
-        return StorageHandler::set(static::OPTION_NAME, $this->available_rc_actions);
+        return $storage_handler_class::saveSetting(static::OPTION_NAME, $this->available_rc_actions);
     }
+
+	/************************ Making Request Methods ************************/
+
+	public static function getSiteUrl()
+	{
+		return ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . ( isset($_SERVER['SCRIPT_URL'] ) ? $_SERVER['SCRIPT_URL'] : '' );
+	}
+
+	public static function buildParameters($rc_action, $plugin_name, $api_key, $additional_params)
+	{
+		return array_merge(
+			array(
+				'spbc_remote_call_token'  => md5($api_key),
+				'spbc_remote_call_action' => $rc_action,
+				'plugin_name'             => $plugin_name,
+			),
+			$additional_params
+		);
+	}
+
+	/**
+	 * Performs remote call to the current website
+	 *
+	 * @param string $host
+	 * @param string $rc_action
+	 * @param string $plugin_name
+	 * @param string $api_key
+	 * @param array  $params
+	 * @param array  $patterns
+	 * @param bool   $do_check Perform check before main remote call or not
+	 *
+	 * @return bool|string[]
+	 * @psalm-suppress PossiblyUnusedMethod
+	 */
+	public static function perform($rc_action, $plugin_name, $api_key, $params, $patterns = array(), $do_check = true)
+	{
+		$host = static::getSiteUrl();
+		$params = static::buildParameters($rc_action, $plugin_name, $api_key, $params);
+
+		if ($do_check) {
+			$result__rc_check_website = static::performTest($host, $params, $patterns);
+			if (! empty($result__rc_check_website['error'])) {
+				return $result__rc_check_website;
+			}
+		}
+
+		$http = new \Cleantalk\Common\Http\Request();
+
+		return $http
+			->setUrl($host)
+			->setData($params)
+			->setPresets($patterns)
+			->request();
+	}
+
+	/**
+	 * Performs test remote call to the current website
+	 * Expects 'OK' string as good response
+	 *
+	 * @param string $host
+	 * @param array  $params
+	 * @param array  $patterns
+	 *
+	 * @return array|bool|string
+	 */
+	public static function performTest($host, $params, $patterns = array())
+	{
+		// Delete async pattern to get the result in this process
+		$key = array_search('async', $patterns, true);
+		if ($key) {
+			unset($patterns[$key]);
+		}
+
+		// Adding test flag
+		$params = array_merge($params, array('test' => 'test'));
+
+		// Perform test request
+		$http   = new \Cleantalk\Common\Http\Request();
+		$result = $http
+			->setUrl($host)
+			->setData($params)
+			->setPresets($patterns)
+			->request();
+
+		// Considering empty response as error
+		if ($result === '') {
+			$result = array('error' => 'WRONG_SITE_RESPONSE TEST ACTION : ' . $params['spbc_remote_call_action'] . ' ERROR: EMPTY_RESPONSE');
+			// Wrap and pass error
+		} elseif (! empty($result['error'])) {
+			$result = array('error' => 'WRONG_SITE_RESPONSE TEST ACTION: ' . $params['spbc_remote_call_action'] . ' ERROR: ' . $result['error']);
+			// Expects 'OK' string as good response otherwise - error
+		} elseif (is_string($result) && ! preg_match('@^.*?OK$@', $result)) {
+			$result = array(
+				'error' => 'WRONG_SITE_RESPONSE ACTION: '
+					. $params['spbc_remote_call_action']
+					. ' RESPONSE: '
+					. '"'
+					. htmlspecialchars(substr($result, 0, 400))
+					. '"'
+			);
+		}
+
+		return $result;
+	}
 }

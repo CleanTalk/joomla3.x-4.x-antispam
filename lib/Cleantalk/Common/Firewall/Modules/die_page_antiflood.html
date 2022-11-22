@@ -192,11 +192,7 @@
 		}
 
 		function get_current_url() {
-			var apbctSfwRandomGet = '';
-			if( +ctPublicFunctions.sfw__random_get ) {
-				apbctSfwRandomGet = '?sfw=pass' + Math.round(ct_date.getTime()/1000);
-			}
-			document.write(window.location.origin + window.location.pathname + apbctSfwRandomGet);
+			document.write(window.location.href);
 			return null;
 		}
 	</script>
@@ -207,19 +203,11 @@
 		<div>
 			{CUSTOM_LOGO}
 		</div>
-        <h1 class='main'>{SFW_DIE_NOTICE_IP}</h1>
-		<h3>{REAL_IP__HEADER} {REAL_IP}</h3>
-		<h3>{TEST_IP__HEADER} {TEST_IP}</h3>
+        <h1 class='main'>{SFW_DIE_NOTICE_IP}<a href='https://cleantalk.org/blacklists/{REMOTE_ADDRESS}' target='_blank'> {REMOTE_ADDRESS}</a></h1>
 
-		<h2>{TEST_TITLE}</h2>
-
-		{MESSAGE_IP_STATUS}
-		
         <div id='js_info'><br />{SFW_DIE_MAKE_SURE_JS_ENABLED}</div>
 
         <div id='js_passed'>
-			<h3>{SFW_DIE_CLICK_TO_PASS}</h3>
-			<a href='{REQUEST_URI}'><script>get_current_url();</script></a>
 			<br />
 			<p class='js_notice'>{SFW_DIE_YOU_WILL_BE_REDIRECTED}</p>
 			<br />
@@ -242,13 +230,14 @@
 		<a href='https://cleantalk.org' target='_blank'>{CLEANTALK_TITLE}</a>
     </div>
     <script type='text/javascript'>
-		var reload_timeout = 3000;
+		var reload_timeout = 30000;
 		document.getElementById('js_info').style.display = 'none';
 		document.getElementById('js_passed').style.display = 'block';
 		document.getElementById('curr_date').innerHTML = ct_date.toGMTString();
-		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_pass_key','{COOKIE_SFW}');
-		set_spamFireWallCookie('{COOKIE_PREFIX}wordpress_apbct_antibot','{COOKIE_ANTICRAWLER}');
-		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
+
+		setTimeout( function(){
+			set_spamFireWallCookie('apbct_antiflood_passed', '{COOKIE_ANTIFLOOD_PASSED}');
+		}, 5000 );
 
 		if(location.search.search('debug=1') === -1) {
 			var apbctSfwRandomGet = '';
@@ -279,6 +268,5 @@
 		// Run countdown
 		countdown();
     </script>
-	{DEBUG}
 </body>
 </html>

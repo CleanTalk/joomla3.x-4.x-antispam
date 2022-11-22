@@ -14,7 +14,7 @@ use Cleantalk\Common\Http\Request;
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/php-antispam
  */
-class API
+class Api
 {
     /* Default params  */
     const URL = 'https://api.cleantalk.org';

@@ -14,6 +14,7 @@ namespace Cleantalk\Common\Firewall;
  */
 
 use Cleantalk\Common\DependencyContainer\DependencyContainer;
+use Cleantalk\Common\Mloader\Mloader;
 use Cleantalk\Common\Variables\Get;
 
 abstract class FirewallModule {
@@ -34,7 +35,7 @@ abstract class FirewallModule {
 	protected $ip_array = array();
 
     /**
-     * @var \Cleantalk\Common\Db\DB
+     * @var \Cleantalk\Common\Db\Db
      */
 	protected $db;
 
@@ -82,13 +83,14 @@ abstract class FirewallModule {
 	 * FirewallModule constructor.
 	 * Use this method to prepare any data for the module working.
 	 *
+	 * @param string $log_table
 	 * @param string $data_table
 	 * @param array $params
 	 */
-	public function __construct( $data_table, $params = array() )
+	public function __construct($log_table, $data_table, $params = array())
 	{
-		$this->db = DependencyContainer::getInstance()->get('Db');
-		$this->helper = DependencyContainer::getInstance()->get('Helper');
+		$this->helper = Mloader::get('Helper');
+		$this->db     = Mloader::get('Db')::getInstance();
 	}
 
     /**
@@ -120,7 +122,7 @@ abstract class FirewallModule {
      * @param array $ips
      * @return void
      */
-    public function ipAppendAdditional( $ips )
+    public function ipAppendAdditional(& $ips)
 	{
 		$this->real_ip = isset($ips['real']) ? $ips['real'] : null;
 

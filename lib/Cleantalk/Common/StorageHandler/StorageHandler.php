@@ -2,21 +2,15 @@
 
 namespace Cleantalk\Common\StorageHandler;
 
-use Cleantalk\Common\Templates\Singleton;
-
 abstract class StorageHandler
 {
-    use Singleton;
+	abstract public static function getSetting($setting_name);
 
-    public static function get($option_name) {
-        return static::getInstance()->getOption($option_name);
-    }
+	abstract public static function deleteSetting($setting_name);
 
-    public static function set($option_name, $option_value) {
-        return static::getInstance()->setOption($option_name, $option_value);
-    }
+	abstract public static function saveSetting($setting_name, $setting_value);
 
-    abstract protected function getOption($option_name);
+	abstract public static function getUpdatingFolder();
 
-    abstract protected function setOption($option_name, $option_value);
+	abstract public static function getJsLocation();
 }

@@ -2,364 +2,933 @@
 
 namespace Cleantalk\Common\Firewall;
 
-use Cleantalk\Common\DependencyContainer\DependencyContainer;
+use Cleantalk\Common\Db\DbTablesCreator;
 use Cleantalk\Common\Db\Schema;
-use Cleantalk\Common\Variables\Get;
-use Cleantalk\Common\Variables\Server;
+use Cleantalk\Common\Firewall\Exceptions\SfwUpdateException;
+use Cleantalk\Common\Mloader\Mloader;
+use Cleantalk\Common\Queue\Queue;
+use Cleantalk\Common\Variables\Request;
 
 class FirewallUpdater
 {
-    /**
-     * @var int
-     */
-    const WRITE_LIMIT = 5000;
-
     /**
      * @var string
      */
     private $api_key;
 
-    /**
-     * @var \Cleantalk\Common\Helper\Helper
-     */
-    private $helper;
-
-    /**
-     * @var \Cleantalk\Common\Api\API
-     */
-    private $api;
-
-    /**
-     * @var \Cleantalk\Common\Db\DB
-     */
-    private $db;
-
-    /**
-     * @var string
-     */
-    private $fw_data_table_name;
-
 	/**
 	 * @var \Cleantalk\Common\RemoteCalls\RemoteCalls
-	 * @since version
 	 */
 	private $rc;
 
+	/**
+	 * @var \Cleantalk\Common\Queue\Queue
+	 */
+	private $queue;
 
 	/**
-     * FirewallUpdater constructor.
-     *
-     * @param string $api_key
-     * @param \Cleantalk\Common\Db\DB $db
-     * @param string $fw_data_table_name
-     */
-    public function __construct( $api_key, \Cleantalk\Common\Db\DB $db, $fw_data_table_name )
+	 * @var \Cleantalk\Common\Cron\Cron
+	 */
+	private $cron;
+
+	/**
+	 * @var Firewall
+	 */
+	private Firewall $fw;
+
+	/**
+	 * @var FwStats
+	 */
+	private $fwStats;
+
+	/**
+	 * FirewallUpdater constructor.
+	 *
+	 * @param   Firewall  $fw
+	 */
+    public function __construct($fw)
     {
-        $this->api_key            = $api_key;
-        $this->db                 = $db;
-        $this->fw_data_table_name = $db->prefix . $fw_data_table_name;
-        $this->helper             = DependencyContainer::getInstance()->get('Helper');
-        $this->api                = DependencyContainer::getInstance()->get('Api');
-	    $this->rc                 = DependencyContainer::getInstance()->get('RemoteCalls');
+	    $this->rc      = Mloader::get('RemoteCalls');
+	    $this->queue   = Mloader::get('Queue');
+		$this->fw      = $fw;
+	    $this->api_key = $this->fw->api_key;
+		$this->fwStats = $this->fw::getFwStats();
     }
 
     public function update()
     {
-	    $helper = $this->helper;
-        $fw_stats = $helper::getFwStats();
-
-        // Prevent start another update at a time
-        if(
-			Get::get('spbc_remote_call_action') === 'sfw_update__write_base' &&
-            ! Get::get('firewall_updating_id') &&
-            $fw_stats['firewall_updating_id'] &&
-            time() - $fw_stats['firewall_updating_last_start'] < 60
-        ){
-            //return true;
-        }
-
-        // Check if the update performs right now. Blocks remote calls with different ID
-        if( Get::get('spbc_remote_call_action') === 'sfw_update__write_base' &&
-            Get::get('firewall_updating_id') &&
-            Get::get('firewall_updating_id') !== $fw_stats['firewall_updating_id']
-        ) {
-            return array( 'error' => 'FIREWALL_IS_UPDATING' );
-        }
-
-        // No updating without api key
-        if( empty( $this->api_key ) ){
-            return true;
-        }
-
-        // Set new update ID
-        if( ! $fw_stats['firewall_updating_id'] || time() - $fw_stats['firewall_updating_last_start'] > 300 ){
-            $helper::setFwStats(
-                array(
-                    'firewall_updating_id' => md5( rand( 0, 100000 ) ),
-                    'firewall_updating_last_start' => time(),
-                )
-            );
-        }
-
-        if( $this->rc::check() ) {
-            // Remote call is in process, run updating
-
-            $file_urls   = Get::get('file_urls');
-            $url_count   = Get::get('url_count');
-            $current_url = Get::get('current_url');
-
-            // Getting blacklists file here.
-            if( ! $file_urls ){
-
-                // @todo We have to handle errors here
-                $this->createTempTables();
-
-                $blacklists = $this->getSfwBlacklists( $this->api_key );
-
-                if( empty( $blacklists['error'] ) ){
-                    if( ! empty( $blacklists['file_url'] ) ){
-                        $data = $this->unpackData( $blacklists['file_url'] );
-                        if( empty( $data['error'] ) ) {
-                            return $this->helper::http__request__rc_to_host(
-                                'sfw_update__write_base',
-                                array(
-                                    'spbc_remote_call_token'  => md5( $this->api_key ),
-                                    'firewall_updating_id'    => $fw_stats['firewall_updating_id'],
-                                    'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $blacklists['file_url'] ),
-                                    'url_count'               => count( $data ),
-                                    'current_url'             => 0,
-                                ),
-                                array( 'get','async' )
-                            );
-                        } else {
-                            return $data;
-                        }
-                    } else {
-                        return array('error' => 'NO_REMOTE_MULTIFILE_FOUND: ' . $blacklists['file_url'] );
-                    }
-                } else {
-                    // Error getting blacklists.
-                    return $blacklists;
-                }
-
-            // Doing updating here.
-            }elseif( $url_count > $current_url ){
-
-                $file_url = 'https://' . str_replace( 'multifiles', $current_url, $file_urls );
-
-                $lines = $this->unpackData( $file_url );
-                if( empty( $lines['error'] ) ) {
-
-                    // Do writing to the DB
-                    reset( $lines );
-                    for( $count_result = 0; current($lines) !== false; ) {
-                        $query = "INSERT INTO ".$this->fw_data_table_name."_temp (network, mask, status) VALUES ";
-                        for( $i = 0, $values = array(); self::WRITE_LIMIT !== $i && current( $lines ) !== false; $i ++, $count_result ++, next( $lines ) ){
-                            $entry = current($lines);
-                            if(empty($entry)) {
-                                continue;
-                            }
-                            if ( self::WRITE_LIMIT !== $i ) {
-                                // Cast result to int
-                                $ip   = preg_replace('/[^\d]*/', '', $entry[0]);
-                                $mask = preg_replace('/[^\d]*/', '', $entry[1]);
-                                $private = isset($entry[2]) ? $entry[2] : 0;
-                            }
-                            $values[] = '('. $ip .','. $mask .','. $private .')';
-                        }
-                        if( ! empty( $values ) ){
-                            $query = $query . implode( ',', $values ) . ';';
-                            $this->db->execute( $query );
-                        }
-                    }
-                    $current_url++;
-                    $fw_stats['firewall_update_percent'] = round( ( ( (int) $current_url + 1 ) / (int) $url_count ), 2) * 100;
-                    $helper::setFwStats( $fw_stats );
-
-                    // Updating continue: Do next remote call.
-                    if ( $url_count > $current_url ) {
-                        return $this->helper::http__request__rc_to_host(
-                            'sfw_update__write_base',
-                            array(
-                                'spbc_remote_call_token'  => md5( $this->api_key ),
-                                'file_urls'               => str_replace( array( 'http://', 'https://' ), '', $file_urls ),
-                                'url_count'               => $url_count,
-                                'current_url'             => $current_url,
-                                // Additional params
-                                'firewall_updating_id'    => $fw_stats['firewall_updating_id'],
-                            ),
-                            array('get', 'async')
-                        );
-
-                    // Updating end: Do finish actions.
-                    } else {
-
-                        // Write local IP as whitelisted
-                        $result = $this->writeDbExclusions();
-
-                        if( empty( $result['error'] ) && is_int( $result ) ) {
-
-                            // @todo We have to handle errors here
-                            $this->deleteMainDataTables();
-                            // @todo We have to handle errors here
-                            $this->renameDataTables();
-
-                            //Files array is empty update sfw stats
-                            $helper::SfwUpdate_DoFinisnAction();
-
-                            $fw_stats['firewall_update_percent'] = 0;
-                            $fw_stats['firewall_updating_id'] = null;
-                            $helper::setFwStats( $fw_stats );
-
-                            return true;
-
-                        } else {
-                            return array( 'error' => 'SFW_UPDATE: EXCLUSIONS: ' . $result['error'] );
-                        }
-                    }
-                } else {
-                    return array('error' => $lines['error']);
-                }
-            }else {
-                return array('error' => 'SFW_UPDATE WRONG_FILE_URLS');
-            }
-        } else {
-            // Go to init remote call
-            return $helper::http__request__rc_to_host(
-                'sfw_update',
-                array(
-                    'spbc_remote_call_token'  => md5( $this->api_key ),
-                    'firewall_updating_id'    => $fw_stats['firewall_updating_id'],
-                ),
-                array( 'get','async' )
-            );
-        }
-
+		if ( Request::get('worker') ) {
+			return $this->updateWorker();
+		}
+	    return $this->updateInit();
     }
 
-    private function getSfwBlacklists( $api_key )
-    {
-        $api = $this->api;
-        $result = $api::methodGet2sBlacklistsDb( $api_key, 'multifiles', '3_0' );
-        sleep(4);
-        return $result;
-    }
+	/**
+	 * Called by sfw_update remote call
+	 * Starts SFW update and could use a delay before start
+	 *
+	 * @param int $delay
+	 *
+	 * @return bool|string|string[]
+	 */
+	private function updateInit($delay = 0)
+	{
+		// Prevent start an update if update is already running and started less than 10 minutes ago
+		if (
+			$this->fwStats->updating_id &&
+			time() - $this->fwStats->updating_last_start < 600 &&
+			$this->isUpdateInProgress()
+		) {
+			return false;
+		}
 
-    private function unpackData( $file_url )
-    {
-        $helper = $this->helper;
-        $file_url = trim( $file_url );
+		// The Access key is empty
+		if ( ! $this->api_key ) {
+			throw new SfwUpdateException('updateInit: API key is empty');
+		}
 
-        $response_code = $helper::http__request__get_response_code( $file_url );
+		// Get update period for server
+		/** @var \Cleantalk\Common\Dns\Dns $dns_class */
+		$dns_class = Mloader::get('Dns');
+		$update_period = $dns_class::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT);
+		$update_period = isset($update_period['txt']) ? $update_period['txt'] : 0;
+		$update_period = (int)$update_period > 14400 ? (int)$update_period : 14400;
+		if ( $this->fwStats->update_period != $update_period ) {
+			$this->fwStats->update_period = $update_period;
+			$this->fw::saveFwStats($this->fwStats);
+		}
 
-        if( empty( $response_code['error'] ) ){
+		/** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler */
+		$storage_handler = Mloader::get('StorageHandler');
+		$this->fwStats->updating_folder = $storage_handler::getUpdatingFolder();
 
-            if( $response_code == 200 || $response_code == 501 ){
+		$prepare_dir__result = $this->prepareUpdDir();
 
-                $gz_data = $helper::http__request__get_content( $file_url );
+		$test_rc_result = $this->rc::perform(
+			'sfw_update',
+			'apbct',
+			$this->api_key,
+			array(
+				'worker' => 1,
+			)
+		);
 
-                if( is_string($gz_data) ){
+		if ( ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
+			return $this->directUpdate();
+		}
 
-                    if( $this->helper::getMimeType( $gz_data, 'application/x-gzip' ) ){
+		// Set a new update ID and an update time start
+		$this->fwStats->calls               = 0;
+		$this->fwStats->updating_id         = md5((string)rand(0, 100000));
+		$this->fwStats->updating_last_start = time();
+		$this->fw::saveFwStats($this->fwStats);
 
-                        if( function_exists( 'gzdecode' ) ){
+		Queue::clearQueue();
 
-                            $data = gzdecode( $gz_data );
+		$queue = new Queue($this->api_key);
+		$queue->addStage([$this::class, 'getMultifiles']);
 
-                            if( $data !== false ){
+		$cron = new \Cleantalk\Common\Cron\Cron();
+		$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15, null. $this->api_key);
 
-                                return $this->helper::bufferParseCsv( $data );
+		return $this->rc::perform(
+			'sfw_update',
+			'apbct',
+			$this->api_key,
+			array(
+				'firewall_updating_id' => $this->fwStats->updating_id,
+				'delay'                => $delay,
+				'worker'               => 1,
+			),
+			['async']
+		);
+	}
 
-                            }else {
-                                return array('error' => 'COULD_DECODE_FILE');
-                            }
-                        }else {
-                            return array('error' => 'FUNCTION_GZ_DECODE_DOES_NOT_EXIST');
-                        }
-                    }else {
-                        return array('error' => 'WRONG_FILE_MIME_TYPE');
-                    }
-                }else {
-                    return array('error' => 'COULD_NOT_GET_IFILE: ' . $gz_data['error']);
-                }
-            }else {
-                return array('error' => 'FILE_BAD_RESPONSE_CODE: ' . (int)$response_code);
-            }
-        }else {
-            return array('error' => 'FILE_COULD_NOT_GET_RESPONSE_CODE: ' . $response_code['error']);
-        }
-    }
+	/**
+	 * Called by sfw_update__worker remote call
+	 * gather all process about SFW updating
+	 *
+	 * @param   bool  $checker_work
+	 *
+	 * @return array|bool|int|string|string[]
+	 * @throws SfwUpdateException
+	 */
+	private function updateWorker($checker_work = false)
+	{
+		if ( ! $checker_work ) {
+			if (
+				Request::equal('firewall_updating_id', '') ||
+				! Request::equal('firewall_updating_id', $this->fwStats->updating_id)
+			) {
+				throw new SfwUpdateException('updateWorker: Wrong update ID');
+			}
+		}
 
-    /**
-     * Writing to the DB self IPs
-     *
-     * @return array|int
-     */
-    private function writeDbExclusions()
-    {
-        $query = "INSERT INTO ".$this->fw_data_table_name."_temp (network, mask, status) VALUES ";
+		if ( ! isset($this->fwStats->calls) ) {
+			$this->fwStats->calls = 0;
+		}
 
-        $exclusions = array();
+		$this->fwStats->calls++;
+		$this->fw::saveFwStats($this->fwStats);
 
-        //Exclusion for servers IP (SERVER_ADDR)
-        if ( Server::get('HTTP_HOST') ) {
+		if ( $this->fwStats->calls > 600 ) {
+			throw new SfwUpdateException('updateWorker: Worker call limit exceeded');
+		}
 
-            // Exceptions for local hosts
+		$queue = new $this->queue($this->api_key);
 
-            if( ! in_array( Server::getDomain(), array( 'lc', 'loc', 'lh' ) ) ){
-                $exclusions[] = $this->helper::dnsResolve( Server::get( 'HTTP_HOST' ) );
-                $exclusions[] = '127.0.0.1';
-            }
-        }
+		if ( count($queue->queue['stages']) === 0 ) {
+			// Queue is already empty. Exit.
+			return true;
+		}
 
-        foreach ( $exclusions as $exclusion ) {
-            if ( $this->helper::ipValidate( $exclusion ) && sprintf( '%u', ip2long( $exclusion ) ) ) {
-                $query .= '(' . sprintf( '%u', ip2long( $exclusion ) ) . ', ' . sprintf( '%u', bindec( str_repeat( '1', 32 ) ) ) . ', 1),';
-            }
-        }
+		$result = $queue->executeStage();
 
-        if( $exclusions ){
+		if ( $result === null ) {
+			// The stage is in progress, will try to wait up to 5 seconds to its complete
+			for ( $i = 0; $i < 5; $i++ ) {
+				sleep(1);
+				$queue->refreshQueue();
+				if ( ! $queue->isQueueInProgress() ) {
+					// The stage executed, break waiting and continue sfw_update__worker process
+					break;
+				}
+				if ( $i >= 4 ) {
+					// The stage still not executed, exit from sfw_update__worker
+					return true;
+				}
+			}
+		}
 
-            $sql_result = $this->db->execute( substr( $query, 0, - 1 ) . ';' );
+		if ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) {
+			$this->updateFallback();
 
-            return $sql_result === false
-                ? array( 'error' => 'COULD_NOT_WRITE_TO_DB 4: ' . $this->db->getLastError() )
-                : count( $exclusions );
-        }
+			$direct_upd_res = $this->directUpdate();
 
-        return 0;
-    }
+			if ( $direct_upd_res['error'] ) {
+				throw new SfwUpdateException($direct_upd_res['error']);
+			}
 
-    /**
-     * Creating a temporary updating table
-     */
-    private function createTempTables()
-    {
-        $sql = 'SHOW TABLES LIKE "%scleantalk_sfw";';
-        $sql = sprintf( $sql, $this->db->prefix ); // Adding current blog prefix
-        $result = $this->db->fetch( $sql );
-        if( ! $result ){
-            $sql = sprintf( Schema::getStructureSchemas()['sfw'], $this->db->prefix );
-            $this->db->execute( $sql );
-        }
-        $this->db->execute( 'CREATE TABLE IF NOT EXISTS `' . $this->fw_data_table_name . '_temp` LIKE `' . $this->fw_data_table_name . '`;' );
-        $this->db->execute( 'TRUNCATE TABLE `' . $this->fw_data_table_name . '_temp`;' );
-    }
+			return true;
+		}
 
-    /**
-     * Removing a temporary updating table
-     */
-    private function deleteMainDataTables()
-    {
-        $this->db->execute( 'DROP TABLE `' . $this->db->prefix . APBCT_TBL_FIREWALL_DATA .'`;' );
-    }
+		if ( $queue->isQueueFinished() ) {
+			$queue->queue['finished'] = time();
+			$queue->saveQueue($queue->queue);
+			foreach ( $queue->queue['stages'] as $stage ) {
+				if ( isset($stage['error'], $stage['status']) && $stage['status'] !== 'FINISHED' ) {
+					//there could be an array of errors of files processed
+					if ( is_array($stage['error']) ) {
+						$error = implode(" ", array_values($stage['error']));
+					} else {
+						$error = $result['error'];
+					}
+					throw new SfwUpdateException($error);
+				}
+			}
 
-    /**
-     * Renamin a temporary updating table into production table name
-     */
-    private function renameDataTables()
-    {
-        $this->db->execute( 'ALTER TABLE `' . $this->db->prefix . APBCT_TBL_FIREWALL_DATA .'_temp` RENAME `' . $this->db->prefix . APBCT_TBL_FIREWALL_DATA .'`;' );
-    }
+			// Do logging the queue process here
+			return true;
+		}
 
+
+		// This is the repeat stage request, do not generate any new RC
+		if ( stripos(Request::get('stage'), 'Repeat') !== false ) {
+			return true;
+		}
+
+		return $this->rc::perform(
+			'sfw_update',
+			'apbct',
+			$this->api_key,
+			array(
+				'firewall_updating_id' => $this->fwStats->updating_id,
+				'worker'               => 1,
+			),
+			array('async')
+		);
+	}
+
+	public static function getMultifiles($api_key)
+	{
+		// The Access key is empty
+		if ( ! $api_key ) {
+			throw new SfwUpdateException('getMultifiles: API key is empty');
+		}
+
+		$fw_stats = Firewall::getFwStats();
+		/** @var \Cleantalk\Common\Api\Api $api_class */
+		$api_class = Mloader::get('Api');
+		/** @var \Cleantalk\Common\Helper\Helper $helper_class */
+		$helper_class = Mloader::get('Helper');
+
+		// Getting remote file name
+
+		$result = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_1');
+
+		if ( empty($result['error']) ) {
+			if ( ! empty($result['file_url']) ) {
+				$file_urls = $helper_class::httpGetDataFromRemoteGzAndParseCsv($result['file_url']);
+				if ( empty($file_urls['error']) ) {
+					if ( ! empty($result['file_ua_url']) ) {
+						$file_urls[][0] = $result['file_ua_url'];
+					}
+					if ( ! empty($result['file_ck_url']) ) {
+						$file_urls[][0] = $result['file_ck_url'];
+					}
+					$urls = array();
+					foreach ( $file_urls as $value ) {
+						$urls[] = $value[0];
+					}
+
+					$fw_stats->update_percent = round(100 / count($urls), 2);
+					Firewall::saveFwStats($fw_stats);
+
+					return array(
+						'next_stage' => array(
+							'name'    => [self::class, 'downloadFiles'],
+							'args'    => $urls,
+							'is_last' => '0'
+						)
+					);
+				}
+
+				throw new SfwUpdateException('getMultifiles: ' . $file_urls['error']);
+			}
+		} else {
+			return $result;
+		}
+		return null;
+	}
+
+	public static function downloadFiles($api_key, $urls)
+	{
+		// The Access key is empty
+		if ( ! $api_key ) {
+			throw new SfwUpdateException('downloadFiles: API key is empty');
+		}
+
+		$fw_stats = Firewall::getFwStats();
+		/** @var \Cleantalk\Common\Helper\Helper $helper_class */
+		$helper_class = Mloader::get('Helper');
+
+		sleep(3);
+
+		//Reset keys
+		$urls          = array_values($urls);
+		$results       = $helper_class::httpMultiRequest($urls, $fw_stats->updating_folder);
+		$count_urls    = count($urls);
+		$count_results = count($results);
+
+		if ( empty($results['error']) && ($count_urls === $count_results) ) {
+			$download_again = array();
+			$results        = array_values($results);
+			for ( $i = 0; $i < $count_results; $i++ ) {
+				if ( $results[$i] === 'error' ) {
+					$download_again[] = $urls[$i];
+				}
+			}
+
+			if ( count($download_again) !== 0 ) {
+				return array(
+					'error'       => 'Files download not completed.',
+					'update_args' => array(
+						'args' => $download_again
+					)
+				);
+			}
+
+			return array(
+				'next_stage' => array(
+					'name' => [self::class, 'createTables']
+				)
+			);
+		}
+
+		if ( ! empty($results['error']) ) {
+			throw new SfwUpdateException('downloadFiles: ' . $results['error']);
+		}
+
+		throw new SfwUpdateException('downloadFiles: Files download not completed.');
+	}
+
+	public static function createTables($_api_key)
+	{
+		/** @var \Cleantalk\Common\Db\Db $db_class */
+		$db_class = Mloader::get('Db');
+		$db_obj = $db_class::getInstance();
+
+		// Preparing database infrastructure
+		// Creating SFW tables to make sure that they are exists
+		$db_tables_creator = new DbTablesCreator();
+		$table_name_sfw = $db_obj->prefix . Schema::getSchemaTablePrefix() . 'sfw';
+		$db_tables_creator->createTable($table_name_sfw);
+		$table_name_ua = $db_obj->prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
+		$db_tables_creator->createTable($table_name_ua);
+
+		return array(
+			'next_stage' => array(
+				'name' => [self::class, 'createTempTables'],
+			)
+		);
+	}
+
+	public static function createTempTables($_api_key)
+	{
+		/** @var \Cleantalk\Common\Db\Db $db_class */
+		$db_class = Mloader::get('Db');
+		$db_obj = $db_class::getInstance();
+
+		// Preparing temporary tables
+		$result = \Cleantalk\Common\Firewall\Modules\Sfw::createTempTables($db_obj, $db_obj->prefix . APBCT_TBL_FIREWALL_DATA);
+		if ( ! empty($result['error']) ) {
+			throw new SfwUpdateException('createTempTables: ' . $result['error']);
+		}
+
+		return array(
+			'next_stage' => array(
+				'name' => [self::class, 'processFiles'],
+			)
+		);
+	}
+
+	public static function processFiles($_api_key)
+	{
+		$fw_stats = Firewall::getFwStats();
+		$files = glob($fw_stats->updating_folder . '/*csv.gz');
+		$files = array_filter($files, static function ($element) {
+			return strpos($element, 'list') !== false;
+		});
+
+		if ( count($files) ) {
+			reset($files);
+			$concrete_file = current($files);
+
+			if ( strpos($concrete_file, 'bl_list') !== false ) {
+				$result = self::processFile($concrete_file);
+			}
+
+			if ( strpos($concrete_file, 'ua_list') !== false ) {
+				$result = self::processUa($concrete_file);
+			}
+
+			if ( strpos($concrete_file, 'ck_list') !== false ) {
+				$result = self::processCk($concrete_file);
+			}
+
+			if ( ! empty($result['error']) ) {
+				throw new SfwUpdateException('processFiles: ' . $concrete_file . ' -> ' . $result['error']);
+			}
+
+			$fw_stats = Firewall::getFwStats();
+			$fw_stats->update_percent = round(100 / count($files), 2);
+			Firewall::saveFwStats($fw_stats);
+
+			return array(
+				'next_stage' => array(
+					'name' => [self::class, 'processFiles'],
+				)
+			);
+		}
+
+		return array(
+			'next_stage' => array(
+				'name' => [self::class, 'processExclusions'],
+			)
+		);
+	}
+
+	public static function processFile($file_path)
+	{
+		if ( ! file_exists($file_path) ) {
+			return array('error' => 'PROCESS FILE: ' . $file_path . ' is not exists.');
+		}
+
+		/** @var \Cleantalk\Common\Db\Db $db_class */
+		$db_class = Mloader::get('Db');
+		$db_obj = $db_class::getInstance();
+
+		$result = \Cleantalk\Common\Firewall\Modules\Sfw::updateWriteToDb(
+			$db_obj,
+			$db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp',
+			$file_path
+		);
+
+		if ( ! empty($result['error']) ) {
+			throw new SfwUpdateException('processFile: ' . $file_path . ' -> ' . $result['error']);
+		}
+
+		if ( ! is_int($result) ) {
+			throw new SfwUpdateException('processFiles: ' . $file_path . ' -> WRONG RESPONSE FROM update__write_to_db');
+		}
+
+		return $result;
+	}
+
+	public static function processUa($file_path)
+	{
+		$result = \Cleantalk\Common\Firewall\Modules\AntiCrawler::update($file_path);
+
+		if ( ! empty($result['error']) ) {
+			throw new SfwUpdateException('processUa: ' . $file_path . ' -> ' . $result['error']);
+		}
+
+		if ( ! is_int($result) ) {
+			throw new SfwUpdateException('processUa: ' . $file_path . ' ->  WRONG_RESPONSE AntiCrawler::update');
+		}
+
+		return $result;
+	}
+
+	public static function processCk($file_path)
+	{
+		/** @var \Cleantalk\Common\Helper\Helper $helper_class */
+		$helper_class = Mloader::get('Helper');
+
+		// Save expected_networks_count and expected_ua_count if exists
+		$file_content = file_get_contents($file_path);
+
+		if ( ! function_exists('gzdecode') ) {
+			throw new SfwUpdateException('processCk: Function gzdecode not exists. Please update your PHP at least to version 5.4 ');
+		}
+
+		$unzipped_content = gzdecode($file_content);
+
+		if ( $unzipped_content === false ) {
+			throw new SfwUpdateException('processCk: Can not unpack datafile');
+		}
+
+		$fw_stats = Firewall::getFwStats();
+		$file_ck_url__data = $helper_class::bufferParseCsv($unzipped_content);
+
+		if ( ! empty($file_ck_url__data['error']) ) {
+			throw new SfwUpdateException('processCk: ' . $file_path . ' ->  GET EXPECTED RECORDS COUNT DATA: ' . $file_ck_url__data['error']);
+		}
+
+		$expected_networks_count = 0;
+		$expected_ua_count       = 0;
+
+		foreach ( $file_ck_url__data as $value ) {
+			if ( trim($value[0], '"') === 'networks_count' ) {
+				$expected_networks_count = $value[1];
+			}
+			if ( trim($value[0], '"') === 'ua_count' ) {
+				$expected_ua_count = $value[1];
+			}
+		}
+
+		$fw_stats->expected_networks_count = $expected_networks_count;
+		$fw_stats->expected_ua_count       = $expected_ua_count;
+		Firewall::saveFwStats($fw_stats);
+
+		if ( file_exists($file_path) ) {
+			unlink($file_path);
+		}
+	}
+
+	public static function processExclusions($_api_key)
+	{
+		$fw_stats = Firewall::getFwStats();
+
+		/** @var \Cleantalk\Common\Db\Db $db_class */
+		$db_class = Mloader::get('Db');
+		$db_obj = $db_class::getInstance();
+
+		$result = \Cleantalk\Common\Firewall\Modules\Sfw::updateWriteToDbExclusions(
+			$db_obj,
+			$db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp'
+		);
+
+		if ( ! empty($result['error']) ) {
+			throw new SfwUpdateException('processExclusions: ' . $result['error']);
+		}
+
+		if ( ! is_int($result) ) {
+			throw new SfwUpdateException('processExclusions: WRONG_RESPONSE update__write_to_db__exclusions');
+		}
+
+		/**
+		 * Update expected_networks_count
+		 */
+		if ( $result > 0 ) {
+			$fw_stats->expected_networks_count += $result;
+			Firewall::saveFwStats($fw_stats);
+		}
+
+		return array(
+			'next_stage' => array(
+				'name' => [self::class, 'endOfUpdate_renamingTables'],
+				'accepted_tries' => 1
+			)
+		);
+	}
+
+	public static function endOfUpdate_renamingTables($_api_key)
+	{
+		$fw_stats = Firewall::getFwStats();
+
+		/** @var \Cleantalk\Common\Db\Db $db_class */
+		$db_class = Mloader::get('Db');
+		$db_obj = $db_class::getInstance();
+
+		if ( ! $db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA) ) {
+			throw new SfwUpdateException('endOfUpdate_renamingTables: SFW main table does not exist.');
+		}
+
+		if ( ! $db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp') ) {
+			throw new SfwUpdateException('endOfUpdate_renamingTables: SFW temp table does not exist.');
+		}
+
+		$fw_stats->update_mode = 1;
+		Firewall::saveFwStats($fw_stats);
+		usleep(10000);
+
+		// REMOVE AND RENAME
+		$result = \Cleantalk\Common\Firewall\Modules\Sfw::dataTablesDelete($db_obj, $db_obj->prefix . APBCT_TBL_FIREWALL_DATA);
+		if ( empty($result['error']) ) {
+			$result = \Cleantalk\Common\Firewall\Modules\Sfw::renameDataTablesFromTempToMain($db_obj, $db_obj->prefix . APBCT_TBL_FIREWALL_DATA);
+		}
+
+		$fw_stats->update_mode = 0;
+		Firewall::saveFwStats($fw_stats);
+
+		if ( ! empty($result['error']) ) {
+			throw new SfwUpdateException('endOfUpdate_renamingTables: '. $result['error']);
+		}
+
+		return array(
+			'next_stage' => array(
+				'name' => [self::class, 'endOfUpdate_checkingData'],
+				'accepted_tries' => 1
+			)
+		);
+	}
+
+	public static function endOfUpdate_checkingData($_api_key)
+	{
+		$fw_stats = Firewall::getFwStats();
+
+		/** @var \Cleantalk\Common\Db\Db $db_class */
+		$db_class = Mloader::get('Db');
+		$db_obj = $db_class::getInstance();
+
+		if ( ! $db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA) ) {
+			throw new SfwUpdateException('endOfUpdate_checkingData: SFW main table does not exist.');
+		}
+
+		$entries = $db_obj->setQuery('')->getVar('SELECT COUNT(*) FROM ' . $db_obj->prefix . APBCT_TBL_FIREWALL_DATA);
+
+		/**
+		 * Checking the integrity of the sfw database update
+		 */
+		if ( $entries != $fw_stats->expected_networks_count ) {
+			throw new SfwUpdateException('endOfUpdate_checkingData: '
+				. 'The discrepancy between the amount of data received for the update and in the final table: '
+				. $db_obj->prefix . APBCT_TBL_FIREWALL_DATA
+				. '. RECEIVED: ' . $fw_stats->expected_networks_count
+				. '. ADDED: ' . $entries);
+		}
+
+		$fw_stats->entries = $entries;
+		Firewall::saveFwStats($fw_stats);
+
+		return array(
+			'next_stage' => array(
+				'name' => [self::class, 'endOfUpdate_updatingStats'],
+				'accepted_tries' => 1
+			)
+		);
+	}
+
+	public static function endOfUpdate_updatingStats($_api_key, $is_direct_update = false)
+	{
+		$fw_stats = Firewall::getFwStats();
+
+		$is_first_updating = ! $fw_stats->last_update_time;
+		$fw_stats->last_update_time = time();
+		$fw_stats->last_update_way  = $is_direct_update ? 'Direct update' : 'Queue update';
+		Firewall::saveFwStats($fw_stats);
+
+		return array(
+			'next_stage' => array(
+				'name' => [self::class, 'endOfUpdate'],
+				'accepted_tries' => 1,
+				'args' => $is_first_updating
+			)
+		);
+	}
+
+	public static function endOfUpdate($_api_key, $is_first_updating = false)
+	{
+		// @ToDo implement errors handling
+		// Delete update errors
+		//$apbct->errorDelete('sfw_update', true);
+
+		// @ToDo implement this!
+		// Running sfw update once again in 12 min if entries is < 4000
+		/*if ( $is_first_updating &&
+			$apbct->stats['sfw']['entries'] < 4000
+		) {
+			wp_schedule_single_event(time() + 720, 'apbct_sfw_update__init');
+		}*/
+
+		$fw_stats = Firewall::getFwStats();
+
+		/** @var \Cleantalk\Common\Cron\Cron $cron_class */
+		$cron_class = Mloader::get('Cron');
+
+		$cron = new $cron_class();
+		$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $fw_stats->update_period);
+		$cron->removeTask('sfw_update_checker');
+
+		self::removeUpdDir($fw_stats->updating_folder);
+
+		// Reset all FW stats
+		$fw_stats->update_percent = 0;
+		$fw_stats->updating_id    = null;
+		$fw_stats->expected_networks_count = false;
+		$fw_stats->expected_ua_count = false;
+		Firewall::saveFwStats($fw_stats);
+
+		return true;
+	}
+
+	private function prepareUpdDir()
+	{
+		$dir_name = $this->fwStats->updating_folder;
+
+		if ( $dir_name === '' ) {
+			return array('error' => 'FW dir can not be blank.');
+		}
+
+		if ( ! is_dir($dir_name) ) {
+			if ( ! mkdir($dir_name) && ! is_dir($dir_name) ) {
+				return array('error' => 'Can not to make FW dir.');
+			}
+		} else {
+			$files = glob($dir_name . '/*');
+			if ( $files === false ) {
+				return array('error' => 'Can not find FW files.');
+			}
+			if ( count($files) === 0 ) {
+				return (bool)file_put_contents($dir_name . 'index.php', '<?php' . PHP_EOL);
+			}
+			foreach ( $files as $file ) {
+				if ( is_file($file) && unlink($file) === false ) {
+					return array('error' => 'Can not delete the FW file: ' . $file);
+				}
+			}
+		}
+
+		return (bool)file_put_contents($dir_name . 'index.php', '<?php');
+	}
+
+	private static function removeUpdDir($dir_name)
+	{
+		if ( is_dir($dir_name) ) {
+			$files = glob($dir_name . '/*');
+
+			if ( ! empty($files) ) {
+				foreach ( $files as $file ) {
+					if ( is_file($file) ) {
+						unlink($file);
+					}
+					if ( is_dir($file) ) {
+						self::removeUpdDir($file);
+					}
+				}
+			}
+
+			//add more paths if some strange files has been detected
+			$non_cleantalk_files_filepaths = array(
+				$dir_name . '.last.jpegoptim'
+			);
+
+			foreach ( $non_cleantalk_files_filepaths as $filepath ) {
+				if ( file_exists($filepath) && is_file($filepath) && !is_writable($filepath) ) {
+					unlink($filepath);
+				}
+			}
+
+			rmdir($dir_name);
+		}
+	}
+
+	function apbct_sfw_update__checker($api_key)
+	{
+		$queue = new \Cleantalk\Common\Queue\Queue($api_key);
+		if ( count($queue->queue['stages']) ) {
+			foreach ( $queue->queue['stages'] as $stage ) {
+				if ( $stage['status'] === 'NULL' ) {
+					// @ToDo Have to be implemented this!
+					//return updateWorker(true);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	function directUpdate()
+	{
+		// The Access key is empty
+		if ( empty($this->api_key) ) {
+			return array('error' => 'SFW DIRECT UPDATE: KEY_IS_EMPTY');
+		}
+
+		// Getting BL
+		$result = \Cleantalk\Common\Firewall\Modules\Sfw::directUpdateGetBlackLists($this->api_key);
+
+		if ( empty($result['error']) ) {
+
+			$fw_stats = Firewall::getFwStats();
+
+			/** @var \Cleantalk\Common\Db\Db $db_class */
+			$db_class = Mloader::get('Db');
+			$db_obj = $db_class::getInstance();
+
+			$blacklists = $result['blacklist'];
+			$useragents = $result['useragents'];
+			$bl_count   = $result['bl_count'];
+			$ua_count   = $result['ua_count'];
+
+			if ( isset($bl_count, $ua_count) ) {
+				$fw_stats->expected_networks_count = $bl_count;
+				$fw_stats->expected_ua_count       = $ua_count;
+				Firewall::saveFwStats($fw_stats);
+			}
+
+			// Preparing database infrastructure
+			// @ToDo need to implement returning result of the Activator::createTables work.
+			$db_tables_creator = new DbTablesCreator();
+			$table_name = $db_obj->prefix . Schema::getSchemaTablePrefix() . 'sfw';
+			$db_tables_creator->createTable($table_name);
+
+			$result__creating_tmp_table = \Cleantalk\Common\Firewall\Modules\SFW::createTempTables($db_obj, $db_obj->prefix . APBCT_TBL_FIREWALL_DATA);
+			if ( ! empty($result__creating_tmp_table['error']) ) {
+				return array('error' => 'DIRECT UPDATING CREATE TMP TABLE: ' . $result__creating_tmp_table['error']);
+			}
+
+			/**
+			 * UPDATING UA LIST
+			 */
+			if ( $useragents ) {
+				$ua_result = \Cleantalk\Common\Firewall\Modules\AntiCrawler::directUpdate($useragents);
+
+				if ( ! empty($ua_result['error']) ) {
+					return array('error' => 'DIRECT UPDATING UA LIST: ' . $result['error']);
+				}
+
+				if ( ! is_int($ua_result) ) {
+					return array('error' => 'DIRECT UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::directUpdate');
+				}
+			}
+
+			/**
+			 * UPDATING BLACK LIST
+			 */
+			$upd_result = \Cleantalk\Common\Firewall\Modules\SFW::directUpdate(
+				$db_obj,
+				$db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp',
+				$blacklists
+			);
+
+			if ( ! empty($upd_result['error']) ) {
+				return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $upd_result['error']);
+			}
+
+			if ( ! is_int($upd_result) ) {
+				return array('error' => 'DIRECT UPDATING BLACK LIST: WRONG RESPONSE FROM SFW::directUpdate');
+			}
+
+			/**
+			 * UPDATING EXCLUSIONS LIST
+			 */
+			$excl_result = self::processExclusions('');
+
+			if ( ! empty($excl_result['error']) ) {
+				return array('error' => 'DIRECT UPDATING EXCLUSIONS: ' . $excl_result['error']);
+			}
+
+			/**
+			 * DELETING AND RENAMING THE TABLES
+			 */
+			$rename_tables_res = self::endOfUpdate_renamingTables('');
+			if ( ! empty($rename_tables_res['error']) ) {
+				return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $rename_tables_res['error']);
+			}
+
+			/**
+			 * CHECKING THE UPDATE
+			 */
+			$check_data_res = self::endOfUpdate_checkingData('');
+			if ( ! empty($check_data_res['error']) ) {
+				return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $check_data_res['error']);
+			}
+
+			/**
+			 * WRITE UPDATING STATS
+			 */
+			$update_stats_res = self::endOfUpdate_updatingStats('', true);
+			if ( ! empty($update_stats_res['error']) ) {
+				return array('error' => 'DIRECT UPDATING BLACK LIST: ' . $update_stats_res['error']);
+			}
+
+			/**
+			 * END OF UPDATE
+			 */
+			return self::endOfUpdate('');
+		}
+
+		return $result;
+	}
+
+	public static function cleanData()
+	{
+		$fw_stats = Firewall::getFwStats();
+
+		/** @var \Cleantalk\Common\Db\Db $db_class */
+		$db_class = Mloader::get('Db');
+		$db_obj = $db_class::getInstance();
+
+		\Cleantalk\Common\Firewall\Modules\SFW::dataTablesDelete($db_obj, $db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp');
+
+		$fw_stats->firewall_update_percent = 0;
+		$fw_stats->firewall_updating_id    = null;
+		Firewall::saveFwStats($fw_stats);
+	}
+
+	public function updateFallback()
+	{
+		$fw_stats = Firewall::getFwStats();
+
+		/**
+		 * Remove the upd folder
+		 */
+		if ( $fw_stats->updating_folder ) {
+			self::removeUpdDir($fw_stats->updating_folder);
+		}
+
+		/**
+		 * Remove SFW updating checker cron-task
+		 */
+		$cron = new \Cleantalk\Common\Cron\Cron();
+		$cron->removeTask('sfw_update_checker');
+		$cron->updateTask('sfw_update', 'apbct_sfw_update__init', $fw_stats->update_period);
+
+		/**
+		 * Remove _temp table
+		 */
+		self::cleanData();
+
+		/**
+		 * Create SFW table if not exists
+		 */
+		self::createTables('');
+	}
+
+	private function isUpdateInProgress()
+	{
+		return (new $this->queue($this->api_key))->isQueueInProgress();
+	}
 }

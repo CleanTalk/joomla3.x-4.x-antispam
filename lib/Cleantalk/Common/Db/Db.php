@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common\Db;
 
+use Cleantalk\Common\Templates\Singleton;
+
 /**
  * CleanTalk abstract Data Base driver.
  * Shows what should be inside.
@@ -16,19 +18,14 @@ namespace Cleantalk\Common\Db;
  * @psalm-suppress UnusedProperty
  * @psalm-suppress PossiblyUnusedProperty
  */
-class DB
+abstract class Db
 {
-    private static $instance;
+	use Singleton;
 
     /**
      * @var string Query string
      */
     private $query;
-
-    /**
-     * @var \wpdb result
-     */
-    private $db_result;
 
     /**
      * @var array Processed result
@@ -40,37 +37,12 @@ class DB
      */
     public $prefix = '';
 
-    public function __construct()
-    {
-        $this->init();
-    }
-
-    public function __clone()
-    {
-    }
-
-    public function __wakeup()
-    {
-    }
-
-    public static function getInstance()
-    {
-        if ( ! isset(static::$instance)) {
-            static::$instance = new static();
-            static::$instance->init();
-        }
-
-        return static::$instance;
-    }
-
-    /**
+	/**
      * Alternative constructor.
      * Initialize Database object and write it to property.
      * Set tables prefix.
      */
-    protected function init()
-    {
-    }
+    abstract protected function init();
 
     /**
      * Set $this->query string for next uses
@@ -82,10 +54,17 @@ class DB
      */
     public function setQuery($query)
     {
+	    $this->query = $query;
+	    return $this;
     }
 
+	public function getQuery()
+	{
+		return $this->query;
+	}
+
     /**
-     * Safely replace place holders
+     * Safely replace placeholders
      *
      * @param string $query
      * @param array $vars
@@ -95,8 +74,30 @@ class DB
      */
     public function prepare($query, $vars = array())
     {
-        return $this;
+	    $query = $query ?: $this->query;
+	    $vars  = $vars ?: array();
+
+	    $this->query = call_user_func($this->getPreparingMethod(), $query, $vars);
+
+	    return $this;
     }
+
+	/**
+	 * @important This is very weak protection method
+	 * @important Overload this method in CMS-based class
+	 */
+	public function getPreparingMethod()
+	{
+		return [$this, 'simplePreparingMethod'];
+	}
+
+	private function simplePreparingMethod($query, $vars)
+	{
+		array_walk($vars, function (&$item) {
+			$item = '"' . addslashes($item) . '"';
+		});
+		return vsprintf($query, $vars);
+	}
 
     /**
      * Run any raw request
@@ -106,9 +107,7 @@ class DB
      * @return bool|int|void Raw result
      * @psalm-suppress PossiblyUnusedParam
      */
-    public function execute($query)
-    {
-    }
+    abstract public function execute($query);
 
     /**
      * Fetchs first column from query.
@@ -120,9 +119,7 @@ class DB
      * @return array|object|void|null
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function fetch($query = '', $response_type = false)
-    {
-    }
+    abstract public function fetch($query, $response_type = false);
 
     /**
      * Fetchs all result from query.
@@ -134,9 +131,14 @@ class DB
      * @return array|object|null|void
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function fetchAll($query = '', $response_type = false)
-    {
-    }
+    abstract public function fetchAll($query = '', $response_type = false);
+
+	public function getVar($query)
+	{
+		return array_values($this->fetch($query))[0];
+	}
+
+	abstract public function getAffectedRows();
 
     /**
      * Checks if the table exists

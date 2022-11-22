@@ -13,17 +13,19 @@ namespace Cleantalk\Common\Firewall;
  * @see           https://github.com/CleanTalk/php-antispam
  */
 
-use Cleantalk\Common\DependencyContainer\DependencyContainer;
+use Cleantalk\Common\Mloader\Mloader;
 use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Get;
 use Cleantalk\Common\Variables\Server;
 
 class Firewall
 {
+	const FW_STATS_SETTING_NAME = 'apbct_fw_stats';
+
     /**
      * @var string
      */
-    private $api_key;
+    public $api_key;
 
     /**
      * @var array
@@ -31,9 +33,9 @@ class Firewall
 	private $ip_array;
 
     /**
-     * @var DB
+     * @var \Cleantalk\Common\Db\Db
      */
-	private $db;
+	public $db;
 
     /**
      * @var string
@@ -41,14 +43,14 @@ class Firewall
     private $log_table_name;
 
     /**
-     * @var Helper
+     * @var \Cleantalk\Common\Helper\Helper
      */
-	private $helper;
+	public $helper;
 
     /**
-     * @var API
+     * @var \Cleantalk\Common\Api\Api
      */
-    private $api;
+	public $api;
 
     /**
      * @var bool
@@ -102,6 +104,7 @@ class Firewall
     public static function temporarySkip()
     {
         global $apbct, $spbc;
+
         if( ! empty( $_GET['access'] ) ){
             $apbct_key = ! empty( $apbct->api_key ) ? $apbct->api_key : false;
             $spbc_key  = ! empty( $spbc->api_key )  ? $spbc->api_key  : false;
@@ -114,21 +117,20 @@ class Firewall
         return false;
     }
 
-    /**
-     * Creates Database driver instance.
-     *
-     * @param string $api_key
-     * @param DB $db
-     * @param string $log_table_name
-     */
+	/**
+	 * Creates Database driver instance.
+	 *
+	 * @param   string  $api_key
+	 * @param   string  $log_table_name
+	 */
 	public function __construct( $api_key, $log_table_name )
 	{
-		$this->helper         = DependencyContainer::getInstance()->get('Helper');
-		$this->db             = DependencyContainer::getInstance()->get('Db');
-		$this->api            = DependencyContainer::getInstance()->get('Api');
+		$this->helper         = Mloader::get('Helper');
+		$this->db             = Mloader::get('Db')::getInstance();
+		$this->api            = Mloader::get('Api');
 
 	    $this->api_key        = $api_key;
-		$this->log_table_name = $this->db->prefix . $log_table_name;
+		$this->log_table_name = $log_table_name;
 		$this->debug          = (bool) Get::get('debug');
 		$this->ip_array       = $this->ipGet();
 	}
@@ -147,9 +149,9 @@ class Firewall
             // Configure the Module Obj
             $module->setApiKey( $this->api_key );
 			$module->setLogTableName( $this->log_table_name );
+			$module->ipAppendAdditional( $this->ip_array );
             $module->setIpArray( $this->ip_array );
             $module->setIsDebug( $this->debug );
-			$module->ipAppendAdditional( $this->ip_array );
 
             // Store the Module Obj
             $this->fw_modules[ $module->module_name ] = $module;
@@ -322,7 +324,7 @@ class Firewall
 
         //Getting logs
         $query = "SELECT * FROM " . $this->log_table_name . ";";
-        $this->db->fetch_all( $query );
+        $this->db->fetchAll( $query );
 
         if( count( $this->db->result ) ){
 
@@ -357,8 +359,7 @@ class Firewall
             unset( $key, $value );
 
             //Sending the request
-            $api = $this->api;
-            $result = $api::methodSfwLogs( $this->api_key, $data );
+            $result = $this->api::methodSfwLogs( $this->api_key, $data );
 
             //Checking answer and deleting all lines from the table
             if( empty( $result['error'] ) ){
@@ -377,15 +378,39 @@ class Firewall
         return array( 'rows' => 0 );
     }
 
-    /**
-     * Get and configure the FirewallUpdater object.
-     *
-     * @param string $data_table_name
-     * @return FirewallUpdater
-     */
-    public function getUpdater( $data_table_name )
+	/**
+	 * Get and configure the FirewallUpdater object.
+	 *
+	 * @return FirewallUpdater
+	 */
+    public function getUpdater()
     {
-	    return new FirewallUpdater( $this->api_key, $this->db, $data_table_name );
+	    return new FirewallUpdater($this);
     }
 
+	public static function getFwStats()
+	{
+		$fw_stats = new FwStats();
+		/** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+		$storage_handler_class = Mloader::get('StorageHandler');
+		$stats = $storage_handler_class::getSetting(self::FW_STATS_SETTING_NAME);
+		if ( $stats !== null ) {
+			foreach ( $stats as $stat_key => $stat_val ) {
+				$fw_stats->$stat_key = $stat_val;
+			}
+		}
+		return $fw_stats;
+	}
+
+	public static function saveFwStats(FwStats $fw_stats)
+	{
+		$stats = [];
+		foreach ( $fw_stats as $stat_key => $stat_val )
+		{
+			$stats[$stat_key] = $stat_val;
+		}
+		/** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+		$storage_handler_class = Mloader::get('StorageHandler');
+		return $storage_handler_class::saveSetting(self::FW_STATS_SETTING_NAME, $stats);
+	}
 }

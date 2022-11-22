@@ -701,6 +701,88 @@ class Helper
         return $http->request();
     }
 
+	/**
+	 * Wrapper for http_request
+	 * Requesting HTTP response code for $url
+	 *
+	 * @param string $url
+	 *
+	 * @return array|mixed|string
+	 */
+	public static function httpRequestGetResponseCode($url)
+	{
+		return static::httpRequest($url, array(), 'get_code get');
+	}
+
+	/**
+	 * Wrapper for http_request
+	 * Requesting data via HTTP request with GET method
+	 *
+	 * @param string $url
+	 *
+	 * @return array|mixed|string
+	 */
+	public static function httpRequestGetContent($url)
+	{
+		return static::httpRequest($url, array(), 'get dont_split_to_array');
+	}
+
+	/**
+	 * Wrapper for http_request
+	 * Get data from remote GZ archive with all following checks
+	 *
+	 * @param string $url
+	 *
+	 * @return array|mixed|string
+	 */
+	public static function httpGetDataFromRemoteGz($url)
+	{
+		$response_code = static::httpRequestGetResponseCode($url);
+
+		if ($response_code === 200) { // Check if it's there
+			$data = static::httpRequestGetContent($url);
+
+			if (empty($data['error'])) {
+				if (static::getMimeType($data, 'application/x-gzip')) {
+					if (function_exists('gzdecode')) {
+						$data = gzdecode($data);
+
+						if ($data !== false) {
+							return $data;
+						} else {
+							return array('error' => 'Can not unpack datafile');
+						}
+					} else {
+						return array('error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' . $data['error']);
+					}
+				} else {
+					return array('error' => 'Wrong file mime type: ' . $url);
+				}
+			} else {
+				return array('error' => 'Getting datafile ' . $url . '. Error: ' . $data['error']);
+			}
+		} else {
+			return array('error' => 'Bad HTTP response (' . (int)$response_code . ') from file location: ' . $url);
+		}
+	}
+
+	/**
+	 * Wrapper for http__get_data_from_remote_gz
+	 * Get data and parse CSV from remote GZ archive with all following checks
+	 *
+	 * @param string $url
+	 *
+	 * @return array|string
+	 */
+	public static function httpGetDataFromRemoteGzAndParseCsv($url)
+	{
+		$result = static::httpGetDataFromRemoteGz($url);
+
+		return empty($result['error'])
+			? static::bufferParseCsv($result)
+			: $result;
+	}
+
     /**
      * Merging arrays without resetting numeric keys
      *
@@ -977,7 +1059,6 @@ class Helper
      */
     public static function dbPrepareParam($param, $quotes = '\'')
     {
-        global $wpdb;
         if (is_array($param)) {
             foreach ($param as &$par) {
                 $par = self::dbPrepareParam($par);
@@ -992,7 +1073,7 @@ class Helper
                 $param = 'NULL';
                 break;
             case is_string($param):
-                $param = $quotes . $wpdb->_real_escape($param) . $quotes;
+                $param = $quotes . addslashes($param) . $quotes;
                 break;
         }
 

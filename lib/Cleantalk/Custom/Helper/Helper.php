@@ -1,8 +1,9 @@
 <?php
 
-namespace Cleantalk\ApbctJoomla;
+namespace Cleantalk\Custom\Helper;
 
-class Helper extends \Cleantalk\Common\Helper\Helper {
+class Helper extends \Cleantalk\Common\Helper\Helper
+{
 
     /**
      * Get fw stats from the storage.
