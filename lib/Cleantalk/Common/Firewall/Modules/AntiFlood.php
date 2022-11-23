@@ -2,9 +2,8 @@
 
 namespace Cleantalk\Common\Firewall\Modules;
 
-use Cleantalk\Common\Helper;
-use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\Variables\Cookie;
+use Cleantalk\Common\Variables\Server;
 
 /**
  * Class AntiFlood

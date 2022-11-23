@@ -2,7 +2,6 @@
 
 namespace Cleantalk\Common\RemoteCalls;
 
-use Cleantalk\Common\Errors\Errors;
 use Cleantalk\Common\Mloader\Mloader;
 use Cleantalk\Common\Variables\Request;
 

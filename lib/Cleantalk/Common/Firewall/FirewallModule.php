@@ -13,7 +13,6 @@ namespace Cleantalk\Common\Firewall;
  * @since 2.49
  */
 
-use Cleantalk\Common\DependencyContainer\DependencyContainer;
 use Cleantalk\Common\Mloader\Mloader;
 use Cleantalk\Common\Variables\Get;
 

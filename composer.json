@@ -2,7 +2,11 @@
     "require": {
         "cleantalk/antispam": "^1.0",
         "cleantalk/firewall": "^1.0",
-        "cleantalk/dns": "^1.0"
+        "cleantalk/dns": "^1.0",
+        "cleantalk/api": "^1.0",
+        "cleantalk/cron": "^1.0",
+        "cleantalk/remote-calls": "^1.0",
+        "cleantalk/storage-handler": "^1.0"
     },
     "config": {
         "allow-plugins": {
