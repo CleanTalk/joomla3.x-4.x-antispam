@@ -29,8 +29,10 @@ require_once(dirname(__FILE__) . '/lib/autoload.php');
 use Cleantalk\Common\Antispam\Cleantalk;
 use Cleantalk\Common\Antispam\CleantalkRequest;
 
+use Cleantalk\Common\Cleaner\Sanitize;
 use Cleantalk\Common\Mloader\Mloader;
 
+use Cleantalk\Common\Variables\Server;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Session\Session;
@@ -815,8 +817,27 @@ class plgSystemCleantalkantispam extends JPlugin
                             {
                                 if ($ctResponse['allow'] == 0)
                                 {
-                                    $error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
-                                    print str_replace('%ERROR_TEXT%', $ctResponse['comment'], $error_tpl);
+	                                $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
+
+	                                $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
+	                                $back_script = '<script>setTimeout("history.back()", 5000);</script>';
+	                                $back_link = '';
+	                                if ( isset($_SERVER['HTTP_REFERER']) ) {
+		                                $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
+	                                }
+
+	                                // Translation
+	                                $replaces = array(
+		                                '{MESSAGE_TITLE}' => $message_title,
+		                                '{MESSAGE}'       => $ctResponse['comment'],
+		                                '{BACK_LINK}'     => $back_link,
+		                                '{BACK_SCRIPT}'   => $back_script
+	                                );
+
+	                                foreach ( $replaces as $place_holder => $replace ) {
+		                                $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
+	                                }
+	                                print $ct_die_page;
                                     die();
 
                                 }
@@ -949,8 +970,27 @@ class plgSystemCleantalkantispam extends JPlugin
 				$option_cmd === 'com_breezingforms' &&
 				$ff_task === 'submit'
 			) {
-				$error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
-				print str_replace('%ERROR_TEXT%', 'Please, fill the email field.', $error_tpl);
+				$ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
+
+				$message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
+				$back_script = '<script>setTimeout("history.back()", 5000);</script>';
+				$back_link = '';
+				if ( isset($_SERVER['HTTP_REFERER']) ) {
+					$back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
+				}
+
+				// Translation
+				$replaces = array(
+					'{MESSAGE_TITLE}' => $message_title,
+					'{MESSAGE}'       => $ctResponse['comment'],
+					'{BACK_LINK}'     => $back_link,
+					'{BACK_SCRIPT}'   => $back_script
+				);
+
+				foreach ( $replaces as $place_holder => $replace ) {
+					$ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
+				}
+				print $ct_die_page;
 				die();
 			}
 
@@ -1114,8 +1154,27 @@ class plgSystemCleantalkantispam extends JPlugin
                                 }
                                 else
                                 {
-                                    $error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
-                                    print str_replace('%ERROR_TEXT%', $ctResponse['comment'], $error_tpl);
+	                                $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
+
+	                                $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
+	                                $back_script = '<script>setTimeout("history.back()", 5000);</script>';
+	                                $back_link = '';
+	                                if ( isset($_SERVER['HTTP_REFERER']) ) {
+		                                $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
+	                                }
+
+	                                // Translation
+	                                $replaces = array(
+		                                '{MESSAGE_TITLE}' => $message_title,
+		                                '{MESSAGE}'       => $ctResponse['comment'],
+		                                '{BACK_LINK}'     => $back_link,
+		                                '{BACK_SCRIPT}'   => $back_script
+	                                );
+
+	                                foreach ( $replaces as $place_holder => $replace ) {
+		                                $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
+	                                }
+	                                print $ct_die_page;
                                     die();
                                 }
                             }
@@ -1200,8 +1259,27 @@ class plgSystemCleantalkantispam extends JPlugin
                 {
                     if ($ctResponse['allow'] == 0)
                     {
-                        $error_tpl = file_get_contents(dirname(__FILE__) . "/lib/Cleantalk/Common/error.html");
-                        print str_replace('%ERROR_TEXT%', $ctResponse['comment'], $error_tpl);
+	                    $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
+
+	                    $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
+	                    $back_script = '<script>setTimeout("history.back()", 5000);</script>';
+	                    $back_link = '';
+	                    if ( isset($_SERVER['HTTP_REFERER']) ) {
+		                    $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
+	                    }
+
+	                    // Translation
+	                    $replaces = array(
+		                    '{MESSAGE_TITLE}' => $message_title,
+		                    '{MESSAGE}'       => $ctResponse['comment'],
+		                    '{BACK_LINK}'     => $back_link,
+		                    '{BACK_SCRIPT}'   => $back_script
+	                    );
+
+	                    foreach ( $replaces as $place_holder => $replace ) {
+		                    $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
+	                    }
+                        print $ct_die_page;
                         die();
                     }
                 }
