@@ -39,10 +39,6 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
         return \plgSystemCleantalkantispam::apbct_sfw_send_logs( $this->api_key );
     }
 
-    public function action__sfw_update__write_base()
-    {
-        return \plgSystemCleantalkantispam::apbct_sfw_update( $this->api_key );
-    }
     /**
      * Get available remote calls from the storage.
      *
