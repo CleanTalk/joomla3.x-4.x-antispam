@@ -100,6 +100,7 @@ class RemoteCalls
 							return $response;
 						} catch ( \Exception $exception ) {
 							error_log('RC error: ' . var_export($exception->getMessage(),1));
+                            $out = 'FAIL '.json_encode(array('error' => $exception->getMessage()));
 						}
 
                     }else

@@ -108,9 +108,7 @@ class FirewallUpdater
 			'sfw_update',
 			'apbct',
 			$this->api_key,
-			array(
-				'worker' => 1,
-			)
+            ['test' => 'test']
 		);
 
 		if ( ! empty($prepare_dir__result['error']) || ! empty($test_rc_result['error']) ) {
