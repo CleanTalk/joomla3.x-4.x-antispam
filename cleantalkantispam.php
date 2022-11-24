@@ -1648,13 +1648,9 @@ class plgSystemCleantalkantispam extends JPlugin
                 }
                 else
                 {
-                    $ct      = new Cleantalk();
-                    $comment = $ct->addCleantalkComment("", $ctResponse['comment']);
-                    $hash    = $ct->getCleantalkCommentHash($comment);
-
                     $session->set('register_username', $post_username);
                     $session->set('register_email', $post_email);
-                    $session->set('ct_request_id', $hash);
+                    $session->set('ct_request_id', $ctResponse['id']);
                 }
             }
         }
