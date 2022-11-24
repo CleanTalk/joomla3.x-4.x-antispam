@@ -30,6 +30,10 @@ class plgsystemcleantalkantispamInstallerScript
 
     public function postflight($type, $parent)
     {
+		if ( $type === 'uninstall' ) {
+			return;
+		}
+
         // Updating roles_exclusion
         $excluded_roles = $this->getParam('roles_exclusions');
 
