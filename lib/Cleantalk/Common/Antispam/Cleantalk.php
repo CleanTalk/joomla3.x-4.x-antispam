@@ -508,6 +508,6 @@ class Cleantalk
 
     public static function getLockPageFile()
     {
-        return __FILE__ . '/lock-page-ct-die.html';
+        return __DIR__ . '/lock-page-ct-die.html';
     }
 }
