@@ -13,8 +13,7 @@ namespace Cleantalk\Common\Firewall;
  * @since 2.49
  */
 
-use Cleantalk\Common\DB;
-use Cleantalk\Common\Helper;
+use Cleantalk\Common\Mloader\Mloader;
 use Cleantalk\Common\Variables\Get;
 
 abstract class FirewallModule {
@@ -35,7 +34,7 @@ abstract class FirewallModule {
 	protected $ip_array = array();
 
     /**
-     * @var DB
+     * @var \Cleantalk\Common\Db\Db
      */
 	protected $db;
 
@@ -50,7 +49,7 @@ abstract class FirewallModule {
 	protected $db_data_table_name;
 
     /**
-     * @var Helper
+     * @var \Cleantalk\Common\Helper\Helper
      */
 	protected $helper;
 
@@ -83,10 +82,15 @@ abstract class FirewallModule {
 	 * FirewallModule constructor.
 	 * Use this method to prepare any data for the module working.
 	 *
+	 * @param string $log_table
 	 * @param string $data_table
 	 * @param array $params
 	 */
-	abstract public function __construct( $data_table, $params = array() );
+	public function __construct($log_table, $data_table, $params = array())
+	{
+		$this->helper = Mloader::get('Helper');
+		$this->db     = Mloader::get('Db')::getInstance();
+	}
 
     /**
      * Use this method to execute main logic of the module.
@@ -117,25 +121,15 @@ abstract class FirewallModule {
      * @param array $ips
      * @return void
      */
-    public function ipAppendAdditional( $ips )
+    public function ipAppendAdditional(& $ips)
 	{
 		$this->real_ip = isset($ips['real']) ? $ips['real'] : null;
 
-		if( Get::get('sfw_test_ip') && Helper::ip__validate( Get::get('sfw_test_ip') ) !== false ) {
+		if( Get::get('sfw_test_ip') && $this->helper::ipValidate( Get::get('sfw_test_ip') ) !== false ) {
             $this->ip_array['sfw_test'] = Get::get( 'sfw_test_ip' );
             $this->test_ip   = Get::get( 'sfw_test_ip' );
             $this->test      = true;
         }
-	}
-	
-	/**
-     * Set specify CMS based DB instance
-     *
-	 * @param DB $db
-	 */
-	public function setDb( DB $db )
-    {
-		$this->db = $db;
 	}
 
     /**
@@ -145,17 +139,8 @@ abstract class FirewallModule {
      */
     public function setLogTableName( $log_table_name )
     {
+        $this->db_data_table_name = $this->db->prefix . $this->db_data_table_name;
         $this->db_log_table_name = $log_table_name;
-    }
-
-    /**
-     * Set specify CMS based Helper instance
-     *
-     * @param Helper $helper
-     */
-    public function setHelper( Helper $helper )
-    {
-        $this->helper = $helper;
     }
 
     /**
@@ -193,7 +178,7 @@ abstract class FirewallModule {
      *
      * @param array $result
      */
-    public function _die( $result )
+    public function diePage( $result )
     {
 		// Headers
 		if( headers_sent() === false ){

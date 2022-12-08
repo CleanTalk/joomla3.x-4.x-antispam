@@ -7,44 +7,19 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>2.3</version>
+    <version>3.0</version>
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
 	<scriptfile>updater.php</scriptfile>
     <files>
 		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
 		<filename>updater.php</filename>
-		<filename plugin="cleantalkantispam">lib/autoload.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/Cleantalk.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkRequest.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Antispam/CleantalkResponse.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/API.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Cron.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/DB.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Helper.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/RemoteCalls.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Schema.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Variables/Cookie.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Variables/Get.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Variables/Post.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Variables/Request.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Variables/Server.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Variables/ServerVariables.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Firewall/Firewall.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Firewall/FirewallModule.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Firewall/FirewallUpdater.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Firewall/Modules/die_page_sfw.html</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/Firewall/Modules/SFW.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/Common/error.html</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/Cron.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/DB.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/Helper.php</filename>
-		<filename plugin="cleantalkantispam">lib/Cleantalk/ApbctJoomla/RemoteCalls.php</filename>
 		<filename plugin="cleantalkantispam">js/ct-settings.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-functions.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-external.js</filename>
 		<filename plugin="cleantalkantispam">css/ct-settings.css</filename>
 		<filename plugin="cleantalkantispam">img/preloader.gif</filename>
 		<folder>sql/mysql</folder>
+		<folder>lib/</folder>
     </files>
     <languages folder="language">
 		<language tag="en-GB">en-GB/en-GB.plg_system_cleantalkantispam.ini</language>

@@ -1,1 +1,10 @@
 /.idea/
+/vendor
+/node_modules
+/lib/**/composer.json
+/lib/**/.gitignore
+/lib/**/LICENSE
+/lib/**/README.MD
+/lib/**/tests
+composer.lock
+package-lock.json
