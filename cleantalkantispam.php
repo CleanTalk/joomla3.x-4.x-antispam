@@ -1676,7 +1676,7 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         if ($feedback_request)
         {
-            $ct_request           = new \Cleantalk\Common\Antispam\CleantalkRequest();
+            $ct_request           = new CleantalkRequest();
             $ct_request->auth_key = $auth_key;
             $ct_request->feedback = $feedback_request;
             $ct                   = new Cleantalk();
