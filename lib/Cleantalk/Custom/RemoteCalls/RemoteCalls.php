@@ -1,8 +1,24 @@
 <?php
 
-namespace Cleantalk\ApbctJoomla;
+namespace Cleantalk\Custom\RemoteCalls;
 
-class RemoteCalls extends \Cleantalk\Common\RemoteCalls {
+class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
+{
+	protected $available_rc_actions = array(
+		'close_renew_banner' => array(
+			'last_call' => 0,
+			'cooldown' => self::COOLDOWN
+		),
+		'sfw_update' => array(
+			'last_call' => 0,
+			'cooldown' => 0
+		),
+		'sfw_send_logs' => array(
+			'last_call' => 0,
+			'cooldown' => self::COOLDOWN
+		)
+	);
+
     /**
      * SFW update
      *
@@ -23,16 +39,12 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls {
         return \plgSystemCleantalkantispam::apbct_sfw_send_logs( $this->api_key );
     }
 
-    public function action__sfw_update__write_base()
-    {
-        return \plgSystemCleantalkantispam::apbct_sfw_update( $this->api_key );
-    }
     /**
      * Get available remote calls from the storage.
      *
      * @return array
      */
-    protected function getAvailableRcActions()
+    /*protected function getAvailableRcActions()
     {
         $plugin = \JPluginHelper::getPlugin('system', 'cleantalkantispam');
         $params = new \JRegistry($plugin->params);
@@ -46,18 +58,14 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls {
                 ),
                 'sfw_update' => array(
                     'last_call' => 0,
-                    'cooldown' => self::COOLDOWN
+                    'cooldown' => 0
                 ),
                 'sfw_send_logs' => array(
                     'last_call' => 0,
                     'cooldown' => self::COOLDOWN
-                ),
-                'sfw_update__write_base' => array(
-                    'last_call' => 0,
-                    'cooldown' => 0
                 )
             );
-    }
+    }*/
 
     /**
      * Set last call timestamp and save it to the storage.
@@ -65,7 +73,7 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls {
      * @param array $action
      * @return void
      */
-    protected function setLastCall( $action )
+    /*protected function setLastCall( $action )
     {
         // TODO: Implement setLastCall() method.
         $remote_calls = $this->getAvailableRcActions();
@@ -89,5 +97,5 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls {
             $table->params = $jparams->toString();
             $table->store();
         }
-    }
+    }*/
 }

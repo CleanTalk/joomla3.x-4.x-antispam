@@ -37,7 +37,7 @@ function ct_check_external(){
     }
 }
 
-jQuery(document).ready( function(){
+document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function () {
         ct_check_external();
     }, 1500);

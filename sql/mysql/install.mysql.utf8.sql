@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS `#__cleantalk_sfw` (
   `network` int(11) unsigned NOT NULL,
   `mask` int(11) unsigned NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 0,
+  `source` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   INDEX (  `network` ,  `mask` )
 );
@@ -14,7 +15,11 @@ CREATE TABLE IF NOT EXISTS `#__cleantalk_sfw_logs` (
   `blocked_entries` INT NOT NULL,
   `entries_timestamp` INT NOT NULL,
   `ua_id` INT(11) NULL DEFAULT NULL,
-  `ua_name` VARCHAR(1024) NOT NULL, 
+  `ua_name` VARCHAR(1024) NOT NULL,
+  `source` TINYINT NULL DEFAULT NULL,
+  `network` VARCHAR(20) NULL DEFAULT NULL,
+  `first_url`VARCHAR(100) NULL DEFAULT NULL,
+  `last_url` VARCHAR(100) NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
 CREATE TABLE IF NOT EXISTS `#__cleantalk_sessions` (

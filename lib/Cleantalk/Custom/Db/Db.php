@@ -1,8 +1,9 @@
 <?php
 
-namespace Cleantalk\ApbctJoomla;
+namespace Cleantalk\Custom\Db;
 
-class DB extends \Cleantalk\Common\DB {
+class Db extends \Cleantalk\Common\Db\Db
+{
     /**
      * Alternative constructor.
      * Initilize Database object and write it to property.
@@ -13,29 +14,6 @@ class DB extends \Cleantalk\Common\DB {
     }
 
     /**
-     * Set $this->query string for next uses
-     *
-     * @param $query
-     * @return $this
-     */
-    public function set_query( $query ) {
-        $this->query = $query;
-        return $this;
-    }
-
-    /**
-     * Safely replace place holders
-     *
-     * @param string $query
-     * @param array  $vars
-     *
-     * @return $this
-     */
-    public function prepare( $query, $vars = array() ) {
-
-    }
-
-    /**
      * Run any raw request
      *
      * @param $query
@@ -43,20 +21,21 @@ class DB extends \Cleantalk\Common\DB {
      * @return bool|int Raw result
      */
     public function execute( $query ) {
-        $this->db_result = \JFactory::getDBO()->setQuery($query)->execute();
-        return $this->db_result;
+        $this->dbResult = \JFactory::getDBO()->setQuery($query)->execute();
+        return $this->dbResult;
     }
 
     /**
-     * Fetchs first column from query.
+     * Fetches first column from query.
      * May receive raw or prepared query.
      *
-     * @param bool $query
+     * @param string $query
      * @param bool $response_type
      *
      * @return array|object|void|null
      */
-    public function fetch( $query = false, $response_type = false ) {
+    public function fetch( $query = '', $response_type = false ) {
+		$query = $this->getQuery() ?: $query;
         $this->result = \JFactory::getDBO()->setQuery($query)->loadAssoc();
         
         return $this->result;
@@ -71,7 +50,7 @@ class DB extends \Cleantalk\Common\DB {
      *
      * @return array|object|null
      */
-    public function fetch_all( $query = false, $response_type = false ) {
+    public function fetchAll( $query = false, $response_type = false ) {
         $this->result = \JFactory::getDBO()->setQuery($query)->loadAssocList();
         
         return $this->result;
@@ -85,8 +64,13 @@ class DB extends \Cleantalk\Common\DB {
      * @return bool
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function is_table_exists($table_name)
+    public function isTableExists($table_name)
     {
         return (bool)$this->execute('SHOW TABLES LIKE "' . $table_name . '"');
     }
+
+	public function getAffectedRows()
+	{
+		return \JFactory::getDBO()->getAffectedRows();
+	}
 }
