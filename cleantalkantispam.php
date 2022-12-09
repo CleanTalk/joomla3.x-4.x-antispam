@@ -55,7 +55,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * Plugin version string for server
      * @since         1.0
      */
-    const ENGINE = 'joomla34-30';
+    const ENGINE = 'joomla34-30-dev';
 
 	/**
 	 * Flag marked JComments form initialization.
