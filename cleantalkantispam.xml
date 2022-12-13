@@ -7,7 +7,7 @@
     <license>GNU/GPLv2</license>
     <authorEmail>welcome@cleantalk.org</authorEmail>
     <authorUrl>cleantalk.org</authorUrl>
-    <version>3.0-dev</version>
+    <version>3.0.1</version>
     <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
 	<scriptfile>updater.php</scriptfile>
     <files>
