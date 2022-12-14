@@ -23,7 +23,7 @@
         <element>cleantalkantispam</element>
         <type>plugin</type>
         <folder>system</folder>
-        <version>3.0</version>
+        <version>3.0.1</version>
         <downloads>
             <downloadurl type="full" format="zip">https://github.com/CleanTalk/joomla3.x-4.x-antispam/archive/3.0.1.zip</downloadurl>
         </downloads>
