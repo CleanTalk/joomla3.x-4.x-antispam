@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       3.0
+ * @version       3.0.1
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -55,7 +55,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * Plugin version string for server
      * @since         1.0
      */
-    const ENGINE = 'joomla34-30';
+    const ENGINE = 'joomla34-301';
 
 	/**
 	 * Flag marked JComments form initialization.
@@ -900,7 +900,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $post_info['comment_type'] = 'contact_form_joomla_vtem';
 
                 //BreezingForms
-            }elseif (isset($_POST['ff_task']) && $_POST['ff_task'] == 'submit'){
+            }elseif ($option_cmd === 'com_breezingforms' && $ff_task === 'submit'){
                 $ct_temp_msg_data = Mloader::get('Helper')::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 
                 $sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
@@ -963,44 +963,13 @@ class plgSystemCleantalkantispam extends JPlugin
 
             }
 
-			/**
-			 * Empty email in the Breezingform
-			 */
-			if (
-				empty($sender_email) &&
-				$option_cmd === 'com_breezingforms' &&
-				$ff_task === 'submit'
-			) {
-				$ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
-
-				$message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
-				$back_script = '<script>setTimeout("history.back()", 5000);</script>';
-				$back_link = '';
-				if ( isset($_SERVER['HTTP_REFERER']) ) {
-					$back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
-				}
-
-				// Translation
-				$replaces = array(
-					'{MESSAGE_TITLE}' => $message_title,
-					'{MESSAGE}'       => $ctResponse['comment'],
-					'{BACK_LINK}'     => $back_link,
-					'{BACK_SCRIPT}'   => $back_script
-				);
-
-				foreach ( $replaces as $place_holder => $replace ) {
-					$ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
-				}
-				print $ct_die_page;
-				die();
-			}
-
             if (
                 ! empty( $_POST ) &&
                 ! $this->exceptionList() &&
                 (
                     ! empty( $sender_email ) ||
-                    ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
+                    ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) ) ||
+                    ! isset($post_info['comment_type']) // We need to handle ANY requests outgoing of the integrations
                 ) &&
                 ( $this->params->get( 'form_protection' ) &&
                     (
@@ -1804,6 +1773,7 @@ class plgSystemCleantalkantispam extends JPlugin
             $ct->work_url       = $this->params->get('work_url') ? $this->params->get('work_url') : '';
             $ct->server_ttl     = $this->params->get('server_ttl') ? $this->params->get('server_ttl') : 0;
             $ct->server_changed = $this->params->get('server_changed') ? $this->params->get('server_changed') : 0;
+
 
             switch ($method)
             {
