@@ -124,7 +124,7 @@ class FirewallUpdater
 		Queue::clearQueue();
 
 		$queue = new Queue($this->api_key);
-		$queue->addStage([$this::class, 'getMultifiles']);
+		$queue->addStage([self::class, 'getMultifiles']);
 
 		$cron = new \Cleantalk\Common\Cron\Cron();
 		$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15, null. $this->api_key);
