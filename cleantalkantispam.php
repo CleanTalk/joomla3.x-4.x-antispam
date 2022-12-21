@@ -967,9 +967,8 @@ class plgSystemCleantalkantispam extends JPlugin
                 ! empty( $_POST ) &&
                 ! $this->exceptionList() &&
                 (
-                    ! empty( $sender_email ) ||
-                    ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) ) ||
-                    ! isset($post_info['comment_type']) // We need to handle ANY requests outgoing of the integrations
+                    ! ( empty( $sender_email ) && ! $this->is_direct_integration() ) ||
+                    ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
                 ) &&
                 ( $this->params->get( 'form_protection' ) &&
                     (
@@ -2635,4 +2634,9 @@ class plgSystemCleantalkantispam extends JPlugin
 
         return false;
     }
+
+    public function is_direct_integration()
+	{
+		return isset($post_info['comment_type']) && $post_info['comment_type'] !== 'feedback_general_contact_form';
+	}
 }
