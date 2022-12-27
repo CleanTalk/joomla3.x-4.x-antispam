@@ -1121,6 +1121,15 @@ class plgSystemCleantalkantispam extends JPlugin
                                     print json_encode($json_msg);
                                     die();
                                 }
+                                // Nice Page AJAX CONTACT FORMS integration
+                                elseif (
+                                    isset($_POST['ct_action'])
+                                    && strpos($_POST['ct_action'], 'nicepagesrv') !== false
+                                ) {
+                                    $output['success'] = false;
+                                    echo \json_encode($output);
+                                    die();
+                                }
                                 else
                                 {
 	                                $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
@@ -1149,6 +1158,16 @@ class plgSystemCleantalkantispam extends JPlugin
                             }
                             elseif ($ctResponse['allow'] == 1 && ($this->params->get('form_protection') && in_array('check_external', $this->params->get('form_protection'))) && isset($_POST['ct_action'], $_POST['ct_method']) && strpos($_POST['ct_action'], 'paypal.com') === false)
                             {
+                                // Nice Page AJAX CONTACT FORMS integration
+                                if (
+                                    isset($_POST['ct_action'])
+                                    && strpos($_POST['ct_action'], 'nicepagesrv') !== false
+                                ) {
+                                    $output['success'] = true;
+                                    echo \json_encode($output);
+                                    die();
+                                }
+                                
                                 $form_action = $_POST['ct_action'];
                                 $form_method = $_POST['ct_method'];
                                 unset($_POST['ct_action']);
