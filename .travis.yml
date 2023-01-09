@@ -26,7 +26,6 @@ before-install:
   - composer self-update --2
 
 before_script:
-  - source tests/wp-test-setup.sh wordpress_test root '' localhost latest
   - |
     if [[ "$TRAVISCI" == "phpunit" ]] ; then
       composer require phpunit/phpunit 7.*
