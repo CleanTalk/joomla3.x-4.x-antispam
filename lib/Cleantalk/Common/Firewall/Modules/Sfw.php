@@ -3,6 +3,7 @@
 namespace Cleantalk\Common\Firewall\Modules;
 
 use Cleantalk\Common\Firewall\Firewall;
+use Cleantalk\Common\Helper\Helper;
 use Cleantalk\Common\Mloader\Mloader;
 use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Get;
@@ -219,7 +220,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 		$id   = md5($ip . $this->module_name);
 		$time = time();
 
-		$this->db->prepare(
+		$this->db->prepareAndExecute(
 			"INSERT INTO " . $this->db__table__logs . "
             SET
                 id = '$id',
@@ -254,7 +255,6 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 				substr(Server::get('HTTP_HOST') . Server::get('REQUEST_URI'), 0, 100),
 			)
 		);
-		$this->db->execute($this->db->getQuery());
 	}
 
 	public function actionsForDenied($result)
@@ -382,7 +382,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 			// Debug
 			if ($this->debug) {
 				$debug = '<h1>Headers</h1>'
-					. var_export(apache_request_headers(), true)
+					. var_export(Helper::httpGetHeaders(), true)
 					. '<h1>REMOTE_ADDR</h1>'
 					. Server::get('REMOTE_ADDR')
 					. '<h1>SERVER_ADDR</h1>'
@@ -691,7 +691,8 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 				$exclusions[] = '127.0.0.1';
 				// And delete all 127.0.0.1 entries for local hosts
 			} else {
-				$delete_res = $db->execute('DELETE FROM ' . $db__table__data . ' WHERE network = ' . ip2long('127.0.0.1') . ';');
+                $sql_res = $db->execute('DELETE FROM ' . $db__table__data . ' WHERE network = ' . ip2long('127.0.0.1') . ';', true);
+                $delete_res = $db->getAffectedRows();
 				if ($delete_res > 0) {
 					$fw_stats->expected_networks_count -= $delete_res;
 					Firewall::saveFwStats($fw_stats);
@@ -709,7 +710,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 		}
 
 		if ($exclusions) {
-			$sql_result = $db->execute(substr($query, 0, -1) . ';');
+			$sql_result = $db->execute(substr($query, 0, -1) . ';', true);
 
 			return $sql_result === false
 				? array('error' => 'COULD_NOT_WRITE_TO_DB 4: ' . $db->getLastError())

@@ -2,15 +2,15 @@
 
 namespace Cleantalk\Common\StorageHandler;
 
-abstract class StorageHandler
+interface StorageHandler
 {
-	abstract public static function getSetting($setting_name);
+    public static function getSetting($setting_name);
 
-	abstract public static function deleteSetting($setting_name);
+    public static function deleteSetting($setting_name);
 
-	abstract public static function saveSetting($setting_name, $setting_value);
+    public static function saveSetting($setting_name, $setting_value);
 
-	abstract public static function getUpdatingFolder();
+    public static function getUpdatingFolder();
 
-	abstract public static function getJsLocation();
+    public static function getJsLocation();
 }

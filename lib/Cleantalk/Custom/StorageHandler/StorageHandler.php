@@ -2,7 +2,7 @@
 
 namespace Cleantalk\Custom\StorageHandler;
 
-class StorageHandler extends \Cleantalk\Common\StorageHandler\StorageHandler
+class StorageHandler implements \Cleantalk\Common\StorageHandler\StorageHandler
 {
 	public static function getSetting($setting_name)
 	{
