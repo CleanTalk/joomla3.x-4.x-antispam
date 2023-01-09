@@ -51,9 +51,8 @@ class FirewallUpdater
 	    $this->rc      = Mloader::get('RemoteCalls');
 	    $this->queue   = Mloader::get('Queue');
 		$this->fw      = $fw;
-		$fw_class = $fw;
-	    $this->api_key = $fw_class->api_key;
-		$this->fwStats = $fw_class::getFwStats();
+	    $this->api_key = $fw->api_key;
+		$this->fwStats = $fw::getFwStats();
     }
 
     public function update()
