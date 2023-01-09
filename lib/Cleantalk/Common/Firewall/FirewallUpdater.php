@@ -34,7 +34,7 @@ class FirewallUpdater
 	/**
 	 * @var Firewall
 	 */
-	private Firewall $fw;
+	private $fw;
 
 	/**
 	 * @var FwStats
