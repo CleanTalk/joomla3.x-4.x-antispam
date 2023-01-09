@@ -221,7 +221,8 @@ class plgSystemCleantalkantispam extends JPlugin
             $save_params = array();
             $result = null;
             if ($key_is_valid){
-                $result      = Mloader::get('Api')::methodNoticePaidTill($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
+                $api_class = Mloader::get('Api');
+                $result      = $api_class::methodNoticePaidTill($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
                 $ct_key_is_ok = (empty($result['error']) && $result['valid']) ? 1 : 0;
             }
 
@@ -852,6 +853,7 @@ class plgSystemCleantalkantispam extends JPlugin
         if ($_SERVER['REQUEST_METHOD'] == 'POST')
         {
             $this->ct_direct_post = 1;
+            $helper_class = Mloader::get('Helper');
 
             /*
                 Contact forms anti-spam code
@@ -901,7 +903,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
                 //BreezingForms
             }elseif ($option_cmd === 'com_breezingforms' && $ff_task === 'submit'){
-                $ct_temp_msg_data = Mloader::get('Helper')::get_fields_any($_POST, $this->params->get('fields_exclusions'));
+                $ct_temp_msg_data = $helper_class::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 
                 $sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
                 $sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
@@ -936,7 +938,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 } else {
                     $post_processed = $_POST;
                 }
-                $ct_temp_msg_data = Mloader::get('Helper')::get_fields_any($post_processed, $this->params->get('fields_exclusions'));
+                $ct_temp_msg_data = $helper_class::get_fields_any($post_processed, $this->params->get('fields_exclusions'));
                 $sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
                 $sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
                 $subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
@@ -950,7 +952,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			// General test for any forms or form with custom fields
 			else
 			{				
-				$ct_temp_msg_data = Mloader::get('Helper')::get_fields_any($_POST, $this->params->get('fields_exclusions'));
+				$ct_temp_msg_data = $helper_class::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
 				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
 				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
@@ -1173,7 +1175,7 @@ class plgSystemCleantalkantispam extends JPlugin
                                 unset($_POST['ct_action']);
                                 unset($_POST['ct_method']);
                                 print "<html><body><form method='$form_method' action='$form_action'>";
-	                            Mloader::get('Helper')::print_form($_POST, '');
+                                $helper_class::print_form($_POST, '');
                                 print "</form></body></html>";
                                 print "<script>
 									if(document.forms[0].submit != 'undefined'){
@@ -1776,12 +1778,14 @@ class plgSystemCleantalkantispam extends JPlugin
                 $ct_request->$k = $v;
             }
 
+            $helper_class = Mloader::get('Helper');
+
             $ct_request->auth_key        = $this->params->get('apikey');
             $ct_request->agent           = self::ENGINE;
             $ct_request->submit_time     = $this->submit_time_test();
-            $ct_request->sender_ip       = Mloader::get('Helper')::ipGet('real', false);
-            $ct_request->x_forwarded_for = Mloader::get('Helper')::ipGet('x_forwarded_for', false);
-            $ct_request->x_real_ip       = Mloader::get('Helper')::ipGet('x_real_ip', false);
+            $ct_request->sender_ip       = $helper_class::ipGet('real', false);
+            $ct_request->x_forwarded_for = $helper_class::ipGet('x_forwarded_for', false);
+            $ct_request->x_real_ip       = $helper_class::ipGet('x_real_ip', false);
             $ct_request->sender_info     = $this->get_sender_info();
             $ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
 
@@ -2139,7 +2143,8 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     static private function _apbct_alt_session__id__get()
     {
-        $id = Mloader::get('Helper')::ipGet('real')
+        $helper_class = Mloader::get('Helper');
+        $id = $helper_class::ipGet('real')
             . filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
             . filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
         return hash('sha256', $id);
@@ -2157,6 +2162,7 @@ class plgSystemCleantalkantispam extends JPlugin
         $amount         = $on_page;
         $last_id        = $offset;
         $jtable         = $db->loadAssocList();
+        $api_class = Mloader::get('Api');
         if (empty($jtable))
         {
             $output['data']   = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_JCOMMENTSNOTINSTALLED');
@@ -2202,13 +2208,13 @@ class plgSystemCleantalkantispam extends JPlugin
                         foreach ($data as $date => $values)
                         {
                             $values = implode(',', $values);
-                            $result = Mloader::get('Api')::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
+                            $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
                         }
                     }
                     else
                     {
                         $values = implode(',', $data);
-                        $result = Mloader::get('Api')::methodSpamCheckCms($this->params->get('apikey'), $values);
+                        $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values);
                     }
                     if ($result)
                     {
@@ -2274,6 +2280,7 @@ class plgSystemCleantalkantispam extends JPlugin
         $output['data']   = null;
         $amount           = $on_page;
         $last_id          = $offset;
+        $api_class = Mloader::get('Api');
         while (count($spam_users) < $on_page)
         {
             if ($last_id > 0)
@@ -2309,13 +2316,13 @@ class plgSystemCleantalkantispam extends JPlugin
                     foreach ($data as $date => $values)
                     {
                         $values = implode(',', $values);
-                        $result = Mloader::get('Api')::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
+                        $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
                     }
                 }
                 else
                 {
                     $values = implode(',', $data);
-                    $result = Mloader::get('Api')::methodSpamCheckCms($this->params->get('apikey'), $values);
+                    $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values);
                 }
                 if ($result)
                 {
@@ -2404,6 +2411,7 @@ class plgSystemCleantalkantispam extends JPlugin
     private function apbct_run_cron()
     {
 		$cron_class = Mloader::get('Cron');
+        $rc_class = Mloader::get('RemoteCalls');
 
         $cron = new $cron_class();
         if (!$this->params->get($cron->getCronOptionName())) {
@@ -2413,7 +2421,7 @@ class plgSystemCleantalkantispam extends JPlugin
         $tasks_to_run = $cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
         if(
             ! empty( $tasks_to_run ) && // There is tasks to run
-            ! Mloader::get('RemoteCalls')::check() && // Do not doing CRON in remote call action
+            ! $rc_class::check() && // Do not doing CRON in remote call action
             (
                 ! defined( 'DOING_CRON' ) ||
                 ( defined( 'DOING_CRON' ) && DOING_CRON !== true )

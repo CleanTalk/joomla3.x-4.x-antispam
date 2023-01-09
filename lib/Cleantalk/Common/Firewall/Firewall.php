@@ -126,7 +126,8 @@ class Firewall
 	public function __construct( $api_key, $log_table_name )
 	{
 		$this->helper         = Mloader::get('Helper');
-		$this->db             = Mloader::get('Db')::getInstance();
+		$db_class = Mloader::get('Db');
+		$this->db             = $db_class::getInstance();
 		$this->api            = Mloader::get('Api');
 
 	    $this->api_key        = $api_key;
@@ -248,7 +249,8 @@ class Firewall
 	 */
 	public function ipGet($ips_input = 'real', $v4_only = true)
 	{
-		$result = $this->helper::ipGet($ips_input, $v4_only);
+        $helper_class = $this->helper;
+		$result = $helper_class::ipGet($ips_input, $v4_only);
 
 		return ! empty($result) ? array('real' => $result) : array();
 	}
@@ -359,7 +361,8 @@ class Firewall
             unset( $key, $value );
 
             //Sending the request
-            $result = $this->api::methodSfwLogs( $this->api_key, $data );
+            $api_class = $this->api;
+            $result = $api_class::methodSfwLogs( $this->api_key, $data );
 
             //Checking answer and deleting all lines from the table
             if( empty( $result['error'] ) ){

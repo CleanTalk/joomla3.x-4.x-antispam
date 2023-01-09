@@ -73,9 +73,10 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 	public function ipAppendAdditional(& $ips)
 	{
 		$this->real_ip = isset($ips['real']) ? $ips['real'] : null;
+        $helper_class = $this->helper;
 
 		if (Get::get('sfw_test_ip')) {
-			if ($this->helper::ipValidate(Get::get('sfw_test_ip')) !== false) {
+			if ($helper_class::ipValidate(Get::get('sfw_test_ip')) !== false) {
 				$ips['sfw_test'] = Get::get('sfw_test_ip');
 				$this->test_ip   = Get::get('sfw_test_ip');
 				$this->test      = true;
@@ -92,6 +93,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 	{
 		$results = array();
 		$status  = 0;
+        $helper_class = $this->helper;
 
 		if ( $this->test ) {
 			unset($_COOKIE['ct_sfw_pass_key']);
@@ -168,9 +170,9 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 				foreach ($db_results as $db_result) {
 					$result_entry = array(
 						'ip'          => $current_ip,
-						'network'     => $this->helper::ipLong2ip($db_result['network'])
+						'network'     => $helper_class::ipLong2ip($db_result['network'])
 							. '/'
-							. $this->helper::ipMaskLongToNumber((int)$db_result['mask']),
+							. $helper_class::ipMaskLongToNumber((int)$db_result['mask']),
 						'is_personal' => $db_result['source'],
 					);
 
@@ -179,7 +181,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 						break;
 					}
 					if ((int)$db_result['status'] === 0) {
-						$this->blocked_ips[] = $this->helper::ipLong2ip($db_result['network']);
+						$this->blocked_ips[] = $helper_class::ipLong2ip($db_result['network']);
 						$result_entry['status'] = 'DENY_SFW';
 					}
 

@@ -51,8 +51,9 @@ class FirewallUpdater
 	    $this->rc      = Mloader::get('RemoteCalls');
 	    $this->queue   = Mloader::get('Queue');
 		$this->fw      = $fw;
-	    $this->api_key = $this->fw->api_key;
-		$this->fwStats = $this->fw::getFwStats();
+		$fw_class = $fw;
+	    $this->api_key = $fw_class->api_key;
+		$this->fwStats = $fw_class::getFwStats();
     }
 
     public function update()
@@ -90,12 +91,14 @@ class FirewallUpdater
 		// Get update period for server
 		/** @var \Cleantalk\Common\Dns\Dns $dns_class */
 		$dns_class = Mloader::get('Dns');
+        $fw_class = $this->fw;
+        $rc_class = $this->rc;
 		$update_period = $dns_class::getRecord('spamfirewall-ttl-txt.cleantalk.org', true, DNS_TXT);
 		$update_period = isset($update_period['txt']) ? $update_period['txt'] : 0;
 		$update_period = (int)$update_period > 14400 ? (int)$update_period : 14400;
 		if ( $this->fwStats->update_period != $update_period ) {
 			$this->fwStats->update_period = $update_period;
-			$this->fw::saveFwStats($this->fwStats);
+            $fw_class::saveFwStats($this->fwStats);
 		}
 
 		/** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler */
@@ -103,8 +106,7 @@ class FirewallUpdater
 		$this->fwStats->updating_folder = $storage_handler::getUpdatingFolder();
 
 		$prepare_dir__result = $this->prepareUpdDir();
-
-		$test_rc_result = $this->rc::perform(
+		$test_rc_result = $rc_class::perform(
 			'sfw_update',
 			'apbct',
 			$this->api_key,
@@ -119,7 +121,7 @@ class FirewallUpdater
 		$this->fwStats->calls               = 0;
 		$this->fwStats->updating_id         = md5((string)rand(0, 100000));
 		$this->fwStats->updating_last_start = time();
-		$this->fw::saveFwStats($this->fwStats);
+        $fw_class::saveFwStats($this->fwStats);
 
 		Queue::clearQueue();
 
@@ -129,7 +131,7 @@ class FirewallUpdater
 		$cron = new \Cleantalk\Common\Cron\Cron();
 		$cron->addTask('sfw_update_checker', 'apbct_sfw_update__checker', 15, null. $this->api_key);
 
-		return $this->rc::perform(
+		return $rc_class::perform(
 			'sfw_update',
 			'apbct',
 			$this->api_key,
@@ -166,8 +168,9 @@ class FirewallUpdater
 			$this->fwStats->calls = 0;
 		}
 
+        $fw_class = $this->fw;
 		$this->fwStats->calls++;
-		$this->fw::saveFwStats($this->fwStats);
+        $fw_class::saveFwStats($this->fwStats);
 
 		if ( $this->fwStats->calls > 600 ) {
 			throw new SfwUpdateException('updateWorker: Worker call limit exceeded');
@@ -234,8 +237,8 @@ class FirewallUpdater
 		if ( stripos(Request::get('stage'), 'Repeat') !== false ) {
 			return true;
 		}
-
-		return $this->rc::perform(
+        $rc_class = $this->rc;
+		return $rc_class::perform(
 			'sfw_update',
 			'apbct',
 			$this->api_key,
