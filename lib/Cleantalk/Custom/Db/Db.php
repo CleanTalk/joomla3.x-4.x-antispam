@@ -20,7 +20,7 @@ class Db extends \Cleantalk\Common\Db\Db
      *
      * @return bool|int Raw result
      */
-    public function execute( $query ) {
+    public function execute($query, $return_affected = false) {
         $this->dbResult = \JFactory::getDBO()->setQuery($query)->execute();
         return $this->dbResult;
     }
