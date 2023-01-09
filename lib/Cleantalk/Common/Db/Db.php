@@ -99,15 +99,22 @@ abstract class Db
 		return vsprintf($query, $vars);
 	}
 
+    public function prepareAndExecute($query, $vars = array())
+    {
+        $this->prepare($query, $vars);
+        return $this->execute($this->query);
+    }
+
     /**
      * Run any raw request
      *
-     * @param $query
+     * @param $query string
+     * @param $return_affected bool Need to the drupal class
      *
      * @return bool|int|void Raw result
      * @psalm-suppress PossiblyUnusedParam
      */
-    abstract public function execute($query);
+    abstract public function execute($query, $return_affected = false);
 
     /**
      * Fetchs first column from query.
