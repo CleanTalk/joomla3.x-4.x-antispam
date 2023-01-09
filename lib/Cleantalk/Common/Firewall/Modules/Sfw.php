@@ -3,6 +3,7 @@
 namespace Cleantalk\Common\Firewall\Modules;
 
 use Cleantalk\Common\Firewall\Firewall;
+use Cleantalk\Common\Helper\Helper;
 use Cleantalk\Common\Mloader\Mloader;
 use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Get;
@@ -380,7 +381,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 			// Debug
 			if ($this->debug) {
 				$debug = '<h1>Headers</h1>'
-					. var_export(apache_request_headers(), true)
+					. var_export(Helper::httpGetHeaders(), true)
 					. '<h1>REMOTE_ADDR</h1>'
 					. Server::get('REMOTE_ADDR')
 					. '<h1>SERVER_ADDR</h1>'

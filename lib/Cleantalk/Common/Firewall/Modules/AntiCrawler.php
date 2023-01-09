@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Common\Firewall\Modules;
 
+use Cleantalk\Common\Helper\Helper;
 use Cleantalk\Common\Mloader\Mloader;
 use Cleantalk\Common\Cleaner\Validate;
 use Cleantalk\Common\Variables\Cookie;
@@ -498,7 +499,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
             if ( Get::get('debug') ) {
                 $debug = '<h1>Headers</h1>'
-                         . str_replace("\n", "<br>", print_r(\apache_request_headers(), true))
+                         . str_replace("\n", "<br>", print_r(Helper::httpGetHeaders(), true))
                          . '<h1>$_SERVER</h1>'
                          . str_replace("\n", "<br>", print_r($_SERVER, true))
                          . '<h1>AC_LOG_RESULT</h1>'
