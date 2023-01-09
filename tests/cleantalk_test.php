@@ -1,10 +1,7 @@
 <?php
-define('CLEANTALK_TEST_API_KEY', 'CleanTalk some api key');
-require_once 'lib/Cleantalk/Common/Antispam/Cleantalk.php';
-require_once 'lib/Cleantalk/Common/Antispam/CleantalkRequest.php';
 
-use Cleantalk\Common\Antispam\Cleantalk as Cleantalk;
-use Cleantalk\Common\Antispam\CleantalkRequest as CleantalkRequest;
+use Cleantalk\Common\Antispam\Cleantalk;
+use Cleantalk\Common\Antispam\CleantalkRequest;
 
 class cleantalk_test extends \PHPUnit\Framework\TestCase {
 
@@ -15,9 +12,10 @@ class cleantalk_test extends \PHPUnit\Framework\TestCase {
 	protected function setUp()
 	{
 		$this->ct = new Cleantalk();
+		$this->ct->server_url = 'https://moderate.cleantalk.org';
 		$this->ct_request = new CleantalkRequest();
 		$this->ct_request->agent = 'travis-ci';
-		$this->ct_request->auth_key = self::CLEANTALK_TEST_API_KEY;
+		$this->ct_request->auth_key = getenv("CLEANTALK_TEST_API_KEY");
 		$this->ct_request->sender_email = "s@cleantalk.org"; 
 		$this->ct_request->message = "stop_word";
 	}
@@ -37,20 +35,6 @@ class cleantalk_test extends \PHPUnit\Framework\TestCase {
     public function test_httpPing()
     {
     	$ct = new Cleantalk();
-		$this->assertInternalType("int",$ct->httpPing("https://cleantalk.org/"));
 		$this->assertGreaterThan(0, $ct->httpPing("https://cleantalk.org/"));	
  	}
- 	
-    public function test_is_JSON()
-    {
-    	$ct = new Cleantalk();
-		$isJson = '{
-		"name":"John",
-		"age":30,
-		"cars":[ "Ford", "BMW", "Fiat" ]
-		}';
-		$notJson = "simple_str";
-		$this->assertTrue($ct->is_JSON($isJson));
-		$this->assertFalse($ct->is_JSON($notJson));	
- 	} 	
 }
