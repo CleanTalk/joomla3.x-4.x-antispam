@@ -794,7 +794,7 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             if ($this->params->get('form_protection') && in_array('check_search', $this->params->get('form_protection')))
             {
-                if (isset($_GET['searchword']) && $_GET['searchword'] != '' && (strpos($_SERVER['REQUEST_URI'], '/component/search/') !== false || strpos($_SERVER['REQUEST_URI'], '/components/search-component/') !== false)) // Search form
+                if ( $option_cmd === 'com_search' && isset($_GET['searchword']) && $_GET['searchword'] !== '' ) // Search form
                 {
                     $post_info['comment_type'] = 'site_search_joomla34';
                     $sender_email              = JFactory::getUser()->email;
