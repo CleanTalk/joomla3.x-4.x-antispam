@@ -738,7 +738,6 @@ class plgSystemCleantalkantispam extends JPlugin
         $task_cmd   = $app->input->get('task');
         $ctask_cmd  = $app->input->get('ctask');
         $page_cmd   = $app->input->get('page');
-		$ff_task    = $app->input->get('ff_task'); // Breezingform Integration
         $urls       = $this->params->get('url_exclusions');
 
         /**
@@ -902,7 +901,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $post_info['comment_type'] = 'contact_form_joomla_vtem';
 
                 //BreezingForms
-            }elseif ($option_cmd === 'com_breezingforms' && $ff_task === 'submit'){
+            }elseif ($option_cmd === 'com_breezingforms'){
                 $ct_temp_msg_data = $helper_class::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 
                 $sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
@@ -969,7 +968,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 ! empty( $_POST ) &&
                 ! $this->exceptionList() &&
                 (
-                    ! ( empty( $sender_email ) && ! $this->is_direct_integration() ) ||
+                    ! ( empty( $sender_email ) && ! $this->is_direct_integration($post_info) ) ||
                     ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
                 ) &&
                 ( $this->params->get( 'form_protection' ) &&
@@ -2662,7 +2661,7 @@ class plgSystemCleantalkantispam extends JPlugin
         return false;
     }
 
-    public function is_direct_integration()
+    public function is_direct_integration($post_info)
 	{
 		return isset($post_info['comment_type']) && $post_info['comment_type'] !== 'feedback_general_contact_form';
 	}
