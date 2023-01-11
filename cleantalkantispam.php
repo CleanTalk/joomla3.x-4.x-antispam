@@ -901,7 +901,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $post_info['comment_type'] = 'contact_form_joomla_vtem';
 
                 //BreezingForms
-            }elseif ($option_cmd === 'com_breezingforms'){
+            }elseif ($option_cmd === 'com_breezingforms' && $app->input->get('ff_task') === 'submit'){
                 $ct_temp_msg_data = $helper_class::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 
                 $sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
