@@ -2154,7 +2154,6 @@ class plgSystemCleantalkantispam extends JPlugin
         $db               = JFactory::getDBO();
         $output['result'] = null;
         $output['data']   = null;
-        $data             = array();
         $spam_comments    = array();
         $db->setQuery("SHOW TABLES LIKE '%jcomments'");
         $improved_check = ($_POST['improved_check'] == 'true') ? true : false;
@@ -2171,6 +2170,7 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             while (count($spam_comments) < $on_page)
             {
+                $data = array();
                 if ($last_id > 0)
                 {
                     $offset = 0;
@@ -2273,7 +2273,6 @@ class plgSystemCleantalkantispam extends JPlugin
     private function get_spam_users($offset = 0, $on_page = 20, $improved_check = false)
     {
         $db               = JFactory::getDBO();
-        $data             = array();
         $spam_users       = array();
         $output['result'] = null;
         $output['data']   = null;
@@ -2282,7 +2281,8 @@ class plgSystemCleantalkantispam extends JPlugin
         $api_class = Mloader::get('Api');
         while (count($spam_users) < $on_page)
         {
-            if ($last_id > 0)
+            $data = array();
+            if ((int)$last_id > 0)
             {
                 $offset = 0;
                 $db->setQuery("SELECT * FROM `#__users` WHERE id > " . $last_id . " LIMIT " . $offset . ", " . $amount);
