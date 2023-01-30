@@ -18,7 +18,7 @@
 		<filename plugin="cleantalkantispam">js/ct-external.js</filename>
 		<filename plugin="cleantalkantispam">css/ct-settings.css</filename>
 		<filename plugin="cleantalkantispam">img/preloader.gif</filename>
-		<folder>sql/mysql</folder>
+		<folder>sql/</folder>
 		<folder>lib/</folder>
     </files>
     <languages folder="language">
