@@ -943,6 +943,18 @@ class plgSystemCleantalkantispam extends JPlugin
 
             }
 
+			// eShop integration
+	        if ( $option_cmd === 'com_eshop' ) {
+				if ( $task_cmd === 'checkout.register' ) {
+					$this->moderateUser();
+				} else {
+					// Skip catching any requests because have the direct integration.
+					//@see hook onAfterStoreOrder
+					//@see hook onAfterCompleteOrder
+					return;
+				}
+	        }
+
             if (
                 ! empty( $_POST ) &&
                 ! $this->exceptionList() &&
@@ -1153,6 +1165,59 @@ class plgSystemCleantalkantispam extends JPlugin
 
 
     }
+
+	/**
+	 * EShop integration
+	 * @param OrderEshop $orderRow
+	 *
+	 * @throws Exception
+	 */
+	public function onAfterStoreOrder($orderRow)
+	{
+		$sender_nickname = $orderRow->firstname;
+		$sender_nickname .= $orderRow->lastname;
+		$sender_email = $orderRow->email;
+		$message = $orderRow->comment;
+		$post_info['comment_type'] = 'contact_form_joomla_eshop__order';
+		$ctResponse = $this->ctSendRequest(
+			'check_message',
+			array(
+				'sender_nickname' => $sender_nickname,
+				'sender_email'    => $sender_email,
+				'message'         => $message,
+				'post_info'       => json_encode($post_info),
+			)
+		);
+		if ( isset($ctResponse['allow']) && $ctResponse['allow'] == 0  ) {
+			$this->apbctEshopIsSpam = true;
+			$this->apbctBlockComment = $ctResponse['comment'];
+		}
+
+	}
+
+	/**
+	 * EShop integration
+	 * @param OrderEshop $orderRow
+	 *
+	 * @throws Exception
+	 */
+	public function onAfterCompleteOrder($orderRow)
+	{
+		if ( $this->apbctEshopIsSpam ) {
+			$row = JTable::getInstance('Eshop', 'Order');
+			$id  = $orderRow->id;
+			$row->load($id);
+			$row->order_status_id = 1; // Set Order status "Cancelled"
+			$row->comment = 'Get out!'; // Add CleanTalk block message to the comment
+			$row->store();
+
+			EshopHelper::updateInventory($row);
+
+			$this->doBlockPage($this->apbctBlockComment);
+
+		}
+
+	}
 
     ////////////////////////////
     // com_contact related sutff
@@ -1535,9 +1600,17 @@ class plgSystemCleantalkantispam extends JPlugin
                     }
                     else
                     {
+	                    $app = JFactory::getApplication();
+
+						if (
+							$app->input->get('option') === 'com_eshop' &&
+							$app->input->get('task') === 'checkout.register'
+						) {
+							$out['error']['username'] = $ctResponse['comment'];
+							die(json_encode($out));
+						}
                         // JoomShopping integration
                         // @ToDo make it better
-                        $app = JFactory::getApplication();
                         if( 'registersave' == $app->input->get('task') )
                         {
                             die($ctResponse['comment']);
