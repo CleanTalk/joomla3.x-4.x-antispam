@@ -818,28 +818,7 @@ class plgSystemCleantalkantispam extends JPlugin
                             {
                                 if ($ctResponse['allow'] == 0)
                                 {
-	                                $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
-
-	                                $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
-	                                $back_script = '<script>setTimeout("history.back()", 5000);</script>';
-	                                $back_link = '';
-	                                if ( isset($_SERVER['HTTP_REFERER']) ) {
-		                                $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
-	                                }
-
-	                                // Translation
-	                                $replaces = array(
-		                                '{MESSAGE_TITLE}' => $message_title,
-		                                '{MESSAGE}'       => $ctResponse['comment'],
-		                                '{BACK_LINK}'     => $back_link,
-		                                '{BACK_SCRIPT}'   => $back_script
-	                                );
-
-	                                foreach ( $replaces as $place_holder => $replace ) {
-		                                $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
-	                                }
-	                                print $ct_die_page;
-                                    die();
+	                                $this->doBlockPage($ctResponse['comment']);
 
                                 }
                             }
@@ -1017,13 +996,13 @@ class plgSystemCleantalkantispam extends JPlugin
                     $post_info['comment_type'] = 'feedback_general_contact_form';
 
                 $ctResponse = $this->ctSendRequest(
-                    'check_message', array(
-                                       'sender_nickname' => $sender_nickname,
-                                       'sender_email'    => $sender_email,
-//						'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
-                                       'message'         => $message,
-                                       'post_info'       => json_encode($post_info),
-                                   )
+                    'check_message',
+                    array(
+                        'sender_nickname' => $sender_nickname,
+                        'sender_email'    => $sender_email,
+                        'message'         => $message,
+                        'post_info'       => json_encode($post_info),
+                    )
                 );
 
                 if ($ctResponse)
@@ -1133,28 +1112,7 @@ class plgSystemCleantalkantispam extends JPlugin
                                 }
                                 else
                                 {
-	                                $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
-
-	                                $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
-	                                $back_script = '<script>setTimeout("history.back()", 5000);</script>';
-	                                $back_link = '';
-	                                if ( isset($_SERVER['HTTP_REFERER']) ) {
-		                                $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
-	                                }
-
-	                                // Translation
-	                                $replaces = array(
-		                                '{MESSAGE_TITLE}' => $message_title,
-		                                '{MESSAGE}'       => $ctResponse['comment'],
-		                                '{BACK_LINK}'     => $back_link,
-		                                '{BACK_SCRIPT}'   => $back_script
-	                                );
-
-	                                foreach ( $replaces as $place_holder => $replace ) {
-		                                $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
-	                                }
-	                                print $ct_die_page;
-                                    die();
+	                                $this->doBlockPage($ctResponse['comment']);
                                 }
                             }
                             elseif ($ctResponse['allow'] == 1 && ($this->params->get('form_protection') && in_array('check_external', $this->params->get('form_protection'))) && isset($_POST['ct_action'], $_POST['ct_method']) && strpos($_POST['ct_action'], 'paypal.com') === false)
@@ -1248,28 +1206,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 {
                     if ($ctResponse['allow'] == 0)
                     {
-	                    $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
-
-	                    $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
-	                    $back_script = '<script>setTimeout("history.back()", 5000);</script>';
-	                    $back_link = '';
-	                    if ( isset($_SERVER['HTTP_REFERER']) ) {
-		                    $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
-	                    }
-
-	                    // Translation
-	                    $replaces = array(
-		                    '{MESSAGE_TITLE}' => $message_title,
-		                    '{MESSAGE}'       => $ctResponse['comment'],
-		                    '{BACK_LINK}'     => $back_link,
-		                    '{BACK_SCRIPT}'   => $back_script
-	                    );
-
-	                    foreach ( $replaces as $place_holder => $replace ) {
-		                    $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
-	                    }
-                        print $ct_die_page;
-                        die();
+	                    $this->doBlockPage($ctResponse['comment']);
                     }
                 }
             }
@@ -2664,5 +2601,31 @@ class plgSystemCleantalkantispam extends JPlugin
     public function is_direct_integration($post_info)
 	{
 		return isset($post_info['comment_type']) && $post_info['comment_type'] !== 'feedback_general_contact_form';
+	}
+
+	private function doBlockPage($apbctBlockComment)
+	{
+		$ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
+
+		$message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
+		$back_script = '<script>setTimeout("history.back()", 5000);</script>';
+		$back_link = '';
+		if ( isset($_SERVER['HTTP_REFERER']) ) {
+			$back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
+		}
+
+		// Translation
+		$replaces = array(
+			'{MESSAGE_TITLE}' => $message_title,
+			'{MESSAGE}'       => $apbctBlockComment,
+			'{BACK_LINK}'     => $back_link,
+			'{BACK_SCRIPT}'   => $back_script
+		);
+
+		foreach ( $replaces as $place_holder => $replace ) {
+			$ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
+		}
+		print $ct_die_page;
+		die();
 	}
 }
