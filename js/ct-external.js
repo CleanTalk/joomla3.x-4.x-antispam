@@ -3,7 +3,12 @@ function ct_check_external(){
     for(var i = 0, host = '', action = ''; i < document.forms.length; i++){
         var form = document.forms[i];
 
-        if( typeof(form.action) == 'string' ){
+        if( typeof(form.action) == 'string' ) {
+
+            //skip excluded forms
+            if ( formIsExclusion(form)) {
+                return;
+            }
 
             action = document.forms[i].action;
             if( action.indexOf('http://') != -1 || action.indexOf('https://') != -1 ){
@@ -42,3 +47,49 @@ document.addEventListener('DOMContentLoaded', function() {
         ct_check_external();
     }, 1500);
 });
+
+function formIsExclusion(currentForm)
+{
+    let exclusions_by_id = [
+    ]
+
+    let exclusions_by_role = [
+    ]
+
+    let exclusions_by_class = [
+    ]
+
+    let result = false
+
+    try {
+        action = document.forms[i].action;
+        if (action.indexOf('cloudbeds.com') != -1) {
+            result = true;
+        }
+
+        exclusions_by_id.forEach(function (exclusion_id) {
+            const form_id = currentForm.getAttribute('id')
+            if ( form_id !== null && typeof (form_id) !== 'undefined' && form_id.indexOf(exclusion_id) !== -1 ) {
+                result = true
+            }
+        })
+
+        exclusions_by_class.forEach(function (exclusion_class) {
+            const form_class = currentForm.getAttribute('class')
+            if ( form_class !== null && typeof form_class !== 'undefined' && form_class.indexOf(exclusion_class) !== -1 ) {
+                result = true
+            }
+        })
+
+        exclusions_by_role.forEach(function (exclusion_role) {
+            const form_role = currentForm.getAttribute('id')
+            if ( form_role !== null && typeof form_role !== 'undefined'&& form_role.indexOf(exclusion_role) !== -1 ) {
+                result = true
+            }
+        })
+    } catch (e) {
+        console.table('APBCT ERROR: formIsExclusion() - ',e)
+    }
+
+    return result
+}
