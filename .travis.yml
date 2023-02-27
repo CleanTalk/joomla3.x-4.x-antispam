@@ -1,10 +1,48 @@
+dist: trusty
+
+os: linux
+
 language: php
+
+notifications:
+  email:
+    recipients:
+      - plugins@cleantalk.org
+    on_failure: always
+    on_success: never
+
+branches:
+  only:
+    - master
+    - dev
+    - fix
+
 jobs:
   include:
-    - php: 5.3
-      dist: precise
-php:
-  - 5.6
-  - 7.0
-  - 7.1
-script: phpunit --configuration tests/phpunit.xml --coverage-text  
+    - env: TRAVISCI=phpunit
+    - env: TRAVISCI=phpcs
+
+before-install:
+  - composer self-update --2
+
+before_script:
+  - |
+    if [[ "$TRAVISCI" == "phpunit" ]] ; then
+      composer require phpunit/phpunit 7.*
+    fi
+  - |
+    if [[ "$TRAVISCI" == "phpcs" ]] ; then
+      composer require squizlabs/php_codesniffer
+      composer require phpcompatibility/php-compatibility
+      vendor/bin/phpcs --config-set installed_paths vendor/phpcompatibility/php-compatibility
+    fi
+
+script:
+  - |
+    if [[ "$TRAVISCI" == "phpunit" ]] ; then
+      vendor/bin/phpunit --configuration tests/phpunit.xml --coverage-text
+    fi
+  - |
+    if [[ "$TRAVISCI" == "phpcs" ]] ; then
+      vendor/bin/phpcs --standard=tests/.phpcs.xml
+    fi

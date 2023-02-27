@@ -29,5 +29,11 @@ CREATE TABLE IF NOT EXISTS `#__cleantalk_sessions` (
   `last_update` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`name`(40), `id`(64))
 );
+CREATE TABLE IF NOT EXISTS `#__cleantalk_ua_bl` (
+    `id` int(11) NOT NULL,
+    `ua_template` varchar(255) DEFAULT NULL,
+    `ua_status` tinyint(4) DEFAULT NULL,
+    PRIMARY KEY (`id`)
+);
 UPDATE `#__extensions` SET params = '{"form_protection":["check_register","check_contact_forms","check_search"],"comments_and_messages":["jcomments_check_comments"],"roles_exclusions":"administrator,super users","cookies":["set_cookies"]}'
 WHERE element = 'cleantalkantispam' AND folder = 'system';

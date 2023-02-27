@@ -89,7 +89,8 @@ abstract class FirewallModule {
 	public function __construct($log_table, $data_table, $params = array())
 	{
 		$this->helper = Mloader::get('Helper');
-		$this->db     = Mloader::get('Db')::getInstance();
+		$db_class = Mloader::get('Db');
+		$this->db     = $db_class::getInstance();
 	}
 
     /**
@@ -124,8 +125,9 @@ abstract class FirewallModule {
     public function ipAppendAdditional(& $ips)
 	{
 		$this->real_ip = isset($ips['real']) ? $ips['real'] : null;
+        $helper_class = $this->helper;
 
-		if( Get::get('sfw_test_ip') && $this->helper::ipValidate( Get::get('sfw_test_ip') ) !== false ) {
+		if( Get::get('sfw_test_ip') && $helper_class::ipValidate( Get::get('sfw_test_ip') ) !== false ) {
             $this->ip_array['sfw_test'] = Get::get( 'sfw_test_ip' );
             $this->test_ip   = Get::get( 'sfw_test_ip' );
             $this->test      = true;

@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       3.0.2
+ * @version       3.1.0
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -55,7 +55,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * Plugin version string for server
      * @since         1.0
      */
-    const ENGINE = 'joomla34-302';
+    const ENGINE = 'joomla34-310';
 
 	/**
 	 * Flag marked JComments form initialization.
@@ -221,7 +221,8 @@ class plgSystemCleantalkantispam extends JPlugin
             $save_params = array();
             $result = null;
             if ($key_is_valid){
-                $result      = Mloader::get('Api')::methodNoticePaidTill($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
+                $api_class = Mloader::get('Api');
+                $result      = $api_class::methodNoticePaidTill($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
                 $ct_key_is_ok = (empty($result['error']) && $result['valid']) ? 1 : 0;
             }
 
@@ -737,7 +738,6 @@ class plgSystemCleantalkantispam extends JPlugin
         $task_cmd   = $app->input->get('task');
         $ctask_cmd  = $app->input->get('ctask');
         $page_cmd   = $app->input->get('page');
-		$ff_task    = $app->input->get('ff_task'); // Breezingform Integration
         $urls       = $this->params->get('url_exclusions');
 
         /**
@@ -793,7 +793,7 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             if ($this->params->get('form_protection') && in_array('check_search', $this->params->get('form_protection')))
             {
-                if (isset($_GET['searchword']) && $_GET['searchword'] != '' && (strpos($_SERVER['REQUEST_URI'], '/component/search/') !== false || strpos($_SERVER['REQUEST_URI'], '/components/search-component/') !== false)) // Search form
+                if ( $option_cmd === 'com_search' && isset($_GET['searchword']) && $_GET['searchword'] !== '' ) // Search form
                 {
                     $post_info['comment_type'] = 'site_search_joomla34';
                     $sender_email              = JFactory::getUser()->email;
@@ -818,28 +818,7 @@ class plgSystemCleantalkantispam extends JPlugin
                             {
                                 if ($ctResponse['allow'] == 0)
                                 {
-	                                $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
-
-	                                $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
-	                                $back_script = '<script>setTimeout("history.back()", 5000);</script>';
-	                                $back_link = '';
-	                                if ( isset($_SERVER['HTTP_REFERER']) ) {
-		                                $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
-	                                }
-
-	                                // Translation
-	                                $replaces = array(
-		                                '{MESSAGE_TITLE}' => $message_title,
-		                                '{MESSAGE}'       => $ctResponse['comment'],
-		                                '{BACK_LINK}'     => $back_link,
-		                                '{BACK_SCRIPT}'   => $back_script
-	                                );
-
-	                                foreach ( $replaces as $place_holder => $replace ) {
-		                                $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
-	                                }
-	                                print $ct_die_page;
-                                    die();
+	                                $this->doBlockPage($ctResponse['comment']);
 
                                 }
                             }
@@ -852,6 +831,7 @@ class plgSystemCleantalkantispam extends JPlugin
         if ($_SERVER['REQUEST_METHOD'] == 'POST')
         {
             $this->ct_direct_post = 1;
+            $helper_class = Mloader::get('Helper');
 
             /*
                 Contact forms anti-spam code
@@ -900,8 +880,8 @@ class plgSystemCleantalkantispam extends JPlugin
                 $post_info['comment_type'] = 'contact_form_joomla_vtem';
 
                 //BreezingForms
-            }elseif ($option_cmd === 'com_breezingforms' && $ff_task === 'submit'){
-                $ct_temp_msg_data = Mloader::get('Helper')::get_fields_any($_POST, $this->params->get('fields_exclusions'));
+            }elseif ($option_cmd === 'com_breezingforms' && $app->input->get('ff_task') === 'submit'){
+                $ct_temp_msg_data = $helper_class::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 
                 $sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
                 $sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
@@ -936,7 +916,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 } else {
                     $post_processed = $_POST;
                 }
-                $ct_temp_msg_data = Mloader::get('Helper')::get_fields_any($post_processed, $this->params->get('fields_exclusions'));
+                $ct_temp_msg_data = $helper_class::get_fields_any($post_processed, $this->params->get('fields_exclusions'));
                 $sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
                 $sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
                 $subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
@@ -950,7 +930,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			// General test for any forms or form with custom fields
 			else
 			{				
-				$ct_temp_msg_data = Mloader::get('Helper')::get_fields_any($_POST, $this->params->get('fields_exclusions'));
+				$ct_temp_msg_data = $helper_class::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 				$sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
 				$sender_nickname  = ($ct_temp_msg_data['nickname'] ? $ct_temp_msg_data['nickname'] : '');
 				$subject          = ($ct_temp_msg_data['subject'] ? $ct_temp_msg_data['subject'] : '');
@@ -967,7 +947,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 ! empty( $_POST ) &&
                 ! $this->exceptionList() &&
                 (
-                    ! ( empty( $sender_email ) && ! $this->is_direct_integration() ) ||
+                    ! ( empty( $sender_email ) && ! $this->is_direct_integration($post_info) ) ||
                     ( $this->params->get( 'data_processing' ) && in_array( 'check_all_post', $this->params->get( 'data_processing' ) ) )
                 ) &&
                 ( $this->params->get( 'form_protection' ) &&
@@ -1016,13 +996,13 @@ class plgSystemCleantalkantispam extends JPlugin
                     $post_info['comment_type'] = 'feedback_general_contact_form';
 
                 $ctResponse = $this->ctSendRequest(
-                    'check_message', array(
-                                       'sender_nickname' => $sender_nickname,
-                                       'sender_email'    => $sender_email,
-//						'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
-                                       'message'         => $message,
-                                       'post_info'       => json_encode($post_info),
-                                   )
+                    'check_message',
+                    array(
+                        'sender_nickname' => $sender_nickname,
+                        'sender_email'    => $sender_email,
+                        'message'         => $message,
+                        'post_info'       => json_encode($post_info),
+                    )
                 );
 
                 if ($ctResponse)
@@ -1132,28 +1112,7 @@ class plgSystemCleantalkantispam extends JPlugin
                                 }
                                 else
                                 {
-	                                $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
-
-	                                $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
-	                                $back_script = '<script>setTimeout("history.back()", 5000);</script>';
-	                                $back_link = '';
-	                                if ( isset($_SERVER['HTTP_REFERER']) ) {
-		                                $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
-	                                }
-
-	                                // Translation
-	                                $replaces = array(
-		                                '{MESSAGE_TITLE}' => $message_title,
-		                                '{MESSAGE}'       => $ctResponse['comment'],
-		                                '{BACK_LINK}'     => $back_link,
-		                                '{BACK_SCRIPT}'   => $back_script
-	                                );
-
-	                                foreach ( $replaces as $place_holder => $replace ) {
-		                                $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
-	                                }
-	                                print $ct_die_page;
-                                    die();
+	                                $this->doBlockPage($ctResponse['comment']);
                                 }
                             }
                             elseif ($ctResponse['allow'] == 1 && ($this->params->get('form_protection') && in_array('check_external', $this->params->get('form_protection'))) && isset($_POST['ct_action'], $_POST['ct_method']) && strpos($_POST['ct_action'], 'paypal.com') === false)
@@ -1173,7 +1132,7 @@ class plgSystemCleantalkantispam extends JPlugin
                                 unset($_POST['ct_action']);
                                 unset($_POST['ct_method']);
                                 print "<html><body><form method='$form_method' action='$form_action'>";
-	                            Mloader::get('Helper')::print_form($_POST, '');
+                                $helper_class::print_form($_POST, '');
                                 print "</form></body></html>";
                                 print "<script>
 									if(document.forms[0].submit != 'undefined'){
@@ -1247,28 +1206,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 {
                     if ($ctResponse['allow'] == 0)
                     {
-	                    $ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
-
-	                    $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
-	                    $back_script = '<script>setTimeout("history.back()", 5000);</script>';
-	                    $back_link = '';
-	                    if ( isset($_SERVER['HTTP_REFERER']) ) {
-		                    $back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
-	                    }
-
-	                    // Translation
-	                    $replaces = array(
-		                    '{MESSAGE_TITLE}' => $message_title,
-		                    '{MESSAGE}'       => $ctResponse['comment'],
-		                    '{BACK_LINK}'     => $back_link,
-		                    '{BACK_SCRIPT}'   => $back_script
-	                    );
-
-	                    foreach ( $replaces as $place_holder => $replace ) {
-		                    $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
-	                    }
-                        print $ct_die_page;
-                        die();
+	                    $this->doBlockPage($ctResponse['comment']);
                     }
                 }
             }
@@ -1776,12 +1714,14 @@ class plgSystemCleantalkantispam extends JPlugin
                 $ct_request->$k = $v;
             }
 
+            $helper_class = Mloader::get('Helper');
+
             $ct_request->auth_key        = $this->params->get('apikey');
             $ct_request->agent           = self::ENGINE;
             $ct_request->submit_time     = $this->submit_time_test();
-            $ct_request->sender_ip       = Mloader::get('Helper')::ipGet('real', false);
-            $ct_request->x_forwarded_for = Mloader::get('Helper')::ipGet('x_forwarded_for', false);
-            $ct_request->x_real_ip       = Mloader::get('Helper')::ipGet('x_real_ip', false);
+            $ct_request->sender_ip       = $helper_class::ipGet('real', false);
+            $ct_request->x_forwarded_for = $helper_class::ipGet('x_forwarded_for', false);
+            $ct_request->x_real_ip       = $helper_class::ipGet('x_real_ip', false);
             $ct_request->sender_info     = $this->get_sender_info();
             $ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
 
@@ -2139,7 +2079,8 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     static private function _apbct_alt_session__id__get()
     {
-        $id = Mloader::get('Helper')::ipGet('real')
+        $helper_class = Mloader::get('Helper');
+        $id = $helper_class::ipGet('real')
             . filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
             . filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
         return hash('sha256', $id);
@@ -2150,13 +2091,13 @@ class plgSystemCleantalkantispam extends JPlugin
         $db               = JFactory::getDBO();
         $output['result'] = null;
         $output['data']   = null;
-        $data             = array();
         $spam_comments    = array();
         $db->setQuery("SHOW TABLES LIKE '%jcomments'");
         $improved_check = ($_POST['improved_check'] == 'true') ? true : false;
         $amount         = $on_page;
         $last_id        = $offset;
         $jtable         = $db->loadAssocList();
+        $api_class = Mloader::get('Api');
         if (empty($jtable))
         {
             $output['data']   = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_JCOMMENTSNOTINSTALLED');
@@ -2166,6 +2107,7 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             while (count($spam_comments) < $on_page)
             {
+                $data = array();
                 if ($last_id > 0)
                 {
                     $offset = 0;
@@ -2202,13 +2144,13 @@ class plgSystemCleantalkantispam extends JPlugin
                         foreach ($data as $date => $values)
                         {
                             $values = implode(',', $values);
-                            $result = Mloader::get('Api')::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
+                            $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
                         }
                     }
                     else
                     {
                         $values = implode(',', $data);
-                        $result = Mloader::get('Api')::methodSpamCheckCms($this->params->get('apikey'), $values);
+                        $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values);
                     }
                     if ($result)
                     {
@@ -2268,15 +2210,16 @@ class plgSystemCleantalkantispam extends JPlugin
     private function get_spam_users($offset = 0, $on_page = 20, $improved_check = false)
     {
         $db               = JFactory::getDBO();
-        $data             = array();
         $spam_users       = array();
         $output['result'] = null;
         $output['data']   = null;
         $amount           = $on_page;
         $last_id          = $offset;
+        $api_class = Mloader::get('Api');
         while (count($spam_users) < $on_page)
         {
-            if ($last_id > 0)
+            $data = array();
+            if ((int)$last_id > 0)
             {
                 $offset = 0;
                 $db->setQuery("SELECT * FROM `#__users` WHERE id > " . $last_id . " LIMIT " . $offset . ", " . $amount);
@@ -2309,13 +2252,13 @@ class plgSystemCleantalkantispam extends JPlugin
                     foreach ($data as $date => $values)
                     {
                         $values = implode(',', $values);
-                        $result = Mloader::get('Api')::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
+                        $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
                     }
                 }
                 else
                 {
                     $values = implode(',', $data);
-                    $result = Mloader::get('Api')::methodSpamCheckCms($this->params->get('apikey'), $values);
+                    $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values);
                 }
                 if ($result)
                 {
@@ -2404,6 +2347,7 @@ class plgSystemCleantalkantispam extends JPlugin
     private function apbct_run_cron()
     {
 		$cron_class = Mloader::get('Cron');
+        $rc_class = Mloader::get('RemoteCalls');
 
         $cron = new $cron_class();
         if (!$this->params->get($cron->getCronOptionName())) {
@@ -2413,7 +2357,7 @@ class plgSystemCleantalkantispam extends JPlugin
         $tasks_to_run = $cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
         if(
             ! empty( $tasks_to_run ) && // There is tasks to run
-            ! Mloader::get('RemoteCalls')::check() && // Do not doing CRON in remote call action
+            ! $rc_class::check() && // Do not doing CRON in remote call action
             (
                 ! defined( 'DOING_CRON' ) ||
                 ( defined( 'DOING_CRON' ) && DOING_CRON !== true )
@@ -2654,8 +2598,34 @@ class plgSystemCleantalkantispam extends JPlugin
         return false;
     }
 
-    public function is_direct_integration()
+    public function is_direct_integration($post_info)
 	{
 		return isset($post_info['comment_type']) && $post_info['comment_type'] !== 'feedback_general_contact_form';
+	}
+
+	private function doBlockPage($apbctBlockComment)
+	{
+		$ct_die_page = file_get_contents(Cleantalk::getLockPageFile());
+
+		$message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> Spam protection';
+		$back_script = '<script>setTimeout("history.back()", 5000);</script>';
+		$back_link = '';
+		if ( isset($_SERVER['HTTP_REFERER']) ) {
+			$back_link = '<a href="' . Sanitize::cleanUrl(Server::get('HTTP_REFERER')) . '">Back</a>';
+		}
+
+		// Translation
+		$replaces = array(
+			'{MESSAGE_TITLE}' => $message_title,
+			'{MESSAGE}'       => $apbctBlockComment,
+			'{BACK_LINK}'     => $back_link,
+			'{BACK_SCRIPT}'   => $back_script
+		);
+
+		foreach ( $replaces as $place_holder => $replace ) {
+			$ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
+		}
+		print $ct_die_page;
+		die();
 	}
 }
