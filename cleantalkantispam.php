@@ -597,12 +597,18 @@ class plgSystemCleantalkantispam extends JPlugin
                 # Checking curl/allow_url_fopen availability
                 $ct_curl_aufopen_availability = $this->checkCurlAUFopenAvailability();
 
-                if ($config->get('apikey'))
-                {
-                    $this->checkIsPaid($config->get('apikey'));
-                }
+				if ($config->get('apikey'))
+				{
+					$result = $this->checkIsPaid($config->get('apikey'));
+				}
 
-                $ct_key_is_ok       = ($config->get('ct_key_is_ok') && $config->get('ct_key_is_ok') == 1) ? 1 : 0;
+				$ct_key_is_ok = 0;
+				if (
+					($config->get('ct_key_is_ok') && (int)$config->get('ct_key_is_ok') === 1) ||
+					(isset($result['ct_key_is_ok']) && (int)$result['ct_key_is_ok'] === 1)
+				) {
+					$ct_key_is_ok = 1;
+				}
                 $show_notice        = ($config->get('show_notice') && $config->get('show_notice') == 1) ? 1 : 0;
                 $trial              = ($config->get('trial') && $config->get('trial') == 1) ? 1 : 0;
                 $renew 				= ($config->get('renew') && $config->get('renew') == 1) ? 1 : 0;
@@ -611,6 +617,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $ct_user_token      = $config->get('user_token') ? $config->get('user_token') : '';
                 $ct_service_id      = $config->get('service_id') ? $config->get('service_id') : 0;
                 $ct_account_name_ob = $config->get('account_name_ob') ? $config->get('account_name_ob') : '';
+                $ct_account_name_ob = ! $ct_account_name_ob && isset($result['account_name_ob']) ? $result['account_name_ob'] : $ct_account_name_ob;
 
                 if (!$ct_key_is_ok)
                     $notice = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_APIKEY');
