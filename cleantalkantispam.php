@@ -210,6 +210,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
     private function checkIsPaid($ct_api_key = '', $force_check = false)
     {
+		/** @var \Cleantalk\Common\Helper\Helper $helper */
 		$helper = Mloader::get('Helper');
 
         $api_key = trim($ct_api_key);
@@ -221,6 +222,7 @@ class plgSystemCleantalkantispam extends JPlugin
             $save_params = array();
             $result = null;
             if ($key_is_valid){
+				/** @var \Cleantalk\Common\Api\Api $api_class */
                 $api_class = Mloader::get('Api');
                 $result      = $api_class::methodNoticePaidTill($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
                 $ct_key_is_ok = (empty($result['error']) && $result['valid']) ? 1 : 0;
@@ -288,6 +290,7 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $output      = null;
             $save_params = array();
+			/** @var \Cleantalk\Common\Api\Api $api_class */
 			$api_class = Mloader::get('Api');
 
             // Close review banner
@@ -741,10 +744,8 @@ class plgSystemCleantalkantispam extends JPlugin
             return;
         }
         $option_cmd = $app->input->get('option');
-        $view_cmd   = $app->input->get('view');
         $task_cmd   = $app->input->get('task');
         $ctask_cmd  = $app->input->get('ctask');
-        $page_cmd   = $app->input->get('page');
         $urls       = $this->params->get('url_exclusions');
 
         /**
@@ -838,6 +839,7 @@ class plgSystemCleantalkantispam extends JPlugin
         if ($_SERVER['REQUEST_METHOD'] == 'POST')
         {
             $this->ct_direct_post = 1;
+			/** @var \Cleantalk\Common\Helper\Helper $helper_class */
             $helper_class = Mloader::get('Helper');
 
             /*
@@ -1795,6 +1797,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $ct_request->$k = $v;
             }
 
+			/** @var \Cleantalk\Common\Helper\Helper $helper_class */
             $helper_class = Mloader::get('Helper');
 
             $ct_request->auth_key        = $this->params->get('apikey');
@@ -1831,7 +1834,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
             if ($ct->server_change)
             {
-                self::dbSetServer($ct->work_url, $ct->server_ttl, time());
+                $this->dbSetServer($ct->work_url, $ct->server_ttl, time());
             }
             // Result should be an 	associative array
             $result = json_decode(json_encode($result), true);
@@ -1910,7 +1913,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
         $option_cmd = JFactory::getApplication()->input->get('option');
         // Return null if ct_checkjs is not set, because VirtueMart not need strict JS test
-        if (!isset($data['ct_checkjs']) && $option_cmd == 'com_virtuemart')
+        if (!isset($data['ct_checkjs']) && $option_cmd === 'com_virtuemart')
             $checkjs = null;
 
         return $checkjs;
@@ -1927,7 +1930,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
     /**
      * Inner function - Default data array for senders
-     * @return array
+     * @return false|string
      */
     private function get_sender_info()
     {
@@ -2160,7 +2163,9 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     static private function _apbct_alt_session__id__get()
     {
+		/** @var \Cleantalk\Common\Helper\Helper $helper_class */
         $helper_class = Mloader::get('Helper');
+
         $id = $helper_class::ipGet('real')
             . filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
             . filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
@@ -2174,11 +2179,13 @@ class plgSystemCleantalkantispam extends JPlugin
         $output['data']   = null;
         $spam_comments    = array();
         $db->setQuery("SHOW TABLES LIKE '%jcomments'");
-        $improved_check = ($_POST['improved_check'] == 'true') ? true : false;
         $amount         = $on_page;
         $last_id        = $offset;
         $jtable         = $db->loadAssocList();
+
+		/** @var \Cleantalk\Common\Api\Api $api_class */
         $api_class = Mloader::get('Api');
+
         if (empty($jtable))
         {
             $output['data']   = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_JCOMMENTSNOTINSTALLED');
@@ -2296,7 +2303,10 @@ class plgSystemCleantalkantispam extends JPlugin
         $output['data']   = null;
         $amount           = $on_page;
         $last_id          = $offset;
+
+		/** @var \Cleantalk\Common\Api\Api $api_class */
         $api_class = Mloader::get('Api');
+
         while (count($spam_users) < $on_page)
         {
             $data = array();
@@ -2427,7 +2437,9 @@ class plgSystemCleantalkantispam extends JPlugin
     }
     private function apbct_run_cron()
     {
+		/** @var \Cleantalk\Common\Cron\Cron $cron_class */
 		$cron_class = Mloader::get('Cron');
+		/** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $rc_class */
         $rc_class = Mloader::get('RemoteCalls');
 
         $cron = new $cron_class();
@@ -2517,7 +2529,7 @@ class plgSystemCleantalkantispam extends JPlugin
     /**
      * Get all user groups
      */
-    static private function getGroups()
+    private static function getGroups()
     {
         $db = JFactory::getDBO();
 
@@ -2662,9 +2674,9 @@ class plgSystemCleantalkantispam extends JPlugin
             return false;
         }
 
-        $urls = explode(',', $urls);
+        $_urls = explode(',', $urls);
 
-        foreach ($urls as $url) {
+        foreach ($_urls as $url) {
             // @ToDo need to detect ajax request
             // @ToDo implement support for a regexp
             $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
