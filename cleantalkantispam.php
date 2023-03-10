@@ -1174,11 +1174,12 @@ class plgSystemCleantalkantispam extends JPlugin
 	 */
 	public function onAfterStoreOrder($orderRow)
 	{
-		$sender_nickname = $orderRow->firstname;
+		$sender_nickname  = $orderRow->firstname;
 		$sender_nickname .= $orderRow->lastname;
-		$sender_email = $orderRow->email;
-		$message = $orderRow->comment;
+		$sender_email     = $orderRow->email;
+		$message          = $orderRow->comment;
 		$post_info['comment_type'] = 'contact_form_joomla_eshop__order';
+
 		$ctResponse = $this->ctSendRequest(
 			'check_message',
 			array(
