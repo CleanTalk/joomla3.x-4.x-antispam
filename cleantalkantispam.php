@@ -617,6 +617,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $ct_user_token      = $config->get('user_token') ? $config->get('user_token') : '';
                 $ct_service_id      = $config->get('service_id') ? $config->get('service_id') : 0;
                 $ct_account_name_ob = $config->get('account_name_ob') ? $config->get('account_name_ob') : '';
+                $ct_account_name_ob = ! $ct_account_name_ob && isset($result['account_name_ob']) ? $result['account_name_ob'] : $ct_account_name_ob;
 
                 if (!$ct_key_is_ok)
                     $notice = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_APIKEY');
