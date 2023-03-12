@@ -936,6 +936,33 @@ class plgSystemCleantalkantispam extends JPlugin
 					$message = array_merge(array('subject' => $subject), $message);
 				$message = json_encode( $message );
 			}
+            // Creative Contact Form
+			elseif ( $option_cmd === 'com_creativecontactform' && $app->input->get('view') === 'creativemailer' && $app->input->get('format') === 'raw' )
+			{
+				//Prepare data for checking
+				$form_data = [];
+				if ( $_POST['creativecontactform_fields'] ) {
+
+					foreach( $_POST['creativecontactform_fields'] as $element ) {
+						$form_data[] = $element[0];
+					}
+				} else {
+					$form_data = $_POST;
+				}
+
+				$ct_temp_msg_data = $helper_class::get_fields_any($form_data, $this->params->get('fields_exclusions'));
+				$sender_email     = $ct_temp_msg_data['email'] ?: '';
+				$sender_nickname  = $ct_temp_msg_data['nickname'] ?: '';
+				$subject          = $ct_temp_msg_data['subject'] ?: '';
+				$message          = $ct_temp_msg_data['message'] ?: array();
+
+				if ($subject !== '')
+				{
+					$message = array_merge(array('subject' => $subject), $message);
+				}
+				$message = json_encode($message);
+				$post_info['comment_type'] = 'contact_form_joomla_creative_contact_form';
+			}
 			// General test for any forms or form with custom fields
 			else
 			{				
@@ -1131,6 +1158,11 @@ class plgSystemCleantalkantispam extends JPlugin
                                     echo \json_encode($output);
                                     die();
                                 }
+								elseif ( $post_info['comment_type'] === 'contact_form_joomla_creative_contact_form' )
+								{
+									echo '[{"invalid":"problem_sending_email"}]';
+									die();
+								}
                                 else
                                 {
 	                                $this->doBlockPage($ctResponse['comment']);
