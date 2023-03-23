@@ -395,6 +395,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 			$replaces['{DEBUG}'] = isset($debug) ? $debug : '';
 
 			foreach ($replaces as $place_holder => $replace) {
+				$replace = is_null($replace) ? '' : $replace;
 				$this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
 			}
 		}
@@ -422,6 +423,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 		);
 
 		foreach ($replaces as $place_holder => $replace) {
+			$replace = is_null($replace) ? '' : $replace;
 			$this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
 		}
 
@@ -691,12 +693,13 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 				$exclusions[] = '127.0.0.1';
 				// And delete all 127.0.0.1 entries for local hosts
 			} else {
-                $sql_res = $db->execute('DELETE FROM ' . $db__table__data . ' WHERE network = ' . ip2long('127.0.0.1') . ';', true);
+                /*$sql_res = $db->execute('DELETE FROM ' . $db__table__data . ' WHERE network = ' . ip2long('127.0.0.1') . ';', true);
                 $delete_res = $db->getAffectedRows();
 				if ($delete_res > 0) {
 					$fw_stats->expected_networks_count -= $delete_res;
 					Firewall::saveFwStats($fw_stats);
-				}
+				}*/
+                // @ToDo Implement this after moving queries in the separate model class
 			}
 		}
 
@@ -710,11 +713,11 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 		}
 
 		if ($exclusions) {
-			$sql_result = $db->execute(substr($query, 0, -1) . ';', true);
+			$sql_result = $db->execute(substr($query, 0, -1) . ';');
 
 			return $sql_result === false
 				? array('error' => 'COULD_NOT_WRITE_TO_DB 4: ' . $db->getLastError())
-				: $db->getAffectedRows();
+				: count($exclusions);
 		}
 
 		return 0;

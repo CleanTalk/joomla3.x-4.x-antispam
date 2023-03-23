@@ -206,20 +206,21 @@ class Queue
 		return null;
 	}
 
-	public function isQueueInProgress()
-	{
-		return
-			count($this->queue['stages']) &&
-			(
-				in_array('NULL', array_column($this->queue['stages'], 'status'), true) ||
-				in_array('IN_PROGRESS', array_column($this->queue['stages'], 'status'), true)
-			);
-	}
+    public function isQueueInProgress()
+    {
+        if (count($this->queue['stages']) > 0) {
+            $this->unstarted_stage = array_search('IN_PROGRESS', array_column($this->queue['stages'], 'status'), true);
 
-	public function isQueueFinished()
-	{
-		return ! $this->isQueueInProgress();
-	}
+            return is_int($this->unstarted_stage);
+        }
+
+        return false;
+    }
+
+    public function isQueueFinished()
+    {
+        return ! $this->isQueueInProgress() && ! $this->hasUnstartedStages();
+    }
 
 	/**
 	 * Checks if the queue is over

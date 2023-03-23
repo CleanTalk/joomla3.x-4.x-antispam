@@ -874,7 +874,7 @@ class Helper
             }
             unset($val);
             //String
-        } else {
+        } elseif(is_string($obj)) {
             if ( ! preg_match('//u', $obj)
                  && function_exists('mb_detect_encoding')
                  && function_exists('mb_convert_encoding')
