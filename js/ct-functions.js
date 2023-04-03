@@ -1,3 +1,53 @@
+apbctLocalStorage = {
+		get : function(key, property) {
+			if ( typeof property === 'undefined' ) {
+				property = 'value';
+			}
+			const storageValue = localStorage.getItem(key);
+			if ( storageValue !== null ) {
+				try {
+					const json = JSON.parse(storageValue);
+					return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
+				} catch (e) {
+					return storageValue;
+				}
+			}
+			return false;
+		},
+		set : function(key, value, is_json = true) {
+			if (is_json){
+				let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+				localStorage.setItem(key, JSON.stringify(objToSave));
+			} else {
+				localStorage.setItem(key, value);
+			}
+		},
+		isAlive : function(key, maxLifetime) {
+			if ( typeof maxLifetime === 'undefined' ) {
+				maxLifetime = 86400;
+			}
+			const keyTimestamp = this.get(key, 'timestamp');
+			return keyTimestamp + maxLifetime > Math.floor(new Date().getTime() / 1000);
+		},
+		isSet : function(key) {
+			return localStorage.getItem(key) !== null;
+		},
+		delete : function (key) {
+			localStorage.removeItem(key);
+		},
+		getCleanTalkData : function () {
+			let data = {}
+			for(let i=0; i<localStorage.length; i++) {
+				let key = localStorage.key(i);
+				if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1){
+					data[key.toString()] = apbctLocalStorage.get(key)
+				}
+			}
+			return data
+		},
+
+	}
+
 function ctSetCookie(c_name, value) {
 	if (typeof ct_setcookie !== "undefined" && ct_setcookie) {
 		document.cookie = c_name + "=" + encodeURIComponent(value) + "; path=/";
@@ -73,6 +123,9 @@ if(typeof window.addEventListener == "function"){
 }
 // Ready function
 function ct_ready(){
+	if (!ct_attach_event_token()){
+		console.table('APBCT error: can not set event token',)
+	}
 	ctSetCookie("ct_ps_timestamp", Math.floor(new Date().getTime()/1000));
 	ctSetCookie("ct_fkp_timestamp", "0");
 	ctSetCookie("ct_pointer_data", "0");
@@ -150,4 +203,19 @@ function ct_attach_event_handler(elem, event, callback){
 function ct_remove_event_handler(elem, event, callback){
 	if(typeof window.removeEventListener === "function") elem.removeEventListener(event, callback);
 	else                                                 elem.detachEvent(event, callback);
+}
+
+function ct_attach_event_token(){
+	if (typeof apbctLocalStorage !== "undefined"){
+		const ct_event_token_string = apbctLocalStorage.get('bot_detector_event_token')
+		const ct_event_token_obj = JSON.parse(ct_event_token_string.toString())
+		if (typeof ctSetCookie == "function" && typeof ct_event_token_obj.value != "undefined"){
+			const value = ct_event_token_obj.value;
+			if (typeof value === "string" && value.length === 64){
+				ctSetCookie("ct_event_token", ct_event_token_obj.value);
+				return true;
+			}
+		}
+	}
+	return false;
 }

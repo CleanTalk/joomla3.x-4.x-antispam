@@ -584,6 +584,7 @@ class plgSystemCleantalkantispam extends JPlugin
             $this->sfw_check();
             $this->ct_cookie();
             $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js?" . time());
+            $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
             $set_cookies = $this->params->get('cookies');
             $document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
             if ($set_cookies) {
@@ -759,6 +760,7 @@ class plgSystemCleantalkantispam extends JPlugin
             $this->sfw_check();
             $this->ct_cookie();
             $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js?" . time());
+            $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
             $set_cookies = $this->params->get('cookies');
             $document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
             $document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
@@ -1832,6 +1834,8 @@ class plgSystemCleantalkantispam extends JPlugin
 			/** @var \Cleantalk\Common\Helper\Helper $helper_class */
             $helper_class = Mloader::get('Helper');
 
+            $event_token = (isset($_COOKIE['ct_event_token']) ? $_COOKIE['ct_event_token'] : '');
+
             $ct_request->auth_key        = $this->params->get('apikey');
             $ct_request->agent           = self::ENGINE;
             $ct_request->submit_time     = $this->submit_time_test();
@@ -1840,6 +1844,7 @@ class plgSystemCleantalkantispam extends JPlugin
             $ct_request->x_real_ip       = $helper_class::ipGet('x_real_ip', false);
             $ct_request->sender_info     = $this->get_sender_info();
             $ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
+            $ct_request->event_token     = $event_token;
 
             $result             = null;
             $ct                 = new Cleantalk();
