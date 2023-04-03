@@ -62,7 +62,7 @@ function formIsExclusion(currentForm)
     let result = false
 
     try {
-        action = document.forms[i].action;
+        action = currentForm.action;
         if (action.indexOf('cloudbeds.com') != -1) {
             result = true;
         }
