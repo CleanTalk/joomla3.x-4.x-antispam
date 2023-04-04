@@ -2294,13 +2294,12 @@ class plgSystemCleantalkantispam extends JPlugin
                         {
                             foreach ($result as $mail => $value)
                             {
-                                if ($value['appears'] == '1')
+                                if (isset($value['appears']) && $value['appears'] == '1')
                                 {
                                     foreach ($comments as $comment)
                                     {
                                         if (($comment['email'] == $mail || $comment['ip'] == $mail) && count($spam_comments) < $on_page)
                                             $spam_comments[] = $comment;
-
                                     }
                                 }
                             }
@@ -2405,7 +2404,7 @@ class plgSystemCleantalkantispam extends JPlugin
                     {
                         foreach ($result as $mail => $value)
                         {
-                            if ($value['appears'] == '1')
+                            if ( isset($value['appears']) && $value['appears'] == '1' )
                             {
                                 foreach ($users as $user)
                                 {
