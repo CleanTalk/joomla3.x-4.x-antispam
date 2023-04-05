@@ -274,6 +274,11 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         $app = JFactory::getApplication();
 
+
+        //cutting trims on early save
+        $apikey = trim($this->params->get('apikey'));
+        $save_params['apikey'] = $apikey;
+
         if (!$this->isAdmin())
         {
             // Remote calls
@@ -281,15 +286,14 @@ class plgSystemCleantalkantispam extends JPlugin
 	        $remote_calls_class = Mloader::get('RemoteCalls');
 
 	        if( $remote_calls_class::check() ) {
-		        $rc = new $remote_calls_class( $this->params->get('apikey') );
-		        $rc->process();
+		        $rc = new $remote_calls_class( $apikey );
+                $rc->process();
 	        }
         }
 
         if ($this->isAdmin() && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id)
         {
             $output      = null;
-            $save_params = array();
 			/** @var \Cleantalk\Common\Api\Api $api_class */
 			$api_class = Mloader::get('Api');
 
@@ -2546,8 +2550,9 @@ class plgSystemCleantalkantispam extends JPlugin
             $table = JTable::getInstance('extension');
             $table->load($this->_id);
             $jparams = new JRegistry($table->params);
-            foreach ($params as $k => $v)
+            foreach ($params as $k => $v){
                 $jparams->set($k, $v);
+            }
             $table->params = $jparams->toString();
             $table->store();
         }
