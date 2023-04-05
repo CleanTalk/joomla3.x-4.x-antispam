@@ -57,10 +57,15 @@ class FirewallUpdater
 
     public function update()
     {
-		if ( Request::get('worker') ) {
-			return $this->updateWorker();
-		}
-	    return $this->updateInit();
+        try {
+            if ( Request::get('worker') ) {
+                return $this->updateWorker();
+            }
+            return $this->updateInit();
+        } catch (SfwUpdateException $e){
+            error_log('CleanTalk SFW update error: ' . var_export($e->getMessage(),true));
+            return false;
+        }
     }
 
 	/**
