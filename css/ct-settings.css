@@ -137,3 +137,8 @@ fieldset.checkboxes ul li input {
 fieldset.checkboxes ul li label {
     margin: 0;
 }
+.cleantalk-field-group-title label {
+    font-size: 18px;
+    font-weight: 700;
+    border-bottom: 1px solid gray;
+}
