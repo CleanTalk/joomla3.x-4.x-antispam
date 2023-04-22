@@ -997,6 +997,14 @@ class plgSystemCleantalkantispam extends JPlugin
 				}
 	        }
 
+			// JSN
+	        if ( isset($_POST['data']) && isset($_POST['data']['target_id']) && isset($_POST['data']['type']) ) {
+		        $sender_email    = JFactory::getUser()->email;
+		        $sender_nickname = JFactory::getUser()->username;
+		        $message         = isset($_POST['data']['message']) ? $_POST['data']['message'] : '';
+		        $post_info['comment_type'] = 'comment_form_joomla_jsn';
+	        }
+
             if (
                 ! empty( $_POST ) &&
                 ! $this->exceptionList() &&
