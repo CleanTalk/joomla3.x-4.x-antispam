@@ -52,7 +52,7 @@
 				<field
 						name="ct_check_register"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_REGISTER"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_REGISTER_DESCRIPTION"
 						default="1"
@@ -65,7 +65,7 @@
 				<field
 						name="ct_check_contact_forms"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_CONTACT_FORMS"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_CONTACT_FORMS_DESCRIPTION"
 						default="1"
@@ -78,7 +78,7 @@
 				<field
 						name="ct_check_custom_contact_forms"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CUSTOM_FORMS"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CUSTOM_FORMS_DESCRIPTION"
 						default="0"
@@ -91,7 +91,7 @@
 				<field
 						name="ct_check_external"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_EXTERNAL"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_EXTERNAL_DESCRIPTION"
 						default="0"
@@ -104,7 +104,7 @@
 				<field
 						name="ct_check_search"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_SEARCH"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_SEARCH_DESCRIPTION"
 						default="1"
@@ -123,7 +123,7 @@
 				<field
 						name="ct_jcomments_check_comments"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_CHECK_COMMENTS"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_CHECK_COMMENTS_DESCRIPTION"
 						default="1"
@@ -136,7 +136,7 @@
 				<field
 						name="ct_jcomments_automod"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_AUTOMODERATION"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_AUTOMODERATION_DESCRIPTION"
 						default="0"
@@ -149,7 +149,7 @@
 				<field
 						name="ct_jcomments_relevance_test"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_RELEVANCE_TEST"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_RELEVANCE_TEST_DESCRIPTION"
 						default="0"
@@ -162,7 +162,7 @@
 				<field
 						name="ct_jcomments_unpublished_nofications"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED_DESCRIPTION"
 						default="0"
@@ -181,7 +181,7 @@
 				<field
 						name="ct_skip_registered_users"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SKIP_REGISTERED_USERS"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SKIP_REGISTERED_USERS_DESCRIPTION"
 						default="0"
@@ -194,7 +194,7 @@
 				<field
 						name="ct_check_all_post"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_ALL_POST"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_ALL_POST_DESCRIPTION"
 						default="0"
@@ -213,7 +213,7 @@
 				<field
 						name="ct_set_cookies"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SET_COOKIES"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SET_COOKIES_DESCRIPTION"
 						default="1"
@@ -226,7 +226,7 @@
 				<field
 						name="ct_use_alternative_cookies"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_ALTERNATIVE_COOKIES"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_ALTERNATIVE_COOKIES_DESCRIPTION"
 						default="0"
@@ -245,7 +245,7 @@
 				<field
 						name="ct_sfw_enable"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SPAM_FIREWALL"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SPAM_FIREWALL_DESCRIPTION"
 						default="0"
@@ -258,7 +258,7 @@
 				<field
 						name="ct_tell_about_cleantalk"
 						type="radio"
-						layout="joomla.form.field.radio.switcher"
+						class="btn-group"
 						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT"
 						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT_DESCRIPTION"
 						default="0"
