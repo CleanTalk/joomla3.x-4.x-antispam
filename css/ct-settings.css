@@ -157,3 +157,7 @@ fieldset.checkboxes ul li label {
     color: black;
     background-color: transparent;
 }
+.btn-check[value="0"]:checked+.btn-outline-secondary {
+    border-color: #495057;
+    background: #495057;
+}
