@@ -316,15 +316,6 @@ class plgSystemCleantalkantispam extends JPlugin
                 }
             }
 
-
-            // Check spam users
-            if (isset($_POST['check_type']) && $_POST['check_type'] === 'users')
-            {
-                $improved_check = ($_POST['improved_check'] === 'true') ? true : false;
-                $offset         = isset($_POST['offset']) ? $_POST['offset'] : 0;
-                $on_page        = isset($_POST['amount']) ? $_POST['amount'] : 2;
-                $output         = $this->get_spam_users($offset, $on_page, $improved_check);
-            }
             // Check spam comments
             if (isset($_POST['check_type']) && $_POST['check_type'] === 'comments')
             {
@@ -332,23 +323,6 @@ class plgSystemCleantalkantispam extends JPlugin
                 $offset         = isset($_POST['offset']) ? $_POST['offset'] : 0;
                 $on_page        = isset($_POST['amount']) ? $_POST['amount'] : 2;
                 $output         = $this->get_spam_comments($offset, $on_page, $improved_check);
-            }
-            if (isset($_POST['ct_del_user_ids']))
-            {
-                $spam_users       = implode(',', $_POST['ct_del_user_ids']);
-                $output['result'] = null;
-                $output['data']   = null;
-                try
-                {
-                    $this->delete_users($spam_users);
-                    $output['result'] = 'success';
-                    $output['data']   = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_USERS_DELDONE', count($_POST['ct_del_user_ids']));
-                }
-                catch (Exception $e)
-                {
-                    $output['result'] = 'error';
-                    $output['data']   = $e->getMessage();
-                }
             }
             if (isset($_POST['ct_del_comment_ids']))
             {
@@ -415,26 +389,6 @@ class plgSystemCleantalkantispam extends JPlugin
                 $mainframe = JFactory::getApplication();
                 $mainframe->close();
                 die();
-            }
-        }
-    }
-
-    //Delete spam users
-    private function delete_users($user_ids)
-    {
-        if (isset($user_ids))
-        {
-            $db = JFactory::getDBO();
-            $db->setQuery("DELETE FROM `#__users` WHERE id IN (" . $user_ids . ")");
-            $result = $db->execute();
-            $db->setQuery("DELETE FROM `#__user_usergroup_map` WHERE user_id IN (" . $user_ids . ")");
-            $result = $db->execute();
-            $db->setQuery("SHOW TABLES LIKE '#__jcomments'");
-            $jtable = $db->loadAssocList();
-            if (!empty($jtable))
-            {
-                $db->setQuery("DELETE FROM `#__jcomments` WHERE userid IN (" . $user_ids . ")");
-                $result = $db->execute();
             }
         }
     }
@@ -678,7 +632,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_key_is_bad_notice = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_KEY_IS_BAD') . '",
 						ct_register_error="' . addslashes(JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_ERROR_AUTO_GET_KEY')) . '",
 						ct_exclusions_common_notice = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_COMMON_NOTICE') . '",
-						ct_spamcheck_checksusers = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CHECKUSERS_LABEL') . '",
+						ct_spamcheck_checksusers = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CHECKUSERS_LABEL') . '" // delete,
 						ct_spamcheck_checkscomments = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CHECKCOMMENTS_LABEL') . '",
 						ct_spamcheck_notice = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_NOTICE') . '",
 						ct_spamcheck_delsel = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_DELSEL') . '",
@@ -704,6 +658,7 @@ class plgSystemCleantalkantispam extends JPlugin
 				');
                 //Admin JS and CSS
                 JHtml::_('jquery.framework');
+                $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-checkusers.js?" . time());
                 $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-settings.js?" . time());
                 $document->addStyleSheet(JURI::root(true) . "/plugins/system/cleantalkantispam/css/ct-settings.css?" . time());
 
@@ -1482,6 +1437,10 @@ class plgSystemCleantalkantispam extends JPlugin
                     $this->setNoticeDismissed($data['data']);
                     // @ToDo add an error handling here
                     return ['success' => 'The notice dismissing was remembered'];
+	            case 'usersChecker' :
+		            $data['api_key'] = $this->params->get('apikey');
+					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
+					return $users_checker->getResponse();
                 default :
                     return ['error' => 'Wrong action was provided'];
             }
@@ -2333,119 +2292,6 @@ class plgSystemCleantalkantispam extends JPlugin
                 }
             }
 
-        }
-
-        return $output;
-    }
-
-    private function get_spam_users($offset = 0, $on_page = 20, $improved_check = false)
-    {
-        $db               = JFactory::getDBO();
-        $spam_users       = array();
-        $output['result'] = null;
-        $output['data']   = null;
-        $amount           = $on_page;
-        $last_id          = $offset;
-
-        /** @var \Cleantalk\Common\Api\Api $api_class */
-        $api_class = Mloader::get('Api');
-
-        while (count($spam_users) < $on_page)
-        {
-            $data = array();
-            if ((int)$last_id > 0)
-            {
-                $offset = 0;
-                $db->setQuery("SELECT * FROM `#__users` WHERE id > " . $last_id . " LIMIT " . $offset . ", " . $amount);
-            }
-            else $db->setQuery("SELECT * FROM `#__users` LIMIT " . $offset . ", " . $amount);
-            $users = $db->loadAssocList();
-            if (empty($users))
-                break;
-            foreach ($users as $user_index => $user)
-            {
-                if ($improved_check)
-                {
-                    $curr_date          = (substr($user['registerDate'], 0, 10) ? substr($user['registerDate'], 0, 10) : '');
-                    $data[$curr_date][] = !empty($user['email']) ? $user['email'] : null;
-                }
-                else
-                    $data[] = !empty($user['email']) ? $user['email'] : null;
-
-            }
-            if (count($data) == 0)
-            {
-                $output['data']   = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_NOUSERSTOCHECK');
-                $output['result'] = 'error';
-            }
-            else
-            {
-
-                if ($improved_check)
-                {
-                    foreach ($data as $date => $values)
-                    {
-                        $values = implode(',', $values);
-                        $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
-                    }
-                }
-                else
-                {
-                    $values = implode(',', $data);
-                    $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values);
-                }
-                if ($result)
-                {
-                    if (isset($result['error_message']))
-                    {
-                        if ($result['error_message'] == 'Access key unset.' || $result['error_message'] == 'Unknown access key.')
-                            $output['data'] = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_BADKEY');
-                        elseif ($result['error_message'] == 'Service disabled, please go to Dashboard https://cleantalk.org/my?product_id=1')
-                            $output['data'] = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_BADKEY_DISABLED');
-                        elseif ($result['error_message'] == 'Calls limit exceeded, method name spam_check_cms().')
-                            $output['data'] = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CALLS_LIMIT_EXCEEDED');
-                        else $output['data'] = $result['error_message'];
-                        $output['result'] = 'error';
-                    }
-                    else
-                    {
-                        foreach ($result as $mail => $value)
-                        {
-                            if ( isset($value['appears']) && $value['appears'] == '1' )
-                            {
-                                foreach ($users as $user)
-                                {
-                                    if ($user['email'] == $mail && count($spam_users) < $on_page)
-                                    {
-                                        if ($user['lastvisitDate'] == '0000-00-00 00:00:00')
-                                            $user['lastvisitDate'] = '-';
-                                        $spam_users[] = $user;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-
-            }
-            $offset += $amount;
-            $amount = $on_page - count($spam_users);
-            if (count($users) < $on_page)
-                break;
-        }
-        if ($output['result'] != 'error')
-        {
-            if (count($spam_users) > 0)
-            {
-                $output['data']['spam_users'] = $spam_users;
-                $output['result']             = 'success';
-            }
-            else
-            {
-                $output['data']   = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_NOUSERSFOUND');
-                $output['result'] = 'error';
-            }
         }
 
         return $output;
