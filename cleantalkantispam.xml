@@ -16,6 +16,7 @@
 		<filename plugin="cleantalkantispam">js/ct-settings.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-functions.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-external.js</filename>
+		<filename plugin="cleantalkantispam">js/ct-checkusers.js</filename>
 		<filename plugin="cleantalkantispam">css/ct-settings.css</filename>
 		<filename plugin="cleantalkantispam">img/preloader.gif</filename>
 		<folder>sql/</folder>
@@ -274,8 +275,11 @@
 				<field name="fields_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS_DESC" />
 				<field name="roles_exclusions" type="textarea" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
 			</fieldset>
-			<fieldset name="checkuserscomments">
-
+			<fieldset name="checkusers">
+				<!-- content will be loaded via ajax calling -->
+			</fieldset>
+			<fieldset name="checkcomments">
+				<!-- content will be loaded via ajax calling -->
 			</fieldset>
 			<fieldset name="connectionreports">
 
