@@ -588,7 +588,12 @@ class plgSystemCleantalkantispam extends JPlugin
             $this->sfw_check();
             $this->ct_cookie();
             $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js?" . time());
-            $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
+
+            // Bot detector
+            if ($config->get('ct_use_bot_detector')) {
+                $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
+            }
+
             $set_cookies = $this->params->get('ct_set_cookies');
             $document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
             if ($set_cookies) {
@@ -764,7 +769,12 @@ class plgSystemCleantalkantispam extends JPlugin
             $this->sfw_check();
             $this->ct_cookie();
             $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js?" . time());
-            $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
+
+            // Bot detector
+            if ($config->get('ct_use_bot_detector')) {
+                $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
+            }
+
             $set_cookies = $this->params->get('ct_set_cookies');
             $document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
             $document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
@@ -997,13 +1007,13 @@ class plgSystemCleantalkantispam extends JPlugin
                 }
             }
 
-			// JSN
-	        if ( isset($_POST['data']) && isset($_POST['data']['target_id']) && isset($_POST['data']['type']) ) {
-		        $sender_email    = JFactory::getUser()->email;
-		        $sender_nickname = JFactory::getUser()->username;
-		        $message         = isset($_POST['data']['message']) ? $_POST['data']['message'] : '';
-		        $post_info['comment_type'] = 'comment_form_joomla_jsn';
-	        }
+            // JSN
+            if ( isset($_POST['data']) && isset($_POST['data']['target_id']) && isset($_POST['data']['type']) ) {
+                $sender_email    = JFactory::getUser()->email;
+                $sender_nickname = JFactory::getUser()->username;
+                $message         = isset($_POST['data']['message']) ? $_POST['data']['message'] : '';
+                $post_info['comment_type'] = 'comment_form_joomla_jsn';
+            }
 
             if (
                 ! empty( $_POST ) &&
