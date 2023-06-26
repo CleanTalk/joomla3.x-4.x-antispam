@@ -236,6 +236,19 @@
 					<option value="1">JON</option>
 				</field>
 
+				<field
+						name="ct_use_bot_detector"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_BOT_DETECTOR"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_BOT_DETECTOR_DESCRIPTION"
+						default="1"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
 				<!-- Other group -->
 				<field type="spacer"
 					   label="PLG_SYSTEM_CLEANTALKANTISPAM_OTHER_TITLE"
