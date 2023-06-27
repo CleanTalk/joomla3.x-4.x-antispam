@@ -23,11 +23,11 @@ class Model
 		return (int) $this->db->loadRow()[0];
 	}
 
-	public function getUsersToCheck($limit, $offset)
+	public function getUsersToCheck($limit)
 	{
 		$query = "SELECT id, email, registerDate FROM #__users AS users WHERE 
         	NOT EXISTS (SELECT id FROM #__cleantalk_usermeta AS usermeta WHERE usermeta.user_id = users.id) 
-        	LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
+        	LIMIT " . (int) $limit;
 		$this->db->setQuery($query);
 		return $this->db->loadAssocList();
 	}

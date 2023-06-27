@@ -270,7 +270,7 @@ class UsersChecker
 		$data = [];
 		$spam = [];
 
-		$usersToCheck = $this->model->getUsersToCheck($limit, $offset);
+		$usersToCheck = $this->model->getUsersToCheck($limit);
 
 		foreach ($usersToCheck as $user)
 		{
