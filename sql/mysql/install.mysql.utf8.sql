@@ -37,3 +37,10 @@ CREATE TABLE IF NOT EXISTS `#__cleantalk_ua_bl` (
 );
 UPDATE `#__extensions` SET params = '{"ct_check_register":1,"ct_check_contact_forms":1,"check_search":1,"ct_jcomments_check_comments":1,"roles_exclusions":"administrator,super users","ct_set_cookies":1}'
 WHERE element = 'cleantalkantispam' AND folder = 'system';
+CREATE TABLE IF NOT EXISTS `#__cleantalk_usermeta` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `user_id` int(11) NOT NULL,
+    `meta_key` varchar(255) DEFAULT NULL,
+    `meta_value` longtext DEFAULT NULL,
+    PRIMARY KEY (`id`)
+);
