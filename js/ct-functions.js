@@ -123,9 +123,6 @@ if(typeof window.addEventListener == "function"){
 }
 // Ready function
 function ct_ready(){
-	if (!ct_attach_event_token()){
-		console.table('APBCT error: can not set event token',)
-	}
 	ctSetCookie("ct_ps_timestamp", Math.floor(new Date().getTime()/1000));
 	ctSetCookie("ct_fkp_timestamp", "0");
 	ctSetCookie("ct_pointer_data", "0");
