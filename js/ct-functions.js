@@ -54,6 +54,21 @@ function ctSetCookie(c_name, value) {
 	}	
 }
 
+/**
+ * Set some cookies from object
+ * @param cookies
+ */
+function ctSetCookies(cookies)
+{
+	if (typeof ctPublicData !== 'undefined' && ctPublicData.typeOfCookie && ctPublicData.typeOfCookie === 'alt_cookies') {
+		ctSetAltCookies(cookies);
+	} else {
+		for (const [cookie, value] of Object.entries(cookies)) {
+			ctSetCookie(cookie, value);
+		}
+	}
+}
+
 ct_attach_event_handler(window, "DOMContentLoaded", ct_ready);
 
 //Stop observing function
@@ -123,12 +138,17 @@ if(typeof window.addEventListener == "function"){
 }
 // Ready function
 function ct_ready(){
-	ctSetCookie("ct_ps_timestamp", Math.floor(new Date().getTime()/1000));
-	ctSetCookie("ct_fkp_timestamp", "0");
-	ctSetCookie("ct_pointer_data", "0");
-	ctSetCookie("ct_timezone", new Date().getTimezoneOffset()/60*(-1));
-	ctSetCookie("ct_visible_fields", 0);
-	ctSetCookie("ct_visible_fields_count", 0);
+	const cookies = {
+		ct_ps_timestamp: Math.floor(new Date().getTime()/1000),
+		ct_fkp_timestamp: 0,
+		ct_pointer_data: 0,
+		ct_timezone: new Date().getTimezoneOffset()/60*(-1),
+		ct_visible_fields: 0,
+		ct_visible_fields_count: 0
+	}
+
+	ctSetCookies(cookies);
+
 	setTimeout(function(){
 		for(var i = 0; i < document.forms.length; i++){
 			var form = document.forms[i];
@@ -215,4 +235,26 @@ function ct_attach_event_token(){
 		}
 	}
 	return false;
+}
+
+// Setting alt-cookies from array
+function ctSetAltCookies(altCookies)
+{
+	altCookies.action = 'set_alt_cookies';
+
+	Joomla.request({
+		url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
+		method: 'POST',
+		data: JSON.stringify(altCookies),
+		headers: {
+			'Cache-Control' : 'no-cache',
+			'Content-Type': 'application/json'
+		},
+		onSuccess: function (response){
+			console.log(response);
+		},
+		onError: function (error){
+			console.log(error);
+		}
+	});
 }

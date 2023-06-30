@@ -1468,6 +1468,10 @@ class plgSystemCleantalkantispam extends JPlugin
 		            $data['api_key'] = $this->params->get('apikey');
 					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
 					return $users_checker->getResponse();
+	            case 'set_alt_cookies' :
+					echo 123;
+					return 123;
+					break;
                 default :
                     return ['error' => 'Wrong action was provided'];
             }
