@@ -541,6 +541,15 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $this->sfw_check();
             $this->ct_cookie();
+	        $type_of_cookie = $config->get('ct_use_alternative_cookies') ? 'alt_cookies' : 'simple_cookies';
+
+	        // Add inline data
+	        $document->addScriptDeclaration('
+				const ctPublicData = {
+					typeOfCookie: "' . $type_of_cookie . '"
+				}
+			');
+
             $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js?" . time());
 
             // Bot detector
@@ -720,6 +729,14 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $document = JFactory::getDocument();
             $config   = $this->params;
+	        $type_of_cookie = $config->get('ct_use_alternative_cookies') ? 'alt_cookies' : 'simple_cookies';
+
+	        // Add inline data
+	        $document->addScriptDeclaration('
+				const ctPublicData = {
+					typeOfCookie: "' . $type_of_cookie . '"
+				}
+			');
 
             $this->sfw_check();
             $this->ct_cookie();
