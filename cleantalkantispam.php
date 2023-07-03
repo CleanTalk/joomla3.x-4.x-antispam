@@ -1469,9 +1469,36 @@ class plgSystemCleantalkantispam extends JPlugin
 					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
 					return $users_checker->getResponse();
 	            case 'set_alt_cookies' :
-					echo 123;
-					return 123;
-					break;
+		            self::_apbct_alt_sessions__remove_old();
+
+		            // To database
+		            $db = JFactory::getDbo();
+		            $columns = array(
+			            'id',
+			            'name',
+			            'value',
+			            'last_update'
+		            );
+					$values = array();
+		            $query = $db->getQuery(true);
+		            $query->insert($db->quoteName('#__cleantalk_sessions'));
+		            $query->columns($db->quoteName($columns));
+
+					foreach ($data as $cookie_name => $cookie_value) {
+						$values[] = implode(',', array(
+							$db->quote(self::_apbct_alt_session__id__get()),
+							$db->quote($cookie_name),
+							$db->quote($cookie_value),
+							$db->quote(date('Y-m-d H:i:s'))
+						));
+					}
+
+		            $query->values($values);
+
+		            $db->setQuery($query . '  ON DUPLICATE KEY UPDATE value=value;');
+		            $db->execute();
+
+		            return 'OK';
                 default :
                     return ['error' => 'Wrong action was provided'];
             }
