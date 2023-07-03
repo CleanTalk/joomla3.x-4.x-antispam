@@ -1483,6 +1483,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		            $query = $db->getQuery(true);
 		            $query->insert($db->quoteName('#__cleantalk_sessions'));
 		            $query->columns($db->quoteName($columns));
+					unset($data['action']);
 
 					foreach ($data as $cookie_name => $cookie_value) {
 						$values[] = implode(',', array(
@@ -1495,7 +1496,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
 		            $query->values($values);
 
-		            $db->setQuery($query . '  ON DUPLICATE KEY UPDATE value=value;');
+		            $db->setQuery($query . '  ON DUPLICATE KEY UPDATE value=VALUES(value), last_update=VALUES(last_update);');
 		            $db->execute();
 
 		            return 'OK';
