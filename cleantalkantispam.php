@@ -1500,6 +1500,33 @@ class plgSystemCleantalkantispam extends JPlugin
 		            $db->execute();
 
 		            return 'OK';
+	            case 'set_alt_cookie' :
+		            // To database
+		            $db = JFactory::getDbo();
+		            $columns = array(
+			            'id',
+			            'name',
+			            'value',
+			            'last_update'
+		            );
+
+		            $query = $db->getQuery(true);
+		            $query->insert($db->quoteName('#__cleantalk_sessions'));
+		            $query->columns($db->quoteName($columns));
+		            unset($data['action']);
+
+		            $values = array(
+						$db->quote(self::_apbct_alt_session__id__get()),
+			            $db->quote($data['cookie']),
+			            $db->quote($data['value']),
+			            $db->quote(date('Y-m-d H:i:s'))
+		            );
+
+		            $query->values(implode(',', $values));
+					$db->setQuery($query . '  ON DUPLICATE KEY UPDATE ' . $db->quoteName('value') . ' = '.$db->quote($data['value']).', ' . $db->quoteName('last_update') . ' = ' . $db->quote(date('Y-m-d H:i:s')));
+		            $db->execute();
+
+		            return 'OK';
                 default :
                     return ['error' => 'Wrong action was provided'];
             }
