@@ -1078,7 +1078,10 @@ class plgSystemCleantalkantispam extends JPlugin
                                     );
                                     echo \json_encode($return);
                                     die();
-                                } elseif( $app->input->get('option') === 'com_sppagebuilder' ) {
+                                } elseif (
+                                    $app->input->get('option') === 'com_sppagebuilder' &&
+                                    !isset($app->input->get('form')['formId'])
+                                ) {
                                     $output['status'] = false;
                                     $output['content'] = '<span class="sppb-text-danger">' . $ctResponse['comment'] . '</span>';
                                     echo \json_encode(
