@@ -107,7 +107,7 @@ var ctMouseReadInterval = setInterval(function(){
 var ctMouseWriteDataInterval = setInterval(function(){
     var ctMouseDataToSend = ctMouseData.slice(0,-1).concat("]");
     if (typeof ctPublicData !== 'undefined' && ctPublicData.typeOfCookie && ctPublicData.typeOfCookie === 'alt_cookies') {
-        ctSetAltCookie('ct_pointer_data', ctMouseDataToSend);
+        apbctLocalStorage.set('ct_pointer_data', ctMouseDataToSend);
     } else {
         ctSetCookie('ct_pointer_data', ctMouseDataToSend);
     }
@@ -215,8 +215,12 @@ function ct_ready(){
                 visible_fields = visible_fields.trim();
 
                 if (typeof ctPublicData !== 'undefined' && ctPublicData.typeOfCookie && ctPublicData.typeOfCookie === 'alt_cookies') {
-                    ctSetAltCookie('ct_visible_fields', visible_fields);
-                    ctSetAltCookie('ct_visible_fields_count', visible_fields_count);
+                    const cookies = {
+                        ct_pointer_data: apbctLocalStorage.get('ct_pointer_data'),
+                        ct_visible_fields: visible_fields,
+                        ct_visible_fields_count: visible_fields_count
+                    }
+                    ctSetAltCookies(cookies);
                 } else {
                     ctSetCookie("ct_visible_fields", visible_fields);
                     ctSetCookie("ct_visible_fields_count", visible_fields_count);
