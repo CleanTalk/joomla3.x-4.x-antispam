@@ -165,7 +165,8 @@ function ct_ready(){
                 continue;
             }
 
-            form.addEventListener('submit', function () {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
                 // Get only fields
                 var elements = [];
                 for(var key in this.elements){
@@ -220,6 +221,7 @@ function ct_ready(){
                     ctSetCookie("ct_visible_fields", visible_fields);
                     ctSetCookie("ct_visible_fields_count", visible_fields_count);
                 }
+                this.submit();
             });
         }
     }, 1000);
