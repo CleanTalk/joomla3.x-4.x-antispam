@@ -2023,10 +2023,10 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function get_sender_info()
     {
-        $page_set_timestamp  = (isset($_COOKIE['ct_ps_timestamp']) ? $_COOKIE['ct_ps_timestamp'] : 0);
-        $js_timezone         = (isset($_COOKIE['ct_timezone']) ? $_COOKIE['ct_timezone'] : '');
-        $first_key_timestamp = (isset($_COOKIE['ct_fkp_timestamp']) ? $_COOKIE['ct_fkp_timestamp'] : '');
-        $pointer_data        = (isset($_COOKIE['ct_pointer_data']) ? json_decode($_COOKIE['ct_pointer_data']) : '');
+        $page_set_timestamp  = $this->ct_getcookie('ct_ps_timestamp');
+        $js_timezone         = $this->ct_getcookie('ct_timezone');
+        $first_key_timestamp = $this->ct_getcookie('ct_fkp_timestamp');
+        $pointer_data        = $this->ct_getcookie('ct_pointer_data');
         $get_cms_tag         = explode('-', JFactory::getLanguage()->getTag());
         $cms_lang            = ($get_cms_tag && is_array($get_cms_tag) && count($get_cms_tag) > 0) ? strtolower($get_cms_tag[0]) : '';
         $params = (array) $this->params;
@@ -2048,7 +2048,7 @@ class plgSystemCleantalkantispam extends JPlugin
             'REFFERRER_PREVIOUS'     => $this->ct_getcookie('apbct_prev_referer'),
             'fields_number'          => sizeof($_POST),
             'cms_lang'               => $cms_lang,
-            'apbct_visible_fields'   => !empty($_COOKIE['ct_visible_fields']) ? $this->ct_visibile_fields__process($_COOKIE['ct_visible_fields'])  : null,
+            'apbct_visible_fields'   => $this->ct_visibile_fields__process($this->ct_getcookie('ct_visible_fields')),
         );
 
         return json_encode($sender_info);
