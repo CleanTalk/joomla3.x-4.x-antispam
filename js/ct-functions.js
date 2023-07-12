@@ -128,7 +128,7 @@ var ctFunctionMouseMove = function output(event){
 var ctFunctionFirstKey = function output(event){
     var KeyTimestamp = Math.floor(new Date().getTime()/1000);
     if (typeof ctPublicData !== 'undefined' && ctPublicData.typeOfCookie && ctPublicData.typeOfCookie === 'alt_cookies') {
-        ctSetAltCookie('ct_fkp_timestamp', KeyTimestamp);
+        ctSetAltCookies({'ct_fkp_timestamp': KeyTimestamp});
     } else {
         ctSetCookie('ct_fkp_timestamp', KeyTimestamp);
     }
@@ -249,7 +249,7 @@ function ct_attach_event_token(){
             const value = ct_event_token_obj.value;
             if (typeof value === "string" && value.length === 64){
                 if (typeof ctPublicData !== 'undefined' && ctPublicData.typeOfCookie && ctPublicData.typeOfCookie === 'alt_cookies') {
-                    ctSetAltCookie('ct_event_token', ct_event_token_obj.value);
+                    ctSetAltCookies({'ct_event_token': ct_event_token_obj.value});
                 } else {
                     ctSetCookie("ct_event_token", ct_event_token_obj.value);
                 }
@@ -270,36 +270,6 @@ function ctSetAltCookies(altCookies)
         url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
         method: 'POST',
         data: JSON.stringify(altCookies),
-        headers: {
-            'Cache-Control' : 'no-cache',
-            'Content-Type': 'application/json'
-        },
-        onSuccess: function (response){
-            console.log(response);
-        },
-        onError: function (error){
-            console.log(error);
-        }
-    });
-}
-
-/**
- * Set one alt cookie
- * @param cookie
- * @param value
- */
-function ctSetAltCookie(cookie, value)
-{
-    let data = {
-        cookie: cookie,
-        value: value,
-        action: 'set_alt_cookie'
-    };
-
-    Joomla.request({
-        url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
-        method: 'POST',
-        data: JSON.stringify(data),
         headers: {
             'Cache-Control' : 'no-cache',
             'Content-Type': 'application/json'
