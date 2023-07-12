@@ -2009,7 +2009,9 @@ class plgSystemCleantalkantispam extends JPlugin
         $pointer_data        = $this->ct_getcookie('ct_pointer_data');
         $get_cms_tag         = explode('-', JFactory::getLanguage()->getTag());
         $cms_lang            = ($get_cms_tag && is_array($get_cms_tag) && count($get_cms_tag) > 0) ? strtolower($get_cms_tag[0]) : '';
-        $params = (array) $this->params;
+
+        $params = $this->params->toArray();
+
         if (!isset($params['cookies'])) {
             $params['cookies'] = array('set_cookies' => 0, 'use_alternative_cookies' => 0);
         }
