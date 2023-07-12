@@ -1891,7 +1891,9 @@ class plgSystemCleantalkantispam extends JPlugin
             /** @var \Cleantalk\Common\Helper\Helper $helper_class */
             $helper_class = Mloader::get('Helper');
 
-            $event_token = (isset($_COOKIE['ct_event_token']) ? $_COOKIE['ct_event_token'] : '');
+            $app = JFactory::getApplication();
+            $event_token = $app->input->get('ct_bot_detector_event_token');
+            $event_token = !empty($event_token) ? $event_token : '';
 
             $ct_request->auth_key        = $this->params->get('apikey');
             $ct_request->agent           = self::ENGINE;
