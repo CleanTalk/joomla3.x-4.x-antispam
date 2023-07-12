@@ -276,7 +276,12 @@ class plgSystemCleantalkantispam extends JPlugin
 
 
         //cutting trims on early save
-        $apikey = trim($this->params->get('apikey'));
+        //php 8.1 trim deprecated on null fixed
+        if ( is_null($this->params->get('apikey')) ) {
+            $apikey = '';
+        } else {
+            $apikey = trim($this->params->get('apikey'));
+        }
         $save_params['apikey'] = $apikey;
 
         if (!$this->isAdmin())
