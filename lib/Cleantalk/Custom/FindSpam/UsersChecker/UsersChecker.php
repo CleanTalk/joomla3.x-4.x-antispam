@@ -38,7 +38,7 @@ class UsersChecker
 	public function __construct($data)
 	{
 		$this->data = $data;
-		$this->api_key = $this->data['api_key'] ?? '';
+		$this->api_key = isset($this->data['api_key']) ? $this->data['api_key'] : '';
 		$this->model = new Model();
 
 		$route = isset($this->data['route']) ? Sanitize::sanitize($this->data['route'], 'word') : 'getTabContent';
@@ -230,7 +230,7 @@ class UsersChecker
 				JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_LAST_CHECK_INFO'),
 				$last_users_check_info['checking_date'],
 				$last_users_check_info['checking_count'],
-				$last_users_check_info['found_spam'],
+				$last_users_check_info['found_spam']
 			);
 		} else {
 			$message = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_NOT_CHECKED');
