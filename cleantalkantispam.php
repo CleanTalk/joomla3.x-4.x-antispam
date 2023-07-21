@@ -1864,10 +1864,6 @@ class plgSystemCleantalkantispam extends JPlugin
             /** @var \Cleantalk\Common\Helper\Helper $helper_class */
             $helper_class = Mloader::get('Helper');
 
-            $app = JFactory::getApplication();
-            $event_token = $app->input->get('ct_bot_detector_event_token');
-            $event_token = !empty($event_token) ? $event_token : '';
-
             $ct_request->auth_key        = $this->params->get('apikey');
             $ct_request->agent           = self::ENGINE;
             $ct_request->submit_time     = $this->submit_time_test();
@@ -1876,9 +1872,8 @@ class plgSystemCleantalkantispam extends JPlugin
             $ct_request->x_real_ip       = $helper_class::ipGet('x_real_ip', false);
             $ct_request->sender_info     = $this->get_sender_info();
             $ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
-            $ct_request->event_token     = $event_token;
+            $ct_request->event_token     = $this->getBotDetectorEventToken();
 
-            $result             = null;
             $ct                 = new Cleantalk();
             $ct->server_url     = 'https://moderate.cleantalk.org';
             $ct->work_url       = $this->params->get('work_url') ? $this->params->get('work_url') : '';
@@ -2678,5 +2673,27 @@ class plgSystemCleantalkantispam extends JPlugin
         }
         print $ct_die_page;
         die();
+    }
+
+    /**
+     * Search for even_token in JFactory app POST data.
+     * @return string
+     * @throws Exception
+     */
+    public function getBotDetectorEventToken()
+    {
+        $app = JFactory::getApplication();
+        $event_token = $app->input->get('ct_bot_detector_event_token');
+        if ( empty($event_token) ){
+            $get_input = $app->input->getArray();
+            foreach ($get_input as $key => $value) {
+                if (stripos($key, 'ct_bot_detector_event_token') === 0 &&
+                    preg_match('/^[A-Fa-f0-9]{64}$/', $value)
+                ) {
+                    $event_token =  $value;
+                }
+            }
+        }
+        return empty($event_token) || !is_string($event_token) ? '' : $event_token;
     }
 }
