@@ -276,7 +276,12 @@ class plgSystemCleantalkantispam extends JPlugin
 
 
         //cutting trims on early save
-        $apikey = trim($this->params->get('apikey'));
+        //php 8.1 trim deprecated on null fixed
+        if ( is_null($this->params->get('apikey')) ) {
+            $apikey = '';
+        } else {
+            $apikey = trim($this->params->get('apikey'));
+        }
         $save_params['apikey'] = $apikey;
 
         if (!$this->isAdmin())
@@ -541,6 +546,15 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $this->sfw_check();
             $this->ct_cookie();
+	        $type_of_cookie = $config->get('ct_use_alternative_cookies') ? 'alt_cookies' : 'simple_cookies';
+
+	        // Add inline data
+	        $document->addScriptDeclaration('
+				const ctPublicData = {
+					typeOfCookie: "' . $type_of_cookie . '"
+				}
+			');
+
             $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js?" . time());
 
             // Bot detector
@@ -720,6 +734,14 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $document = JFactory::getDocument();
             $config   = $this->params;
+	        $type_of_cookie = $config->get('ct_use_alternative_cookies') ? 'alt_cookies' : 'simple_cookies';
+
+	        // Add inline data
+	        $document->addScriptDeclaration('
+				const ctPublicData = {
+					typeOfCookie: "' . $type_of_cookie . '"
+				}
+			');
 
             $this->sfw_check();
             $this->ct_cookie();
@@ -1454,6 +1476,38 @@ class plgSystemCleantalkantispam extends JPlugin
 		            $data['api_key'] = $this->params->get('apikey');
 					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
 					return $users_checker->getResponse();
+	            case 'set_alt_cookies' :
+		            self::_apbct_alt_sessions__remove_old();
+
+		            // To database
+		            $db = JFactory::getDbo();
+		            $columns = array(
+			            'id',
+			            'name',
+			            'value',
+			            'last_update'
+		            );
+					$values = array();
+		            $query = $db->getQuery(true);
+		            $query->insert($db->quoteName('#__cleantalk_sessions'));
+		            $query->columns($db->quoteName($columns));
+					unset($data['action']);
+
+					foreach ($data as $cookie_name => $cookie_value) {
+						$values[] = implode(',', array(
+							$db->quote(self::_apbct_alt_session__id__get()),
+							$db->quote($cookie_name),
+							$db->quote($cookie_value),
+							$db->quote(date('Y-m-d H:i:s'))
+						));
+					}
+
+		            $query->values($values);
+
+		            $db->setQuery($query . '  ON DUPLICATE KEY UPDATE value=VALUES(value), last_update=VALUES(last_update);');
+		            $db->execute();
+
+		            return ('XHR OK');
                 default :
                     return ['error' => 'Wrong action was provided'];
             }
@@ -1813,9 +1867,6 @@ class plgSystemCleantalkantispam extends JPlugin
             /** @var \Cleantalk\Common\Helper\Helper $helper_class */
             $helper_class = Mloader::get('Helper');
 
-	        $event_token = isset($_POST['ct_bot_detector_event_token']) ? $_POST['ct_bot_detector_event_token'] : '';
-            $event_token = ! $event_token && isset($_COOKIE['ct_event_token']) ? $_COOKIE['ct_event_token'] : '';
-
             $ct_request->auth_key        = $this->params->get('apikey');
             $ct_request->agent           = self::ENGINE;
             $ct_request->submit_time     = $this->submit_time_test();
@@ -1824,9 +1875,8 @@ class plgSystemCleantalkantispam extends JPlugin
             $ct_request->x_real_ip       = $helper_class::ipGet('x_real_ip', false);
             $ct_request->sender_info     = $this->get_sender_info();
             $ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
-            $ct_request->event_token     = $event_token;
+            $ct_request->event_token     = $this->getBotDetectorEventToken();
 
-            $result             = null;
             $ct                 = new Cleantalk();
             $ct->server_url     = 'https://moderate.cleantalk.org';
             $ct->work_url       = $this->params->get('work_url') ? $this->params->get('work_url') : '';
@@ -1951,13 +2001,15 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function get_sender_info()
     {
-        $page_set_timestamp  = (isset($_COOKIE['ct_ps_timestamp']) ? $_COOKIE['ct_ps_timestamp'] : 0);
-        $js_timezone         = (isset($_COOKIE['ct_timezone']) ? $_COOKIE['ct_timezone'] : '');
-        $first_key_timestamp = (isset($_COOKIE['ct_fkp_timestamp']) ? $_COOKIE['ct_fkp_timestamp'] : '');
-        $pointer_data        = (isset($_COOKIE['ct_pointer_data']) ? json_decode($_COOKIE['ct_pointer_data']) : '');
+        $page_set_timestamp  = $this->ct_getcookie('ct_ps_timestamp');
+        $js_timezone         = $this->ct_getcookie('ct_timezone');
+        $first_key_timestamp = $this->ct_getcookie('ct_fkp_timestamp');
+        $pointer_data        = $this->ct_getcookie('ct_pointer_data');
         $get_cms_tag         = explode('-', JFactory::getLanguage()->getTag());
         $cms_lang            = ($get_cms_tag && is_array($get_cms_tag) && count($get_cms_tag) > 0) ? strtolower($get_cms_tag[0]) : '';
-        $params = (array) $this->params;
+
+        $params = $this->params->toArray();
+
         if (!isset($params['cookies'])) {
             $params['cookies'] = array('set_cookies' => 0, 'use_alternative_cookies' => 0);
         }
@@ -1976,7 +2028,7 @@ class plgSystemCleantalkantispam extends JPlugin
             'REFFERRER_PREVIOUS'     => $this->ct_getcookie('apbct_prev_referer'),
             'fields_number'          => sizeof($_POST),
             'cms_lang'               => $cms_lang,
-            'apbct_visible_fields'   => !empty($_COOKIE['ct_visible_fields']) ? $this->ct_visibile_fields__process($_COOKIE['ct_visible_fields'])  : null,
+            'apbct_visible_fields'   => $this->ct_visibile_fields__process($this->ct_getcookie('ct_visible_fields')),
         );
 
         return json_encode($sender_info);
@@ -2624,5 +2676,27 @@ class plgSystemCleantalkantispam extends JPlugin
         }
         print $ct_die_page;
         die();
+    }
+
+    /**
+     * Search for even_token in JFactory app POST data.
+     * @return string
+     * @throws Exception
+     */
+    public function getBotDetectorEventToken()
+    {
+        $app = JFactory::getApplication();
+        $event_token = $app->input->get('ct_bot_detector_event_token');
+        if ( empty($event_token) ){
+            $get_input = $app->input->getArray();
+            foreach ($get_input as $key => $value) {
+                if (stripos($key, 'ct_bot_detector_event_token') === 0 &&
+                    preg_match('/^[A-Fa-f0-9]{64}$/', $value)
+                ) {
+                    $event_token =  $value;
+                }
+            }
+        }
+        return empty($event_token) || !is_string($event_token) ? '' : $event_token;
     }
 }
