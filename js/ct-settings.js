@@ -322,19 +322,41 @@ jQuery(document).ready(function(){
 	 * @since 3.3.0
 	 */
 	setTimeout(() => {
-		// Load init() to the active tab
-		const apbctSettingsTabsContent = jQuery("#myTabContent>div");
-		jQuery.each(apbctSettingsTabsContent, function (index, tab) {
-			if ( tab.className.includes('active') && tab.id !== 'undefined' ) {
-				if (  tab.id === 'attrib-checkusers' ) {
-					apbct.usersChecker.init();
-				}
-				if ( tab.id === 'attrib-checkcomments' ) {
-					// @ToDo not implemented yet
-					//apbct.commentsChecker.init();
-				}
+		const joomlaVersion = () => {
+			if (typeof ct_joomla_version !== 'undefined') {
+				return ct_joomla_version.substring(0, 1);
 			}
-		});
+		}
+
+		if (joomlaVersion() === '4') {
+			const apbctSettingsTabs = jQuery('#myTab button[role="tab"]');
+			jQuery.each(apbctSettingsTabs, function (index, tab) {
+				let tabElement = jQuery(tab);
+				if ( tabElement.attr('aria-expanded') ) {
+					if (  tabElement.attr('aria-controls') === 'attrib-checkusers' ) {
+						apbct.usersChecker.init();
+					}
+					if ( tabElement.attr('aria-controls') === 'attrib-checkcomments' ) {
+						// @ToDo not implemented yet
+						//apbct.commentsChecker.init();
+					}
+				}
+			});
+		} else {
+			// Load init() to the active tab
+			const apbctSettingsTabsContent = jQuery("#myTabContent>div");
+			jQuery.each(apbctSettingsTabsContent, function (index, tab) {
+				if ( tab.className.includes('active') && tab.id !== 'undefined' ) {
+					if (  tab.id === 'attrib-checkusers' ) {
+						apbct.usersChecker.init();
+					}
+					if ( tab.id === 'attrib-checkcomments' ) {
+						// @ToDo not implemented yet
+						//apbct.commentsChecker.init();
+					}
+				}
+			});
+		}
 
 		// Set click listeners to the settings tabs
 		const apbctSettingsTabs = jQuery("a[data-toggle='tab']");
