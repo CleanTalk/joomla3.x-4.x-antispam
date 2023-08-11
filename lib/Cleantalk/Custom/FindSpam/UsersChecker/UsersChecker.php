@@ -210,7 +210,7 @@ class UsersChecker
 		$res = $this->model->getUsersCount();
 
 		if ( $res ) {
-			$text = sprintf(JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_TOTAL'), $res);
+			$text = sprintf(JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_TOTAL'), '<span>' . $res . '</span>');
 		} else {
 
 			$text = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_NO_USERS');
@@ -228,9 +228,9 @@ class UsersChecker
 		if ( $last_users_check_info ) {
 			$message = sprintf(
 				JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_LAST_CHECK_INFO'),
-				$last_users_check_info['checking_date'],
-				$last_users_check_info['checking_count'],
-				$last_users_check_info['found_spam']
+				'<spam id="ct_userchecking__checking_date">' . $last_users_check_info['checking_date'] . '</spam>',
+				'<spam id="ct_userchecking__checking_count">' . $last_users_check_info['checking_count'] . '</spam>',
+				'<spam id="ct_userchecking__found_spam">' . $last_users_check_info['found_spam'] . '</spam>'
 			);
 		} else {
 			$message = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_NOT_CHECKED');
@@ -285,9 +285,15 @@ class UsersChecker
 
 		if ( count($data) === 0 )
 		{
+			$last_users_check_info = $storage_handler_class::getSetting('cleantalk_last_users_check');
+			$stored_checking_count = isset($last_users_check_info['checking_count']) ? $last_users_check_info['checking_count'] : 0;
+			$stored_found_spam     = isset($last_users_check_info['found_spam']) ? $last_users_check_info['found_spam'] : 0;
+
 			$output['html']   = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_NOUSERSTOCHECK');
 			$output['success'] = true;
 			$output['end'] = true;
+			$output['checkingCount'] = $stored_checking_count;
+			$output['foundedSpam'] = $stored_found_spam;
 		} else {
 			if ( $improved_check ) {
 				foreach ( $data as $date => $values ) {
@@ -330,6 +336,9 @@ class UsersChecker
 						'found_spam'     => $stored_found_spam + count($spam),
 					];
 
+					$output['checkingCount'] = $scan_info['checking_count'];
+					$output['foundedSpam'] = $scan_info['found_spam'];
+
 					$storage_handler_class::saveSetting('cleantalk_last_users_check', $scan_info);
 
 				}
@@ -351,6 +360,10 @@ class UsersChecker
 	private function clearResults()
 	{
 		$this->model->clearScanResults();
+		return json_encode(array(
+			'users_count' => $this->model->getUsersCount(),
+			'current_date' => date('M m, Y')
+		));
 	}
 
 	private function delete($data)
