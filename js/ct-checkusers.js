@@ -48,9 +48,22 @@ window.apbct = window.apbct || {};
     usersChecker.setListeners = () => {
         $('#check_spam_users').click(() => {
             usersChecker.improvedCheck = $("#ct_impspamcheck_checkbox").is(":checked");
-            usersChecker.clearUserCheckerResults().then(() => {
-                    return usersChecker.runUserChecker(usersChecker.limit, usersChecker.offset);
-                }).then(
+
+            usersChecker.clearUserCheckerResults()
+                .then((response) => {
+                    try {
+                        // Clear Frontend Results
+                        const responseObject = JSON.parse(response);
+                        jQuery('#ct_checking_count span').html(responseObject.users_count);
+                        jQuery('#ct_userchecking__checking_date').html(responseObject.current_date);
+                        usersChecker.reactUserCheckingFrontendData();
+
+                        return usersChecker.runUserChecker(usersChecker.limit, usersChecker.offset);
+                    } catch (error) {
+                        usersChecker.runUserCheckerError(error);
+                    }
+                })
+                .then(
                     response => {
                         try {
                             usersChecker.runUserCheckerSuccess(JSON.parse(response));
@@ -135,6 +148,10 @@ window.apbct = window.apbct || {};
     };
 
     usersChecker.runUserCheckerSuccess = (response) => {
+        if (response.checkingCount !== undefined && response.foundedSpam !== undefined) {
+            usersChecker.reactUserCheckingFrontendData(response.checkingCount, response.foundedSpam);
+        }
+
         if ( response.end ) {
             usersChecker.disablePreloader();
             usersChecker.unblockButtons();
@@ -281,5 +298,10 @@ window.apbct = window.apbct || {};
             });
         });
     };
+
+    usersChecker.reactUserCheckingFrontendData = (checkingCount = '0', foundedSpam = '0') => {
+        jQuery('#ct_userchecking__checking_count').html(checkingCount);
+        jQuery('#ct_userchecking__found_spam').html(foundedSpam);
+    }
 
 })( jQuery, window.apbct );

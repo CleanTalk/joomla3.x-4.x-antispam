@@ -677,6 +677,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_connection_reports_table_libreport = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CONNECTIONREPORTS_TABLE_LIBREPORT') . '",
 						ct_account_name_label = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_ACCOUNT_NAME_LABEL') . '",
 						ct_form_settings_title = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_SETTINGS_TITLE') . '";
+						ct_joomla_version = "' . $this->getCmsVersion() . '";
 				');
                 //Admin JS and CSS
                 JHtml::_('jquery.framework');
