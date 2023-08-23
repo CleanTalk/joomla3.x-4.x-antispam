@@ -51,13 +51,17 @@ window.apbct = window.apbct || {};
 
             usersChecker.clearUserCheckerResults()
                 .then((response) => {
-                    // Clear Frontend Results
-                    const responseObject = JSON.parse(response);
-                    jQuery('#ct_checking_count span').html(responseObject.users_count);
-                    jQuery('#ct_userchecking__checking_date').html(responseObject.current_date);
-                    usersChecker.reactUserCheckingFrontendData();
+                    try {
+                        // Clear Frontend Results
+                        const responseObject = JSON.parse(response);
+                        jQuery('#ct_checking_count span').html(responseObject.users_count);
+                        jQuery('#ct_userchecking__checking_date').html(responseObject.current_date);
+                        usersChecker.reactUserCheckingFrontendData();
 
-                    return usersChecker.runUserChecker(usersChecker.limit, usersChecker.offset);
+                        return usersChecker.runUserChecker(usersChecker.limit, usersChecker.offset);
+                    } catch (error) {
+                        usersChecker.runUserCheckerError(error);
+                    }
                 })
                 .then(
                     response => {
@@ -144,7 +148,10 @@ window.apbct = window.apbct || {};
     };
 
     usersChecker.runUserCheckerSuccess = (response) => {
-        usersChecker.reactUserCheckingFrontendData(response?.checkingCount, response?.foundedSpam);
+        if (response.checkingCount !== undefined && response.foundedSpam !== undefined) {
+            usersChecker.reactUserCheckingFrontendData(response.checkingCount, response.foundedSpam);
+        }
+
         if ( response.end ) {
             usersChecker.disablePreloader();
             usersChecker.unblockButtons();
