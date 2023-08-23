@@ -541,6 +541,9 @@ class plgSystemCleantalkantispam extends JPlugin
         $app      = JFactory::getApplication();
         $document = JFactory::getDocument();
         $urls     = $config->get('url_exclusions');
+	    $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+		$session  = JFactory::getSession();
+		$session->set('cleantalk_current_page', $current_page_url);
 
         if ($this->isSite() && ! $this->jot_cache_enabled() && !$this->pageExcluded($urls))
         {
