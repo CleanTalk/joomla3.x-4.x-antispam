@@ -1,71 +1,285 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension version="3.0" type="plugin" group="system" method="upgrade" >
-    <name>plg_system_cleantalkantispam_name</name>
-    <author>CleanTalk team</author>
-    <creationDate>24.07.2019</creationDate>
-    <copyright>(C) CleanTalk</copyright>
-    <license>GNU/GPLv2</license>
-    <authorEmail>welcome@cleantalk.org</authorEmail>
-    <authorUrl>cleantalk.org</authorUrl>
-    <version>3.2.0</version>
-    <description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
+	<name>plg_system_cleantalkantispam_name</name>
+	<author>CleanTalk team</author>
+	<creationDate>24.07.2019</creationDate>
+	<copyright>(C) CleanTalk</copyright>
+	<license>GNU/GPLv2</license>
+	<authorEmail>welcome@cleantalk.org</authorEmail>
+	<authorUrl>cleantalk.org</authorUrl>
+	<version>3.2.1</version>
+	<description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
 	<scriptfile>updater.php</scriptfile>
-    <files>
+	<files>
 		<filename plugin="cleantalkantispam">cleantalkantispam.php</filename>
 		<filename>updater.php</filename>
 		<filename plugin="cleantalkantispam">js/ct-settings.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-functions.js</filename>
 		<filename plugin="cleantalkantispam">js/ct-external.js</filename>
+		<filename plugin="cleantalkantispam">js/ct-checkusers.js</filename>
 		<filename plugin="cleantalkantispam">css/ct-settings.css</filename>
 		<filename plugin="cleantalkantispam">img/preloader.gif</filename>
 		<folder>sql/</folder>
 		<folder>lib/</folder>
-    </files>
-    <languages folder="language">
+	</files>
+	<languages folder="language">
 		<language tag="en-GB">en-GB/en-GB.plg_system_cleantalkantispam.ini</language>
 		<language tag="en-GB">en-GB/en-GB.plg_system_cleantalkantispam.sys.ini</language>
 		<language tag="ru-RU">ru-RU/ru-RU.plg_system_cleantalkantispam.ini</language>
 		<language tag="ru-RU">ru-RU/ru-RU.plg_system_cleantalkantispam.sys.ini</language>
-    </languages> 
-    <config>
+	</languages>
+	<config>
 		<fields name="params">
 			<fieldset name="basic">
 				<field name="apikey" type="text"
-					label="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY"
-					description="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY_DESC"
-					size="40"
-					class="cleantalk_auth_key"
-					hint="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY_HINT"
+					   label="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY"
+					   description="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY_DESC"
+					   size="40"
+					   class="cleantalk_auth_key"
+					   hint="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_APIKEY_HINT"
 				/>
 				<field name="key_control" type="spacer"
-					label="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_KEY_CONTROL_LABEL"
-					description="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_KEY_CONTROL_DESCRIPTION"
-					class="cleantalk_key_control display_none"
+					   label="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_KEY_CONTROL_LABEL"
+					   description="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_KEY_CONTROL_DESCRIPTION"
+					   class="cleantalk_key_control display_none"
 				/>
-				<field name="form_protection" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_FORMS_PROTECTION_TITLE">
-					<option value="check_register">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_REGISTER</option>
-					<option value="check_contact_forms">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_CONTACT_FORMS</option>
-					<option value="check_custom_contact_forms">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CUSTOM_FORMS</option>
-					<option value="check_external">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_EXTERNAL</option>
-					<option value="check_search">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_SEARCH</option>
+
+				<!-- Forms protections group -->
+				<field type="spacer"
+					   label="PLG_SYSTEM_CLEANTALKANTISPAM_FORMS_PROTECTION_TITLE"
+					   class="cleantalk-field-group-title"
+				/>
+
+				<field
+						name="ct_check_register"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_REGISTER"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_REGISTER_DESCRIPTION"
+						default="1"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
 				</field>
-				<field name="comments_and_messages" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_COMMENTS_TITLE">
-					<option value="jcomments_check_comments">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_CHECK_COMMENTS</option>
-					<option value="jcomments_automod">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_AUTOMODERATION</option>
-					<option value="jcomments_relevance_test">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_RELEVANCE_TEST</option>
-					<option value="jcomments_unpublished_nofications">PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED</option>
+
+				<field
+						name="ct_check_contact_forms"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_CONTACT_FORMS"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_CONTACT_FORMS_DESCRIPTION"
+						default="1"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
 				</field>
-				<field name="data_processing" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_DATA_PROCESSING_TITLE">
-					<option value="skip_registered_users">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SKIP_REGISTERED_USERS</option>
-					<option value="check_all_post">PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_ALL_POST</option>
+
+				<field
+						name="ct_check_custom_contact_forms"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CUSTOM_FORMS"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CUSTOM_FORMS_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
 				</field>
-				<field name="cookies" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_COOKIES_TITLE">
-					<option value="set_cookies">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SET_COOKIES</option>
-					<option value="use_alternative_cookies">PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_ALTERNATIVE_COOKIES</option>
+
+				<field
+						name="ct_check_external"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_EXTERNAL"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_EXTERNAL_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
 				</field>
-				<field name="other_settings" type="checkboxes" label="PLG_SYSTEM_CLEANTALKANTISPAM_OTHER_TITLE">
-					<option value="sfw_enable">PLG_SYSTEM_CLEANTALKANTISPAM_CT_SPAM_FIREWALL</option>
-					<option value="tell_about_cleantalk">PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT</option>
+
+				<field
+						name="ct_check_search"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_SEARCH"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_SEARCH_DESCRIPTION"
+						default="1"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<!-- Comments and messages group -->
+				<field type="spacer"
+					   label="PLG_SYSTEM_CLEANTALKANTISPAM_COMMENTS_TITLE"
+					   class="cleantalk-field-group-title"
+				/>
+
+				<field
+						name="ct_jcomments_check_comments"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_CHECK_COMMENTS"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_CHECK_COMMENTS_DESCRIPTION"
+						default="1"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<field
+						name="ct_jcomments_automod"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_AUTOMODERATION"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_AUTOMODERATION_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<field
+						name="ct_jcomments_relevance_test"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_RELEVANCE_TEST"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_RELEVANCE_TEST_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<field
+						name="ct_jcomments_unpublished_nofications"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_JCOMMENTS_NOTIFY_NEW_UNPUBLISHED_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<!-- Data processing group -->
+				<field type="spacer"
+					   label="PLG_SYSTEM_CLEANTALKANTISPAM_DATA_PROCESSING_TITLE"
+					   class="cleantalk-field-group-title"
+				/>
+
+				<field
+						name="ct_skip_registered_users"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SKIP_REGISTERED_USERS"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SKIP_REGISTERED_USERS_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<field
+						name="ct_check_all_post"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_ALL_POST"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_CHECK_ALL_POST_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<!-- Cookies group -->
+				<field type="spacer"
+					   label="PLG_SYSTEM_CLEANTALKANTISPAM_DATA_PROCESSING_TITLE"
+					   class="cleantalk-field-group-title"
+				/>
+
+				<field
+						name="ct_set_cookies"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SET_COOKIES"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SET_COOKIES_DESCRIPTION"
+						default="1"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<field
+						name="ct_use_alternative_cookies"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_ALTERNATIVE_COOKIES"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_ALTERNATIVE_COOKIES_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<field
+						name="ct_use_bot_detector"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_BOT_DETECTOR"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_BOT_DETECTOR_DESCRIPTION"
+						default="1"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<!-- Other group -->
+				<field type="spacer"
+					   label="PLG_SYSTEM_CLEANTALKANTISPAM_OTHER_TITLE"
+					   class="cleantalk-field-group-title"
+				/>
+
+				<field
+						name="ct_sfw_enable"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SPAM_FIREWALL"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_SPAM_FIREWALL_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>
+
+				<field
+						name="ct_tell_about_cleantalk"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_TELL_ABOUT_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
 				</field>
 			</fieldset>
 			<fieldset name="exclusions">
@@ -74,35 +288,38 @@
 				<field name="fields_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS_DESC" />
 				<field name="roles_exclusions" type="textarea" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
 			</fieldset>
-			<fieldset name="checkuserscomments">
-
+			<fieldset name="checkusers">
+				<!-- content will be loaded via ajax calling -->
+			</fieldset>
+			<fieldset name="checkcomments">
+				<!-- content will be loaded via ajax calling -->
 			</fieldset>
 			<fieldset name="connectionreports">
 
 			</fieldset>
 		</fields>
-    </config>
-    <install>
-        <sql>
-            <file driver="mysql" charset="utf8">sql/mysql/install.mysql.utf8.sql</file>
-            <file driver="mariadb" charset="utf8">sql/mariadb/install.mariadb.utf8.sql</file>
-            <file driver="sqlsrv" charset="utf8">sql/sqlsrv/install.sqlsrv.utf8.sql</file>
-        </sql>
-    </install>
-    <uninstall>
-        <sql>
-            <file driver="mysql" charset="utf8">sql/mysql/uninstall.mysql.utf8.sql</file>
-            <file driver="mariadb" charset="utf8">sql/mariadb/uninstall.mariadb.utf8.sql</file>
-            <file driver="sqlsrv" charset="utf8">sql/sqlsrv/uninstall.sqlsrv.utf8.sql</file>
-        </sql>
-    </uninstall>
-	<update> 
-      <schemas>
-         <schemapath type="mysql">sql/mysql/updates</schemapath> 
-         <schemapath type="mariadb">sql/mariadb/updates</schemapath>
-         <schemapath type="sqlsrv">sql/sqlsrv/updates</schemapath>
-      </schemas>
-   </update>
+	</config>
+	<install>
+		<sql>
+			<file driver="mysql" charset="utf8">sql/mysql/install.mysql.utf8.sql</file>
+			<file driver="mariadb" charset="utf8">sql/mariadb/install.mariadb.utf8.sql</file>
+			<file driver="sqlsrv" charset="utf8">sql/sqlsrv/install.sqlsrv.utf8.sql</file>
+		</sql>
+	</install>
+	<uninstall>
+		<sql>
+			<file driver="mysql" charset="utf8">sql/mysql/uninstall.mysql.utf8.sql</file>
+			<file driver="mariadb" charset="utf8">sql/mariadb/uninstall.mariadb.utf8.sql</file>
+			<file driver="sqlsrv" charset="utf8">sql/sqlsrv/uninstall.sqlsrv.utf8.sql</file>
+		</sql>
+	</uninstall>
+	<update>
+		<schemas>
+			<schemapath type="mysql">sql/mysql/updates</schemapath>
+			<schemapath type="mariadb">sql/mariadb/updates</schemapath>
+			<schemapath type="sqlsrv">sql/sqlsrv/updates</schemapath>
+		</schemas>
+	</update>
 	<updateservers>
 		<server type="extension" priority="1" name="CleanTalk Update Site">https://raw.githubusercontent.com/CleanTalk/joomla3.x-4.x-antispam/master/plugin-updates.xml</server>
 	</updateservers>

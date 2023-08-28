@@ -35,5 +35,12 @@ CREATE TABLE IF NOT EXISTS `#__cleantalk_ua_bl` (
     `ua_status` tinyint(4) DEFAULT NULL,
     PRIMARY KEY (`id`)
 );
-UPDATE `#__extensions` SET params = '{"form_protection":["check_register","check_contact_forms","check_search"],"comments_and_messages":["jcomments_check_comments"],"roles_exclusions":"administrator,super users","cookies":["set_cookies"]}'
+UPDATE `#__extensions` SET params = '{"ct_check_register":1,"ct_check_contact_forms":1,"check_search":1,"ct_jcomments_check_comments":1,"roles_exclusions":"administrator,super users","ct_set_cookies":1}'
 WHERE element = 'cleantalkantispam' AND folder = 'system';
+CREATE TABLE IF NOT EXISTS `#__cleantalk_usermeta` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `user_id` int(11) NOT NULL,
+    `meta_key` varchar(255) DEFAULT NULL,
+    `meta_value` longtext DEFAULT NULL,
+    PRIMARY KEY (`id`)
+);
