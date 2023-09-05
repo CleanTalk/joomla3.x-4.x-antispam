@@ -960,6 +960,24 @@ class plgSystemCleantalkantispam extends JPlugin
                 $message = json_encode($message);
                 $post_info['comment_type'] = 'contact_form_joomla_creative_contact_form';
             }
+			// Convert Forms
+            elseif ( $app->input->get('task') === 'submit' ) {
+				$form_data = $app->input->get('cf');
+	            if ( is_array($form_data) ) {
+		            $ct_temp_msg_data = $helper_class::get_fields_any($form_data, $this->params->get('fields_exclusions'));
+		            $sender_email     = $ct_temp_msg_data['email'] ?: '';
+		            $sender_nickname  = $ct_temp_msg_data['nickname'] ?: '';
+		            $subject          = $ct_temp_msg_data['subject'] ?: '';
+		            $message          = $ct_temp_msg_data['message'] ?: array();
+
+		            if ($subject !== '')
+		            {
+			            $message = array_merge(array('subject' => $subject), $message);
+		            }
+		            $message = json_encode($message);
+		            $post_info['comment_type'] = 'contact_form_joomla_convert_forms';
+	            }
+            }
             // General test for any forms or form with custom fields
             else
             {
@@ -1166,6 +1184,15 @@ class plgSystemCleantalkantispam extends JPlugin
                                 {
                                     echo '[{"invalid":"problem_sending_email"}]';
                                     die();
+                                }
+                                elseif ( $post_info['comment_type'] === 'contact_form_joomla_convert_forms' )
+                                {
+									$res = array(
+										'error' => $ctResponse['comment'],
+									);
+	                                echo json_encode($res, JSON_FORCE_OBJECT);
+	                                die();
+									
                                 }
                                 else
                                 {
