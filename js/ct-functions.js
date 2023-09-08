@@ -225,7 +225,7 @@ function ct_ready(){
                     ctSetCookie("ct_visible_fields", visible_fields);
                     ctSetCookie("ct_visible_fields_count", visible_fields_count);
                 }
-                this.submit();
+                HTMLFormElement.prototype.submit.call(this);
             });
         }
     }, 1000);
