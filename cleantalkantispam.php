@@ -979,6 +979,9 @@ class plgSystemCleantalkantispam extends JPlugin
                             $sender_email = $_POST['cf']['contact-email'];
                         }
                     }
+                    if (isset($message['contact-message'])) {
+                        $message = $message['contact-message'];
+                    }
 		            $message = json_encode($message);
 		            $post_info['comment_type'] = 'contact_form_joomla_convert_forms';
 	            }
