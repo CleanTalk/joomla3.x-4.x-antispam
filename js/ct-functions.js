@@ -166,7 +166,6 @@ function ct_ready(){
             }
 
             form.addEventListener('submit', function (e) {
-                e.preventDefault();
                 // Get only fields
                 var elements = [];
                 for(var key in this.elements){
