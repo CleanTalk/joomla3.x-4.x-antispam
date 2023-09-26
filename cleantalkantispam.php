@@ -2084,26 +2084,13 @@ class plgSystemCleantalkantispam extends JPlugin
                 'check_value'   => $this->params->get('apikey'),
             );
 
-            // Submit time
-            $ct_timestamp = time();
-            if( $this->params->get('ct_use_alternative_cookies') ){
-                // by database
-                $prev_time = $this->ct_getcookie('apbct_prev_timestamp');
-                if(is_null($prev_time)){
-                    $this->ct_setcookie('apbct_timestamp', $ct_timestamp);
-                    $this->ct_setcookie('apbct_prev_timestamp', $ct_timestamp);
-                    $cookie_test_value['check_value'] .= $ct_timestamp;
-                } else {
-                    $this->ct_setcookie('apbct_timestamp', $prev_time);
-                    $this->ct_setcookie('apbct_prev_timestamp', $ct_timestamp);
-                    $cookie_test_value['check_value'] .= $prev_time;
-                }
-            } else {
-                // by cookies
-                $this->ct_setcookie('apbct_timestamp', $ct_timestamp);
-                $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
-                $cookie_test_value['check_value'] .= $ct_timestamp;
-            }
+	        // Submit time
+	        if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
+		        $apbct_timestamp = time();
+		        $this->ct_setcookie('apbct_timestamp', (string)$apbct_timestamp);
+		        $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
+		        $cookie_test_value['check_value']     .= $apbct_timestamp;
+	        }
 
             // Pervious referer
             if (!empty($_SERVER['HTTP_REFERER']))
