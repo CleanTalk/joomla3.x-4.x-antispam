@@ -441,7 +441,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $new_config = json_decode($data->params, true);
                 $access_key = trim($new_config['apikey']);
 
-                if (isset($new_config['sfw_enable'])) {
+                if (isset($new_config['ct_sfw_enable'])) {
                     self::apbct_sfw_update($access_key);
                     self::apbct_sfw_send_logs($access_key);
                 }
