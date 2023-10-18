@@ -9,6 +9,7 @@ class Db extends \Cleantalk\Common\Db\Db
      * Initilize Database object and write it to property.
      * Set tables prefix.
      */
+    protected $dbResult;
     protected function init() {
         $this->prefix = \JFactory::getDBO()->getPrefix();
     }
@@ -37,7 +38,7 @@ class Db extends \Cleantalk\Common\Db\Db
     public function fetch( $query = '', $response_type = false ) {
 		$query = $this->getQuery() ?: $query;
         $this->result = \JFactory::getDBO()->setQuery($query)->loadAssoc();
-        
+
         return $this->result;
     }
 
@@ -52,7 +53,7 @@ class Db extends \Cleantalk\Common\Db\Db
      */
     public function fetchAll( $query = false, $response_type = false ) {
         $this->result = \JFactory::getDBO()->setQuery($query)->loadAssocList();
-        
+
         return $this->result;
     }
 

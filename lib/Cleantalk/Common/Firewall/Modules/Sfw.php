@@ -12,15 +12,18 @@ use Cleantalk\Common\Variables\Server;
 class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 {
 	public $module_name = 'SFW';
+    private $sfw_counter;
+    private $cookie_domain;
+    private $set_cookies;
+
+
 	/*
 	protected $test;
 
 	// Additional params
-	private $sfw_counter = false;
 	protected $api_key = false;
 
 	private $data__cookies_type = false;
-	private $cookie_domain = false;
 
 
 
@@ -61,11 +64,15 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 		$this->db__table__data = $data_table ?: null;
 		$this->db__table__logs = $log_table ?: null;
 
-		foreach ($params as $param_name => $param) {
-			$this->$param_name = isset($this->$param_name) ? $param : false;
-		}
+        foreach ($params as $param_name => $param) {
+            if ( in_array($param_name, array_keys(get_class_vars(__CLASS__))) ) {
+                $this->$param_name = isset($this->$param_name) ? $param : false;
+            } else {
+                error_log('CleanTalk Anti-Spam: trying to set value for undeclared attribute ' . $param_name . ' in class ' . __CLASS__);
+            }
+        }
 
-		$this->debug = (bool)Get::get('debug');
+        $this->debug = (bool)Get::get('debug');
 	}
 
 	/**
