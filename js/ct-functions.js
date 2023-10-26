@@ -301,24 +301,3 @@ function ctSetAltCookies(altCookies)
         }
     });
 }
-
-function ctCheckAjax(data)
-{
-    data.action = 'check_ajax';
-
-    Joomla.request({
-        url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
-        method: 'POST',
-        data: JSON.stringify(data),
-        headers: {
-            'Cache-Control' : 'no-cache',
-            'Content-Type': 'application/json'
-        },
-        onSuccess: function (response){
-            console.log(response);
-        },
-        onError: function (error){
-            console.log(error);
-        }
-    });
-}
