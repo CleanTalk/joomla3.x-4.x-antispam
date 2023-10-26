@@ -1124,6 +1124,14 @@ class plgSystemCleantalkantispam extends JPlugin
                                         )
                                     );
                                     die;
+                                } elseif (($option_cmd === 'com_convertforms' && !empty($task_cmd) && $task_cmd === 'submit')) {
+                                    echo \json_encode(
+                                        array(
+                                            'success' => false,
+                                            'error' => $ctResponse['comment']
+                                        )
+                                    );
+                                    die;
                                 } elseif( $app->input->get('option') === 'com_komento' ) {
                                     echo \json_encode(
                                         array (

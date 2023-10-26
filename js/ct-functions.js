@@ -225,10 +225,29 @@ function ct_ready(){
                     ctSetCookie("ct_visible_fields", visible_fields);
                     ctSetCookie("ct_visible_fields_count", visible_fields_count);
                 }
-                HTMLFormElement.prototype.submit.call(this);
+
+                if (!ct_is_excluded_forms(this)) {
+                    HTMLFormElement.prototype.submit.call(this);
+                }
             });
         }
     }, 1000);
+}
+
+function ct_is_excluded_forms(form) {
+    let value;
+    for (let key in form.elements){
+        if (isNaN(+key)) {
+            continue;
+        }
+
+        value = form.elements[key];
+        if (value.classList.contains('cf-input')) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function ct_attach_event_handler(elem, event, callback){
@@ -270,6 +289,27 @@ function ctSetAltCookies(altCookies)
         url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
         method: 'POST',
         data: JSON.stringify(altCookies),
+        headers: {
+            'Cache-Control' : 'no-cache',
+            'Content-Type': 'application/json'
+        },
+        onSuccess: function (response){
+            console.log(response);
+        },
+        onError: function (error){
+            console.log(error);
+        }
+    });
+}
+
+function ctCheckAjax(data)
+{
+    data.action = 'check_ajax';
+
+    Joomla.request({
+        url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
+        method: 'POST',
+        data: JSON.stringify(data),
         headers: {
             'Cache-Control' : 'no-cache',
             'Content-Type': 'application/json'
