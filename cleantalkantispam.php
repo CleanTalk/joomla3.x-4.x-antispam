@@ -549,7 +549,7 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $this->sfw_check();
             $this->ct_cookie();
-	        $type_of_cookie = $config->get('ct_use_alternative_cookies') || $config->get('set_cookies') == 2
+	        $type_of_cookie = $config->get('ct_use_alternative_cookies') || $config->get('ct_set_cookies') == 2
 		        ? 'alt_cookies'
 		        : 'simple_cookies';
 
@@ -740,7 +740,7 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $document = JFactory::getDocument();
             $config   = $this->params;
-	        $type_of_cookie = $config->get('ct_use_alternative_cookies') || $config->get('set_cookies') == 2
+	        $type_of_cookie = $config->get('ct_use_alternative_cookies') || $config->get('ct_set_cookies') == 2
 		        ? 'alt_cookies'
 		        : 'simple_cookies';
 
@@ -2119,7 +2119,7 @@ class plgSystemCleantalkantispam extends JPlugin
         if( ! $this->params->get('ct_set_cookies') || headers_sent() ) {
             return null;
         }
-        if ( $this->params->get('ct_use_alternative_cookies') || $this->params->get('set_cookies') == 2 ) {
+        if ( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
             return 1;
         }
         if (isset($_COOKIE['apbct_cookies_test'])) {
@@ -2146,7 +2146,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
     private function ct_setcookie( $name, $value )
     {
-        if( $this->params->get('ct_use_alternative_cookies') || $this->params->get('set_cookies') == 2 ) {
+        if( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
 
             self::_apbct_alt_sessions__remove_old();
 
@@ -2170,7 +2170,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
     private function ct_getcookie( $name )
     {
-        if ( $this->params->get('ct_use_alternative_cookies') || $this->params->get('set_cookies') == 2 ) {
+        if ( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
 
             // From database
             $db = JFactory::getDbo();
