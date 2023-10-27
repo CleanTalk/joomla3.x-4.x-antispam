@@ -567,7 +567,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
             }
 
-            $set_cookies = $this->params->get('ct_set_cookies') == 1;
+            $set_cookies = $this->params->get('ct_set_cookies') != 0 ;
             $document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
             if ($set_cookies) {
                 $document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
@@ -760,7 +760,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
             }
 
-            $set_cookies = $this->params->get('ct_set_cookies') == 1;
+            $set_cookies = $this->params->get('ct_set_cookies') != 0 ;
             $document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
             $document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
             if ($config->get('ct_check_external'))
