@@ -1512,6 +1512,19 @@ class plgSystemCleantalkantispam extends JPlugin
 		            $db->execute();
 
 		            return ('XHR OK');
+	            case 'check_ajax': 
+                    $ctResponse = $this->ctSendRequest('check_newuser', array());
+
+                    if ($ctResponse['allow'] == 0) {
+                        return json_encode(['allow' => 0, 'msg' => $ctResponse['comment']]);
+                    }
+
+                    if ($ctResponse['allow'] == 1) {
+                        return json_encode(['allow' => 1, 'msg' => '']);
+                    }
+
+                    return ['error' => 'Not working'];
+
                 default :
                     return ['error' => 'Wrong action was provided'];
             }

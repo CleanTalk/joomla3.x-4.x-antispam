@@ -1177,7 +1177,7 @@ class Helper
 
     public static function utf8_decode_legacy($bytes)
     {
-        if (!empty($bytes)) {
+        if (empty($bytes)) {
             return '';
         }
 
