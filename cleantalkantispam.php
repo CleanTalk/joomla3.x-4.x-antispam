@@ -549,7 +549,9 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $this->sfw_check();
             $this->ct_cookie();
-	        $type_of_cookie = $config->get('ct_use_alternative_cookies') ? 'alt_cookies' : 'simple_cookies';
+	        $type_of_cookie = $config->get('ct_use_alternative_cookies') || $config->get('ct_set_cookies') == 2
+		        ? 'alt_cookies'
+		        : 'simple_cookies';
 
 	        // Add inline data
 	        $document->addScriptDeclaration('
@@ -565,7 +567,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
             }
 
-            $set_cookies = $this->params->get('ct_set_cookies');
+            $set_cookies = $this->params->get('ct_set_cookies') != 0 ;
             $document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
             if ($set_cookies) {
                 $document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
@@ -738,7 +740,9 @@ class plgSystemCleantalkantispam extends JPlugin
         {
             $document = JFactory::getDocument();
             $config   = $this->params;
-	        $type_of_cookie = $config->get('ct_use_alternative_cookies') ? 'alt_cookies' : 'simple_cookies';
+	        $type_of_cookie = $config->get('ct_use_alternative_cookies') || $config->get('ct_set_cookies') == 2
+		        ? 'alt_cookies'
+		        : 'simple_cookies';
 
 	        // Add inline data
 	        $document->addScriptDeclaration('
@@ -756,7 +760,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
             }
 
-            $set_cookies = $this->params->get('ct_set_cookies');
+            $set_cookies = $this->params->get('ct_set_cookies') != 0 ;
             $document->addScriptDeclaration("var ct_setcookie = " . ($set_cookies ? 1 : 0)	 . ";");
             $document->addScriptDeclaration('ctSetCookie("ct_checkjs", "' . $this->cleantalk_get_checkjs_code() . '", "0");');
             if ($config->get('ct_check_external'))
@@ -1121,6 +1125,14 @@ class plgSystemCleantalkantispam extends JPlugin
                                         array(
                                             'error' => 1,
                                             'msg' => $ctResponse['comment']
+                                        )
+                                    );
+                                    die;
+                                } elseif (($option_cmd === 'com_convertforms' && !empty($task_cmd) && $task_cmd === 'submit')) {
+                                    echo \json_encode(
+                                        array(
+                                            'success' => false,
+                                            'error' => $ctResponse['comment']
                                         )
                                     );
                                     die;
@@ -2128,7 +2140,7 @@ class plgSystemCleantalkantispam extends JPlugin
         if( ! $this->params->get('ct_set_cookies') || headers_sent() ) {
             return null;
         }
-        if ($this->params->get('ct_use_alternative_cookies') ) {
+        if ( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
             return 1;
         }
         if (isset($_COOKIE['apbct_cookies_test'])) {
@@ -2155,7 +2167,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
     private function ct_setcookie( $name, $value )
     {
-        if( $this->params->get('ct_use_alternative_cookies') ) {
+        if( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
 
             self::_apbct_alt_sessions__remove_old();
 
@@ -2179,7 +2191,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
     private function ct_getcookie( $name )
     {
-        if ( $this->params->get('ct_use_alternative_cookies') ) {
+        if ( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
 
             // From database
             $db = JFactory::getDbo();

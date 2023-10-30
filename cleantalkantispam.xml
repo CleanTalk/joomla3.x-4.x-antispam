@@ -222,19 +222,7 @@
 				>
 					<option value="0">JOFF</option>
 					<option value="1">JON</option>
-				</field>
-
-				<field
-						name="ct_use_alternative_cookies"
-						type="radio"
-						class="btn-group"
-						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_ALTERNATIVE_COOKIES"
-						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_USE_ALTERNATIVE_COOKIES_DESCRIPTION"
-						default="0"
-						filter="integer"
-				>
-					<option value="0">JOFF</option>
-					<option value="1">JON</option>
+					<option value="2">PLG_SYSTEM_CLEANTALKANTISPAM_ALT</option>
 				</field>
 
 				<field
