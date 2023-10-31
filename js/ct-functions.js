@@ -161,6 +161,8 @@ function ct_ready(){
         for(var i = 0; i < document.forms.length; i++){
             var form = document.forms[i];
 
+            checkEasySocial(form);
+
             if (!form.name && !form.id) {
                 continue;
             }
@@ -234,6 +236,41 @@ function ct_ready(){
     }, 1000);
 }
 
+function checkEasySocial(form) {
+    if (form.classList.contains('es-form-login')) {
+        form.querySelectorAll('a.btn').forEach(function (el) {
+            if (el.hasAttribute('data-oauth-login-button')) {
+                el.removeAttribute('data-oauth-login-button');
+                el.setAttribute('data-oauth-login-button-blocked', '');
+            }
+            el.onclick = function(e) {
+                e.preventDefault();
+                let allow = function(target) {
+                    if (target.hasAttribute('data-oauth-login-button-blocked')) {
+                        target.removeAttribute('data-oauth-login-button-blocked');
+                        target.setAttribute('data-oauth-login-button', '');
+                    }
+                    target.onclick = null;
+                    target.click();
+                };
+                let forbidden = function(target, msg) {
+                    let el = document.createElement('div');
+                    el.style.background = 'red';
+                    el.style.color = 'white';
+                    el.style.padding = '1em';
+                    el.style.margin = '1em';
+                    el.innerHTML = msg;
+                    target.insertAdjacentElement('afterend', el);
+                };
+                
+                ctCheckAjax(e.target, allow, forbidden);
+
+                return false;
+            }
+        })
+    }
+}
+
 function ct_is_excluded_forms(form) {
     let value;
     for (let key in form.elements){
@@ -298,6 +335,36 @@ function ctSetAltCookies(altCookies)
         },
         onError: function (error){
             console.log(error);
+        }
+    });
+}
+
+function ctCheckAjax(target, allow, forbidden)
+{
+    let data = apbctLocalStorage.getCleanTalkData();
+    data.action = 'check_ajax';
+
+    Joomla.request({
+        url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
+        method: 'POST',
+        data: JSON.stringify(data),
+        headers: {
+            'Cache-Control' : 'no-cache',
+            'Content-Type': 'application/json'
+        },
+        onSuccess: function (response){
+            let result = JSON.parse(response);
+            
+            if (result && result.allow == 1) {
+                allow(target);
+            }
+
+            if (result && result.allow == 0) {
+                forbidden(target, result.msg);
+            }
+        },
+        onError: function (error){
+            console.log('error', error);
         }
     });
 }
