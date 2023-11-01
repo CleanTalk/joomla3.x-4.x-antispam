@@ -467,7 +467,7 @@ class plgSystemCleantalkantispam extends JPlugin
         if ((@$_GET['option'] == 'com_mijoshop' && @$_GET['route'] == 'api/customer') ||
             ($option_cmd == 'com_virtuemart' && $task_cmd == 'add') ||
             $option_cmd == 'com_jcomments' ||
-            $option_cmd == 'com_contact' ||
+            ($option_cmd == 'com_contact' && $task_cmd != 'contact.submit') ||
             $option_cmd == 'com_users' ||
             $option_cmd == 'com_user' ||
             $option_cmd == 'com_login' ||
