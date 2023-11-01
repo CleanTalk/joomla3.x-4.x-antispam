@@ -359,11 +359,11 @@ jQuery(document).ready(function(){
 		}
 
 		// Set click listeners to the settings tabs
-		const apbctSettingsTabs = jQuery("a[data-toggle='tab']");
+		const apbctSettingsTabs = jQuery("a[data-toggle='tab'], #myTab button");
 		apbctSettingsTabs.on('click', function (e) {
 			const clickedLink = e.target;
 			if ( clickedLink.parentElement.className !== 'active' && clickedLink.hash !== 'undefined' ) {
-				if ( clickedLink.hash === '#attrib-checkusers' ) {
+				if ( clickedLink.hash === '#attrib-checkusers' || clickedLink.getAttribute("aria-controls") === 'attrib-checkusers' ) {
 					apbct.usersChecker.init();
 				}
 				if ( clickedLink.hash === '#attrib-checkcomments' ) {
