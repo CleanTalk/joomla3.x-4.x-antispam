@@ -375,7 +375,7 @@ jQuery(document).ready(function(){
 	}, 110); // This delay is necessary because the Joomla tabs loaded in 100ms see media/system/js/tabs-state-uncompressed.js:242
 
 	// Show Cookie setting description (for !Joomla 4+)
-	$('#jform_params_ct_set_cookies-desc').removeClass('d-none');
+	jQuery('#jform_params_ct_set_cookies-desc').removeClass('d-none');
 
 });
 
