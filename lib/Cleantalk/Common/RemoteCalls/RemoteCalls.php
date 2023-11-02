@@ -12,6 +12,8 @@ class RemoteCalls
 
     const OPTION_NAME = 'remote_calls';
 
+    protected $rc_running = false;
+
     /**
      * @var string
      */

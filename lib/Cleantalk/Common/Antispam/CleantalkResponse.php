@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common\Antispam;
 
+use Cleantalk\Common\Helper\Helper;
+
 /**
  * Response class
  * @psalm-suppress PossiblyUnusedProperty
@@ -136,8 +138,8 @@ class CleantalkResponse
         $this->errno  = isset($obj->errno) ? $obj->errno : 0;
         $this->errstr = isset($obj->errstr) ? preg_replace("/.+(\*\*\*.+\*\*\*).+/", "$1", htmlspecialchars($obj->errstr)) : null;
 
-        $this->stop_words     = isset($obj->stop_words) ? utf8_decode($obj->stop_words) : null;
-        $this->comment        = isset($obj->comment) ? strip_tags(utf8_decode($obj->comment), '<p><a><br>') : null;
+        $this->stop_words     = isset($obj->stop_words) ? Helper::utf8_decode_legacy($obj->stop_words) : null;
+        $this->comment        = isset($obj->comment) ? strip_tags(Helper::utf8_decode_legacy($obj->comment), '<p><a><br>') : null;
         $this->blacklisted    = isset($obj->blacklisted) ? $obj->blacklisted : null;
         $this->allow          = isset($obj->allow) ? $obj->allow : 1;
         $this->id             = isset($obj->id) ? $obj->id : null;

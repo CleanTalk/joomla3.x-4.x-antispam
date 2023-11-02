@@ -1174,4 +1174,19 @@ class Helper
     {
         return (bool) preg_match('/^[a-z\d]{3,30}$/', $api_key);
     }
+
+    public static function utf8_decode_legacy($bytes)
+    {
+        if (empty($bytes)) {
+            return '';
+        }
+
+        if (is_callable('mb_convert_encoding')) {
+            $result = mb_convert_encoding($bytes, 'ISO-8859-1');
+        } else {
+            $result = utf8_decode($bytes);
+        }
+
+        return $result;
+    }
 }

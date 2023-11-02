@@ -359,11 +359,11 @@ jQuery(document).ready(function(){
 		}
 
 		// Set click listeners to the settings tabs
-		const apbctSettingsTabs = jQuery("a[data-toggle='tab']");
+		const apbctSettingsTabs = jQuery("a[data-toggle='tab'], #myTab button");
 		apbctSettingsTabs.on('click', function (e) {
 			const clickedLink = e.target;
 			if ( clickedLink.parentElement.className !== 'active' && clickedLink.hash !== 'undefined' ) {
-				if ( clickedLink.hash === '#attrib-checkusers' ) {
+				if ( clickedLink.hash === '#attrib-checkusers' || clickedLink.getAttribute("aria-controls") === 'attrib-checkusers' ) {
 					apbct.usersChecker.init();
 				}
 				if ( clickedLink.hash === '#attrib-checkcomments' ) {
@@ -373,6 +373,9 @@ jQuery(document).ready(function(){
 			}
 		});
 	}, 110); // This delay is necessary because the Joomla tabs loaded in 100ms see media/system/js/tabs-state-uncompressed.js:242
+
+	// Show Cookie setting description (for !Joomla 4+)
+	jQuery('#jform_params_ct_set_cookies-desc').removeClass('d-none');
 
 });
 
