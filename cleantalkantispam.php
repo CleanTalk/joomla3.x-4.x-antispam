@@ -48,6 +48,7 @@ define('APBCT_SPAMSCAN_LOGS',     'cleantalk_spamscan_logs'); // Table with sess
 define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
 define('APBCT_WRITE_LIMIT',       5000); // Write limit for firewall data.
 define('APBCT_DIR_PATH',          __DIR__);
+//define('APBCT_EXCLUSION_STRICT_MODE', true);
 
 class plgSystemCleantalkantispam extends JPlugin
 {
@@ -1524,7 +1525,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		            $db->execute();
 
 		            return ('XHR OK');
-	            case 'check_ajax': 
+	            case 'check_ajax':
                     $ctResponse = $this->ctSendRequest('check_newuser', array());
 
                     if ($ctResponse['allow'] == 0) {
@@ -2648,15 +2649,21 @@ class plgSystemCleantalkantispam extends JPlugin
 
         $_urls = explode(',', $urls);
 
+        $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        $current_page_url = explode('?', $current_page_url);
+        $current_page_url = $current_page_url[0];
+
         foreach ($_urls as $url) {
             // @ToDo need to detect ajax request
             // @ToDo implement support for a regexp
-            $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-            $current_page_url = explode('?', $current_page_url);
-            $current_page_url = $current_page_url[0];
-
-            if( strpos($current_page_url, $url) !== false) {
-                return true;
+            if (defined('APBCT_EXCLUSION_STRICT_MODE') && APBCT_EXCLUSION_STRICT_MODE) {
+                if ($current_page_url === $url) {
+                    return true;
+                }
+            } else {
+                if( strpos($current_page_url, $url) !== false) {
+                    return true;
+                }
             }
         }
 
