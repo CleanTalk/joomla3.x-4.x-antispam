@@ -250,8 +250,11 @@ jQuery(document).ready(function(){
 				msg=jQuery.parseJSON(msg);
 				if(msg.error_message){
 
+					let registerError = ! msg.account_exists
+						? '<br />' + ct_register_error
+						: '';
 					//Showing error banner
-					jQuery('#system-message-container').prepend('<button type="button" class="close" data-dismiss="alert">×</button><div class="alert alert-error"><h4 class="alert-heading">Error</h4><p>'+msg.error_message+'<br />'+ct_register_error+'</p></div></div>');
+					jQuery('#system-message-container').prepend('<button type="button" class="close" data-dismiss="alert">×</button><div class="alert alert-error"><h4 class="alert-heading">Error</h4><p>' + msg.error_message + registerError + '</p></div></div>');
 
 					jQuery('#ct_preloader').hide();
 

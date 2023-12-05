@@ -311,6 +311,15 @@ class plgSystemCleantalkantispam extends JPlugin
             if (isset($_POST['get_auto_key']) && $_POST['get_auto_key'] === 'yes')
             {
                 $output = $api_class::methodGetApiKey('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
+
+	            if ( isset($output['account_exists']) && $output['account_exists'] == 1) {
+		            $output['error_message'] = sprintf(
+			            'Please, get the Access Key from %s CleanTalk Control Panel %s and insert it in the Access Key field',
+			            '<a href="https://cleantalk.org/my/?cp_mode=antispam" target="_blank">',
+			            '</a>'
+		            );
+	            }
+
                 // Checks if the user token is empty, then get user token by notice_paid_till()
                 if( empty( $output['user_token'] ) && ! empty( $output['auth_key'] ) ){
 
