@@ -189,7 +189,7 @@ class Api
      * Checks IP|email via CleanTalk's database.
      *
      * @param string $api_key
-     * @param string $data
+     * @param array $data
      * @param null|string $date
      *
      * @return array|bool|mixed

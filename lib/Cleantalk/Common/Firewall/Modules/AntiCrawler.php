@@ -41,25 +41,25 @@ class AntiCrawler
                             ) {
                                 $entry = current($lines);
 
-                                if ( empty($entry) || ! isset($entry[0], $entry[1]) ) {
+                                if ( empty($entry) || !isset($entry[0], $entry[1]) ) {
                                     continue;
                                 }
 
                                 // Cast result to int
-                                $ua_id       = preg_replace('/[^\d]*/', '', $entry[0]);
+                                $ua_id = preg_replace('/[^\d]*/', '', $entry[0]);
                                 $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1])
                                     ? $helper_class::dbPrepareParam($entry[1])
                                     : 0;
-                                $ua_status   = isset($entry[2]) ? $entry[2] : 0;
+                                $ua_status = isset($entry[2]) ? $entry[2] : 0;
 
-                                if ( ! $ua_template ) {
+                                if ( !$ua_template ) {
                                     continue;
                                 }
 
                                 $values[] = '(' . $ua_id . ',' . $ua_template . ',' . $ua_status . ')';
                             }
 
-                            if ( ! empty($values) ) {
+                            if ( !empty($values) ) {
                                 $query = $query . implode(',', $values) . ';';
                                 $db_obj->execute($query);
                             }
@@ -115,17 +115,19 @@ class AntiCrawler
                     // Cast result to int
                     // @ToDo check the output $entry
                     $ua_id = preg_replace('/[^\d]*/', '', $entry[0]);
-                    $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1]) ? $helper_class::dbPrepareParam($entry[1]) : 0;
+                    $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1]) ? $helper_class::dbPrepareParam(
+                        $entry[1]
+                    ) : 0;
                     $ua_status = isset($entry[2]) ? $entry[2] : 0;
 
                     $values[] = '(' . $ua_id . ',' . $ua_template . ',' . $ua_status . ')';
                 }
 
-                if ( ! empty($values) ) {
+                if ( !empty($values) ) {
                     $query = $query . implode(',', $values) . ';';
                     $result = $db_obj->execute($query);
                     if ( $result === false ) {
-                        return array( 'error' => $db_obj->getLastError() );
+                        return array('error' => $db_obj->getLastError());
                     }
                 }
             }
@@ -138,6 +140,10 @@ class AntiCrawler
 
     private static function clearDataTable($db, $db__table__data)
     {
+        if ( ! $db->isTableExists($db__table__data) ) {
+            // @ToDo need to handle errors here
+            return;
+        }
         $db->execute("TRUNCATE TABLE {$db__table__data};");
         $db->setQuery("SELECT COUNT(*) as cnt FROM {$db__table__data};")->fetch(); // Check if it is clear
         if ( $db->result['cnt'] != 0 ) {

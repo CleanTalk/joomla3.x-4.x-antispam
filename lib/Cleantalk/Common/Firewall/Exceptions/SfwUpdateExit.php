@@ -2,6 +2,6 @@
 
 namespace Cleantalk\Common\Firewall\Exceptions;
 
-class SfwUpdateException extends \Exception
+class SfwUpdateExit extends \Exception
 {
 }

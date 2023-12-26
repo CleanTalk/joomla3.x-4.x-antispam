@@ -4,7 +4,7 @@ namespace Cleantalk\Custom\StorageHandler;
 
 class StorageHandler implements \Cleantalk\Common\StorageHandler\StorageHandler
 {
-	public static function getSetting($setting_name)
+	public function getSetting($setting_name)
 	{
 		$plg = self::getPlgEntry();
 
@@ -18,7 +18,7 @@ class StorageHandler implements \Cleantalk\Common\StorageHandler\StorageHandler
 		return null;
 	}
 
-	public static function deleteSetting($setting_name)
+	public function deleteSetting($setting_name)
 	{
 		$plg = self::getPlgEntry();
 
@@ -33,7 +33,7 @@ class StorageHandler implements \Cleantalk\Common\StorageHandler\StorageHandler
 		$table->store();
 	}
 
-	public static function saveSetting($setting_name, $setting_value)
+	public function saveSetting($setting_name, $setting_value)
 	{
 		$plg = self::getPlgEntry();
 
