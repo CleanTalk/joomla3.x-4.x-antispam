@@ -504,7 +504,9 @@ class plgSystemCleantalkantispam extends JPlugin
     public function onUserBeforeSave($user, $isnew, $new)
     {
         if ($isnew)
-            $this->moderateUser();
+        {
+	        return $this->moderateUser();
+        }
 
         return null;
     }
@@ -1695,6 +1697,17 @@ class plgSystemCleantalkantispam extends JPlugin
         $post_username = isset($post['username']) ? $post['username'] : (isset($post['jform']['username']) ? $post['jform']['username'] : null);
         $post_email    = isset($post['email']) ? $post['email'] : (isset($post['jform']['email1']) ? $post['jform']['email1'] : null);
 
+	    // Custom register plugin integration
+		if (
+			JFactory::getApplication()->input->get('option') === 'com_ajax' &&
+			JFactory::getApplication()->input->get('plugin') === 'registration'
+		) {
+			$app = Factory::getApplication();
+			$input = $app->input;
+			$post_username = $input->get('name', '', "STRING");
+			$post_email = $input->get('email', '', "filter");
+		}
+
         $session = JFactory::getSession();
 
         $ctResponse = $this->ctSendRequest(
@@ -1731,6 +1744,16 @@ class plgSystemCleantalkantispam extends JPlugin
                         {
                             die($ctResponse['comment']);
                         }
+
+						// Custom register plugin integration
+	                    if(
+		                    JFactory::getApplication()->input->get('option') === 'com_ajax' &&
+		                    JFactory::getApplication()->input->get('plugin') === 'registration'
+	                    )
+	                    {
+							return false;
+	                    }
+
                         $session->set('ct_register_form_data', $post);
 
                         $app = JFactory::getApplication();
@@ -1889,9 +1912,14 @@ class plgSystemCleantalkantispam extends JPlugin
             if ($this->params->get('ct_key_is_ok') && $this->params->get('ct_key_is_ok') == 0)
                 return;
 
-            //Skip backend or admin checking
-            if ($this->isAdmin() || JFactory::getUser()->authorise('core.admin'))
-                return;
+			//Skip backend or admin checking
+	        if (
+		        $this->isAdmin() ||
+		        ( JFactory::getUser()->authorise('core.admin') && JFactory::getApplication()->input->get('option') !== 'com_ajax' )
+	        )
+	        {
+		        return;
+	        }
 
             if ($this->params->get('ct_skip_registered_users') && !JFactory::getUser()->guest)
                 return;
