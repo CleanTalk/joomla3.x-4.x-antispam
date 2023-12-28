@@ -45,7 +45,7 @@ class StorageHandler implements \Cleantalk\Common\StorageHandler\StorageHandler
 			$data->set($k, $v);
 		}
 		$table->custom_data = $data->toString();
-		$table->store();
+		return $table->store();
 	}
 
 	public static function getUpdatingFolder()
