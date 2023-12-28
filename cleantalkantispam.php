@@ -2393,17 +2393,13 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         if (!$this->isAdmin() && $this->params->get('ct_sfw_enable') && $_SERVER["REQUEST_METHOD"] === 'GET')
         {
-            /** @var \Cleantalk\Common\Db\Db $db_class */
-            $db_class = Mloader::get('Db');
-            $db_obj = $db_class::getInstance();
-
             $firewall = new \Cleantalk\Common\Firewall\Firewall(
                 $this->params->get('apikey'),
-                $db_obj->prefix . APBCT_TBL_FIREWALL_LOG
+                APBCT_TBL_FIREWALL_LOG
             );
             $firewall->loadFwModule( new \Cleantalk\Common\Firewall\Modules\Sfw(
-                $db_obj->prefix . APBCT_TBL_FIREWALL_LOG,
-                $db_obj->prefix . APBCT_TBL_FIREWALL_DATA,
+                APBCT_TBL_FIREWALL_LOG,
+                APBCT_TBL_FIREWALL_DATA,
                 array(
                     'sfw_counter'   => 0,
                     'cookie_domain' => \Cleantalk\Common\Variables\Server::get('HTTP_HOST'),
@@ -2452,13 +2448,9 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
 
-        /** @var \Cleantalk\Common\Db\Db $db_class */
-        $db_class = Mloader::get('Db');
-        $db_obj = $db_class::getInstance();
-
         $firewall = new \Cleantalk\Common\Firewall\Firewall(
             $access_key,
-            $db_obj->prefix . APBCT_TBL_FIREWALL_LOG
+            APBCT_TBL_FIREWALL_LOG
         );
 
         return $firewall->getUpdater()->update();
@@ -2475,11 +2467,7 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
 
-        /** @var \Cleantalk\Common\Db\Db $db_class */
-        $db_class = Mloader::get('Db');
-        $db_obj = $db_class::getInstance();
-
-        $firewall = new \Cleantalk\Common\Firewall\Firewall( $access_key, $db_obj->prefix . APBCT_TBL_FIREWALL_LOG );
+        $firewall = new \Cleantalk\Common\Firewall\Firewall( $access_key, APBCT_TBL_FIREWALL_LOG );
         $result = $firewall->sendLogs();
 
         return true;
