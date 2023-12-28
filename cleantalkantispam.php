@@ -2687,8 +2687,6 @@ class plgSystemCleantalkantispam extends JPlugin
         $_urls = explode(',', $urls);
 
         $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        $current_page_url = explode('?', $current_page_url);
-        $current_page_url = $current_page_url[0];
 
         foreach ($_urls as $url) {
             // @ToDo need to detect ajax request
