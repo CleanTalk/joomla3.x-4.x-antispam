@@ -38,5 +38,10 @@ if (! trait_exists('Cleantalk\Common\Templates\Singleton')) {
         protected function init()
         {
         }
+
+        public static function resetInstance()
+        {
+            static::$instance = null;
+        }
     }
 }

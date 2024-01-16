@@ -396,6 +396,20 @@ class plgSystemCleantalkantispam extends JPlugin
                 $save_params['connection_reports'] = array('success' => 0, 'negative' => 0, 'negative_report' => null);
             }
 
+            // Serve buttons
+            if (isset($_POST['ct_serve_run_cron_sfw_send_logs']) && $_POST['ct_serve_run_cron_sfw_send_logs'] === 'yes') {
+                /** @var \Cleantalk\Common\Cron\Cron $cron_class */
+                $cron_class = Mloader::get('Cron');
+                $cron_class = new $cron_class;
+                $cron_class->serveCronActions('sfw_send_logs', time() + 120);
+            }
+            if (isset($_POST['ct_serve_run_cron_sfw_update']) && $_POST['ct_serve_run_cron_sfw_update'] === 'yes') {
+                /** @var \Cleantalk\Common\Cron\Cron $cron_class */
+                $cron_class = Mloader::get('Cron');
+                $cron_class = new $cron_class;
+                $cron_class->serveCronActions('sfw_update', time() + 120);
+            }
+
             $this->saveCTConfig($save_params);
 
             if ($output !== null)
@@ -2421,17 +2435,13 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         if (!$this->isAdmin() && $this->params->get('ct_sfw_enable') && $_SERVER["REQUEST_METHOD"] === 'GET')
         {
-            /** @var \Cleantalk\Common\Db\Db $db_class */
-            $db_class = Mloader::get('Db');
-            $db_obj = $db_class::getInstance();
-
             $firewall = new \Cleantalk\Common\Firewall\Firewall(
                 $this->params->get('apikey'),
-                $db_obj->prefix . APBCT_TBL_FIREWALL_LOG
+                APBCT_TBL_FIREWALL_LOG
             );
             $firewall->loadFwModule( new \Cleantalk\Common\Firewall\Modules\Sfw(
-                $db_obj->prefix . APBCT_TBL_FIREWALL_LOG,
-                $db_obj->prefix . APBCT_TBL_FIREWALL_DATA,
+                APBCT_TBL_FIREWALL_LOG,
+                APBCT_TBL_FIREWALL_DATA,
                 array(
                     'sfw_counter'   => 0,
                     'cookie_domain' => \Cleantalk\Common\Variables\Server::get('HTTP_HOST'),
@@ -2453,8 +2463,8 @@ class plgSystemCleantalkantispam extends JPlugin
 
         $cron = new $cron_class();
         if (!$this->params->get($cron->getCronOptionName())) {
-            $cron->addTask( 'sfw_update', 'apbct_sfw_update', 86400, time() + 60 );
-            $cron->addTask( 'sfw_send_logs', 'apbct_sfw_send_logs', 3600 );
+            $cron->addTask( 'sfw_update', '\plgSystemCleantalkantispam::apbct_sfw_update', 86400, time() + 60 );
+            $cron->addTask( 'sfw_send_logs', '\plgSystemCleantalkantispam::apbct_sfw_send_logs', 3600 );
         }
         $tasks_to_run = $cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
         if(
@@ -2480,13 +2490,9 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
 
-        /** @var \Cleantalk\Common\Db\Db $db_class */
-        $db_class = Mloader::get('Db');
-        $db_obj = $db_class::getInstance();
-
         $firewall = new \Cleantalk\Common\Firewall\Firewall(
             $access_key,
-            $db_obj->prefix . APBCT_TBL_FIREWALL_LOG
+            APBCT_TBL_FIREWALL_LOG
         );
 
         return $firewall->getUpdater()->update();
@@ -2503,11 +2509,7 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
 
-        /** @var \Cleantalk\Common\Db\Db $db_class */
-        $db_class = Mloader::get('Db');
-        $db_obj = $db_class::getInstance();
-
-        $firewall = new \Cleantalk\Common\Firewall\Firewall( $access_key, $db_obj->prefix . APBCT_TBL_FIREWALL_LOG );
+        $firewall = new \Cleantalk\Common\Firewall\Firewall( $access_key, APBCT_TBL_FIREWALL_LOG );
         $result = $firewall->sendLogs();
 
         return true;

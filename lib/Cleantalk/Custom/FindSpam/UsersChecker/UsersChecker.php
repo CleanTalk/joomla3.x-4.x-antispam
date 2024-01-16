@@ -223,7 +223,8 @@ class UsersChecker
 	{
 		/** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
 		$storage_handler_class = Mloader::get('StorageHandler');
-		$last_users_check_info = $storage_handler_class::getSetting('cleantalk_last_users_check');
+		$storage_handler_class = new $storage_handler_class();
+		$last_users_check_info = $storage_handler_class->getSetting('cleantalk_last_users_check');
 
 		if ( $last_users_check_info ) {
 			$message = sprintf(
@@ -250,6 +251,7 @@ class UsersChecker
 		$api_class = Mloader::get('Api');
 		/** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
 		$storage_handler_class = Mloader::get('StorageHandler');
+		$storage_handler_class = new $storage_handler_class();
 
 		$limit = isset($data['limit']) ? (int) $data['limit'] : 20;
 		$offset = isset($data['offset']) ? (int) $data['offset'] : 0;
@@ -263,7 +265,7 @@ class UsersChecker
 				'found_spam'     => 0,
 			];
 
-			$storage_handler_class::saveSetting('cleantalk_last_users_check', $scan_info);
+			$storage_handler_class->saveSetting('cleantalk_last_users_check', $scan_info);
 		}
 
 		$output = [];
@@ -285,7 +287,7 @@ class UsersChecker
 
 		if ( count($data) === 0 )
 		{
-			$last_users_check_info = $storage_handler_class::getSetting('cleantalk_last_users_check');
+			$last_users_check_info = $storage_handler_class->getSetting('cleantalk_last_users_check');
 			$stored_checking_count = isset($last_users_check_info['checking_count']) ? $last_users_check_info['checking_count'] : 0;
 			$stored_found_spam     = isset($last_users_check_info['found_spam']) ? $last_users_check_info['found_spam'] : 0;
 
@@ -325,7 +327,7 @@ class UsersChecker
 					}
 
 					// Store checking stats
-					$last_users_check_info = $storage_handler_class::getSetting('cleantalk_last_users_check');
+					$last_users_check_info = $storage_handler_class->getSetting('cleantalk_last_users_check');
 
 					$stored_checking_count = isset($last_users_check_info['checking_count']) ? $last_users_check_info['checking_count'] : 0;
 					$stored_found_spam     = isset($last_users_check_info['found_spam']) ? $last_users_check_info['found_spam'] : 0;
@@ -339,7 +341,7 @@ class UsersChecker
 					$output['checkingCount'] = $scan_info['checking_count'];
 					$output['foundedSpam'] = $scan_info['found_spam'];
 
-					$storage_handler_class::saveSetting('cleantalk_last_users_check', $scan_info);
+					$storage_handler_class->saveSetting('cleantalk_last_users_check', $scan_info);
 
 				}
 			} else {

@@ -121,6 +121,11 @@ jQuery(document).ready(function(){
 	jQuery('#attrib-checkcomments,#options-checkcomments,#attrib-connectionreports,#options-connectionreports').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/cleantalkantispam/img/preloader.gif' />");
 	//dev
 	jQuery('#attrib-dev, #options-dev').append("<button class='btn btn-info' id='dev_btn_insert_spam_users' type='button'>insert 30 spam users</button><br/><br/>")
+			
+	if (['lc', 'loc', 'lh', 'test'].includes(window.location.host.match(/\.(.*)$/)[1])) {
+		ct_serve_buttons();
+	}
+
 	// Viewing button to access CP
 	if(ct_key_is_ok == 1){
 
@@ -511,5 +516,42 @@ function list_spam_results(type,offset,amount)
 			jQuery('#ct_preloader_spam_results').hide();
 
 		}
+	});
+}
+
+function ct_serve_buttons() {
+	jQuery('.cleantalk_auth_key')
+		.closest('.control-group')
+		.append("<div id='cleantalk_service_buttons_wrapper'></div>")
+		.append("<input type='button' id='ct_serve_run_cron_sfw_send_logs' value='run cron task - send sfw logs in 120 sec'>")
+		.append("&nbsp;")
+		.append("<input type='button' id='ct_serve_run_cron_sfw_update' value='run cron task - sfw update in 120 sec'>");
+
+	jQuery('#ct_serve_run_cron_sfw_send_logs').on('click', function() {
+		var data = {
+			'ct_serve_run_cron_sfw_send_logs': 'yes'
+		};
+		jQuery.ajax({
+			type: "POST",
+			url: location.href,
+			data: data,
+			success: function(msg){
+				alert('OK')
+			}
+		});
+	});
+
+	jQuery('#ct_serve_run_cron_sfw_update').on('click', function() {
+		var data = {
+			'ct_serve_run_cron_sfw_update': 'yes'
+		};
+		jQuery.ajax({
+			type: "POST",
+			url: location.href,
+			data: data,
+			success: function(msg){
+				alert('OK')
+			}
+		});
 	});
 }
