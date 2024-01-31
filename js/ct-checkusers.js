@@ -82,6 +82,8 @@ window.apbct = window.apbct || {};
                 return;
             }
 
+            target.addClass('disabled');
+
             let page = 1;
             if ( target.data('page_number') ) {
                 page = target.data('page_number');
@@ -96,9 +98,12 @@ window.apbct = window.apbct || {};
                     $('.cleantalk_pagination li').removeClass('active');
                     $('.cleantalk_pagination li[data-page_number="'+ page +'"]').addClass('active');
                     usersChecker.loadScanResultsSuccess(content);
+                    usersChecker.setListeners();
+                    target.removeClass('disabled');
                 },
                 error  => {
                     usersChecker.loadScanResultsError(error);
+                    target.removeClass('disabled');
                 }
             );
         });
