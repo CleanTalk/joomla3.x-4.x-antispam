@@ -282,6 +282,9 @@ function ct_is_excluded_forms(form) {
         if (value.classList.contains('cf-input')) {
             return true;
         }
+        if (value.classList.contains('ff_elem bfCalendarInput')) {
+            return true;
+        }
     }
 
     return false;
