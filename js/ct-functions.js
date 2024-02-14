@@ -167,55 +167,56 @@ function ct_ready(){
                 continue;
             }
 
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                // Get only fields
-                var elements = [];
-                for(var key in this.elements){
-                    if(!isNaN(+key))
-                        elements[key] = this.elements[key];
-                }
+            // Get only fields
+            var elements = [];
+            for(var key in this.elements){
+                if(!isNaN(+key))
+                    elements[key] = this.elements[key];
+            }
+
+            // Filter fields
+            elements = elements.filter(function(elem){
+
+                var pass = true;
 
                 // Filter fields
-                elements = elements.filter(function(elem){
+                if( getComputedStyle(elem).display    === "none" ||   // hidden
+                    getComputedStyle(elem).visibility === "hidden" || // hidden
+                    getComputedStyle(elem).opacity    === "0" ||      // hidden
+                    elem.getAttribute("type")         === "hidden" || // type == hidden
+                    elem.getAttribute("type")         === "submit" || // type == submit
+                    elem.value                        === ""       || // empty value
+                    elem.getAttribute('name')         === null
+                ){
+                    return false;
+                }
 
-                    var pass = true;
+                // Filter elements with same names for type == radio
+                if(elem.getAttribute("type") === "radio"){
+                    elements.forEach(function(el, j, els){
+                        if(elem.getAttribute('name') === el.getAttribute('name')){
+                            pass = false;
+                            return;
+                        }
+                    });
+                }
 
-                    // Filter fields
-                    if( getComputedStyle(elem).display    === "none" ||   // hidden
-                        getComputedStyle(elem).visibility === "hidden" || // hidden
-                        getComputedStyle(elem).opacity    === "0" ||      // hidden
-                        elem.getAttribute("type")         === "hidden" || // type == hidden
-                        elem.getAttribute("type")         === "submit" || // type == submit
-                        elem.value                        === ""       || // empty value
-                        elem.getAttribute('name')         === null
-                    ){
-                        return false;
-                    }
+                return true;
+            });
 
-                    // Filter elements with same names for type == radio
-                    if(elem.getAttribute("type") === "radio"){
-                        elements.forEach(function(el, j, els){
-                            if(elem.getAttribute('name') === el.getAttribute('name')){
-                                pass = false;
-                                return;
-                            }
-                        });
-                    }
+            // Visible fields count
+            var visible_fields_count = elements.length;
 
-                    return true;
-                });
+            // Visible fields
+            var visible_fields = '';
+            elements.forEach(function(elem, i, elements){
+                visible_fields += " " + elem.getAttribute("name");
+            });
+            visible_fields = visible_fields.trim();
 
-                // Visible fields count
-                var visible_fields_count = elements.length;
+            form.onsubmit_prev = form.onsubmit;
 
-                // Visible fields
-                var visible_fields = '';
-                elements.forEach(function(elem, i, elements){
-                    visible_fields += " " + elem.getAttribute("name");
-                });
-                visible_fields = visible_fields.trim();
-
+            form.onsubmit = function(event, visible_fields, visible_fields_count) {
                 if (typeof ctPublicData !== 'undefined' && ctPublicData.typeOfCookie && ctPublicData.typeOfCookie === 'alt_cookies') {
                     const cookies = {
                         ct_pointer_data: apbctLocalStorage.get('ct_pointer_data'),
@@ -228,10 +229,13 @@ function ct_ready(){
                     ctSetCookie("ct_visible_fields_count", visible_fields_count);
                 }
 
-                if (!ct_is_excluded_forms(this)) {
-                    HTMLFormElement.prototype.submit.call(this);
+                // Call previous submit action
+                if (event.target.onsubmit_prev instanceof Function && !ct_is_excluded_forms(event.target)) {
+                    setTimeout(function() {
+                        event.target.onsubmit_prev.call(event.target, event);
+                    }, 500);
                 }
-            });
+            }
         }
     }, 1000);
 }
