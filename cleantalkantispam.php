@@ -1334,12 +1334,22 @@ class plgSystemCleantalkantispam extends JPlugin
         if ($post_info === false)
             $post_info = '';
 
+		if ( is_object($data) ) {
+			$sender_nickname = $data->user_name_key;
+			$sender_email    = $data->user_email_key;
+			$message         = $data->subject_key . "\n " . $data->message_key;
+		} else {
+			$sender_nickname = $data[$user_name_key];
+            $sender_email    = $data[$user_email_key];
+            $message         = $data[$subject_key] . "\n " . $data[$message_key];
+		}
+
         $ctResponse = $this->ctSendRequest(
             'check_message',
             array(
-                'sender_nickname' => $data[$user_name_key],
-                'sender_email'    => $data[$user_email_key],
-                'message'         => $data[$subject_key] . "\n " . $data[$message_key],
+                'sender_nickname' => $sender_nickname,
+                'sender_email'    => $sender_email,
+                'message'         => $message,
                 'post_info'       => $post_info,
             )
         );
