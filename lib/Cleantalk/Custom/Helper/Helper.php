@@ -348,7 +348,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 					$value_for_email = trim( $value );    // Removes shortcodes to do better spam filtration on server side.
 
 					// Email
-					if ( ! $email && preg_match( "/^\S+@\S+\.\S+$/", $value_for_email ) ) {
+					if ( ! $email && preg_match( "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $value_for_email ) ) {
 						$email = $value_for_email;
 
 						// Names
