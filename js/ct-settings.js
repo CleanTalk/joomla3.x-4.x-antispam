@@ -110,8 +110,29 @@ function dispatchApbctJoomlaNotice(element) {
 jQuery(document).ready(function(){
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
-	//notice about exclusion rules
-	jQuery('#attrib-exclusions,#options-exclusions').append("<br><p>" + ct_exclusions_common_notice + "</p>")
+
+	//notice exclusions - know more
+	let excl_fields_more_link = document.createElement('a');
+	excl_fields_more_link.href = "https://cleantalk.org/help/exclusion-from-anti-spam-checking#joomla";
+	excl_fields_more_link.target = "_blank";
+	excl_fields_more_link.text = ct_exclusions_know_more;
+
+	let excl_fields_question_span = document.createElement('span');
+	excl_fields_question_span.className = "icon-question-sign";
+
+	let exclusions_link_to_more_span = document.createElement('span');
+	exclusions_link_to_more_span.appendChild(excl_fields_question_span)
+	exclusions_link_to_more_span.appendChild(excl_fields_more_link)
+
+	jQuery('#attrib-exclusions')[0].appendChild(exclusions_link_to_more_span);
+
+	//notice about exclusion rules attach
+	let excl_fields_p_notice = document.createElement('span');
+	excl_fields_p_notice.innerText = ct_exclusions_common_notice;
+	excl_fields_p_notice.style = "padding-left: 10px;";
+
+	jQuery('#jform_params_fields_exclusions')[0].parentElement.appendChild(excl_fields_p_notice)
+
 	// misc notices
 	jQuery('#attrib-checkcomments,#options-checkcomments').append("<center><button id=\"check_spam_comments\" class=\"btn btn-success\" type=\"button\"><span class=\"icon-archive\"></span>"+ct_spamcheck_checkscomments+"</button><br /><br />"+ct_spamcheck_notice+"<br/><br/><input type='checkbox' name ='ct_impspamcheck_checkbox' value='0'>"+ct_impspamcheck_label+"</center><br/><br/>")
 	jQuery('#attrib-connectionreports,#options-connectionreports').append("<div id='connection_reports'></div>");
@@ -121,7 +142,7 @@ jQuery(document).ready(function(){
 	jQuery('#attrib-checkcomments,#options-checkcomments,#attrib-connectionreports,#options-connectionreports').append("<img class='display_none' id='ct_preloader_spam_results' src='../plugins/system/cleantalkantispam/img/preloader.gif' />");
 	//dev
 	jQuery('#attrib-dev, #options-dev').append("<button class='btn btn-info' id='dev_btn_insert_spam_users' type='button'>insert 30 spam users</button><br/><br/>")
-			
+
 	if (['lc', 'loc', 'lh', 'test'].includes(window.location.host.match(/\.(.*)$/)[1])) {
 		ct_serve_buttons();
 	}
@@ -555,3 +576,4 @@ function ct_serve_buttons() {
 		});
 	});
 }
+

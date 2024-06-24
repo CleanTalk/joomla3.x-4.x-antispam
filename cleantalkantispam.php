@@ -682,6 +682,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_key_is_bad_notice = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_KEY_IS_BAD') . '",
 						ct_register_error="' . addslashes(JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_ERROR_AUTO_GET_KEY')) . '",
 						ct_exclusions_common_notice = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_COMMON_NOTICE') . '",
+						ct_exclusions_know_more = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_KNOW_MORE') . '",
 						ct_spamcheck_checksusers = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CHECKUSERS_LABEL') . '" // delete,
 						ct_spamcheck_checkscomments = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CHECKCOMMENTS_LABEL') . '",
 						ct_spamcheck_notice = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_NOTICE') . '",
