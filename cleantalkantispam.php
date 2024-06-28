@@ -2134,6 +2134,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * @return string
      */
     function ct_visibile_fields__process($visible_fields) {
+        $visible_fields = !is_null($visible_fields) ? $visible_fields : '';
         if(strpos($visible_fields, 'wpforms') !== false){
             $visible_fields = preg_replace(
                 array('/\[/', '/\]/'),
