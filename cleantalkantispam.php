@@ -971,8 +971,9 @@ class plgSystemCleantalkantispam extends JPlugin
                 $form_data = [];
                 if ( $_POST['creativecontactform_fields'] ) {
 
-                    foreach( $_POST['creativecontactform_fields'] as $element ) {
-                        $form_data[] = $element[0];
+                    foreach( $_POST['creativecontactform_fields'] as $element => $key ) {
+                        $field_name = 'creativecontactform_fields' . '_' . $element . '_' . '0';
+                        $form_data[$field_name] = $key[0];
                     }
                 } else {
                     $form_data = $_POST;
