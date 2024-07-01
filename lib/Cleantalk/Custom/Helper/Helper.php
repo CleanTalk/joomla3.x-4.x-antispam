@@ -54,7 +54,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
             $params['firewall_update_percent'] = isset($fw_stats['firewall_update_percent']) ? $fw_stats['firewall_update_percent'] : 0;
             $jparams = new \JRegistry($table->params);
             foreach ($params as $k => $v)
-                $jparams->set($k, $v);           
+                $jparams->set($k, $v);
             $table->params = $jparams->toString();
             $table->store();
         }
@@ -82,7 +82,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
             $table = \JTable::getInstance('extension');
             $table->load((int) $plg->extension_id);
             $jparams = new \JRegistry($table->params);
-            $jparams->set('sfw_last_check', time());                
+            $jparams->set('sfw_last_check', time());
             $table->params = $jparams->toString();
             $table->store();
         }
@@ -344,6 +344,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 
 
 					// Removes whitespaces
+                    $value = !is_null($value) ? $value : '';
 					$value = urldecode( trim( $value ) ); // Fully cleaned message
 					$value_for_email = trim( $value );    // Removes shortcodes to do better spam filtration on server side.
 
