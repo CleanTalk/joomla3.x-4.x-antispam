@@ -13,6 +13,22 @@
  */
 
 defined('_JEXEC') or die('Restricted access');
+
+//  Backward compatibility for Joomla versions from 5
+if (defined('JVERSION')) {
+    $currentVersion = substr(JVERSION, 0, 1);
+    if ((int)$currentVersion >= 5) {
+        JLoader::registerAlias('JPlugin', '\\Joomla\\CMS\\Plugin\\CMSPlugin', '6.0');
+        JLoader::registerAlias('JPluginHelper', '\\Joomla\\CMS\\Plugin\\PluginHelper');
+        JLoader::registerAlias('JRegistry', '\\Joomla\\Registry\\Registry');
+        JLoader::registerAlias('JFactory', '\\Joomla\\CMS\\Factory', '6.0');
+        JLoader::registerAlias('JText', '\\Joomla\\CMS\\Language\\Text');
+        JLoader::registerAlias('JHtml', '\\Joomla\\CMS\\HTML\\HTMLHelper');
+        JLoader::registerAlias('JURI', '\\Joomla\\CMS\\Uri\\Uri');
+        JLoader::registerAlias('JTable', '\\Joomla\\CMS\\Table\\Table');
+    }
+}
+
 jimport('joomla.plugin.plugin');
 jimport('joomla.application.application');
 jimport('joomla.application.web');
