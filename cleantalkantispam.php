@@ -1752,7 +1752,7 @@ class plgSystemCleantalkantispam extends JPlugin
             JFactory::getApplication()->input->get('option') === 'com_easysocial'
         )
         {
-            return false;
+            return true;
         }
         $post = $_POST;
 
@@ -1852,6 +1852,7 @@ class plgSystemCleantalkantispam extends JPlugin
                     $session->set('register_username', $post_username);
                     $session->set('register_email', $post_email);
                     $session->set('ct_request_id', $ctResponse['id']);
+					return true;
                 }
             }
         }
