@@ -744,10 +744,12 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_joomla_version = "' . $this->getCmsVersion() . '";
 				');
                 //Admin JS and CSS
-                JHtml::_('jquery.framework');
-                $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-checkusers.js?" . time());
-                $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-settings.js?" . time());
-                $document->addStyleSheet(JURI::root(true) . "/plugins/system/cleantalkantispam/css/ct-settings.css?" . time());
+	            if ( $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id ) {
+		            JHtml::_('jquery.framework');
+		            $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-checkusers.js?" . time());
+		            $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-settings.js?" . time());
+		            $document->addStyleSheet(JURI::root(true) . "/plugins/system/cleantalkantispam/css/ct-settings.css?" . time());
+	            }
 
                 if ($config->get('show_review') && $config->get('show_review') == 1 && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id)
                 {
