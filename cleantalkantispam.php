@@ -559,14 +559,33 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         if ($this->params->get('ct_tell_about_cleantalk') && strpos($_SERVER['REQUEST_URI'], '/administrator/') === false)
         {
-            if ($this->params->get('spam_count') && $this->params->get('spam_count') > 0)
-                $code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br>" . $this->params->get('spam_count') . " spam blocked</div>";
-            else
-                $code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br></div>";
+            if ($this->params->get('spam_count') && $this->params->get('spam_count') > 0) {
+	            $code = "
+					<div id='cleantalk_footer_link' style='width:100%;text-align:center;'>
+						<a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!
+						<br>" . $this->params->get('spam_count') . " spam blocked
+					</div>";
+            } else {
+	            $code = "
+					<div id='cleantalk_footer_link' style='width:100%;text-align:center;'>
+						<a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!
+						<br>
+					</div>";
+            }
 
-            $documentbody = $this->getDocumentBody();
-            $documentbody = str_replace("</footer>", $code . " </footer>", $documentbody);
-            $this->setDocumentBody($documentbody);
+            $document_body = $this->getDocumentBody();
+
+			// Joomla 3
+			if ( strpos($document_body, "</footer>") !== false ) {
+				$document_body = str_replace("</footer>", $code . " </footer>", $document_body);
+			}
+
+			// Joomla 5
+	        if ( strpos($document_body, '<div class="site-grid">') !== false ) {
+		        $document_body = str_replace("</body>", $code . " </body>", $document_body);
+	        }
+
+            $this->setDocumentBody($document_body);
         }
     }
 
