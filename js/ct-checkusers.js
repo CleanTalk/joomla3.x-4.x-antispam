@@ -228,6 +228,7 @@ window.apbct = window.apbct || {};
                         usersChecker.loadScanResults(1).then(
                             content => {
                                 usersChecker.loadScanResultsSuccess(content);
+                                usersChecker.setListeners();
                             },
                             error  => {
                                 usersChecker.loadScanResultsError(error);
