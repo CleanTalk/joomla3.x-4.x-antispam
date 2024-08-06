@@ -3,6 +3,7 @@
 /node_modules
 /lib/**/composer.json
 /lib/**/.gitignore
+/lib/**/.github/
 /lib/**/LICENSE
 /lib/**/README.MD
 /lib/**/tests

@@ -188,7 +188,13 @@
 		function set_spamFireWallCookie(cookie_name, cookie_value) {
 			var date = new Date;
 			date.setDate(date.getDate() + 30);
-			ctSetCookie( cookie_name, escape(cookie_value), date.toUTCString() );
+			if ( typeof ctSetCookie === 'undefined' ) {
+				const _secure = location.protocol === 'https:' ? '; secure' : '';
+				document.cookie = cookie_name + '=' + encodeURIComponent(cookie_value) + '; expires=0; path=/; samesite=lax' + _secure;
+			} else {
+				ctSetCookie( cookie_name, cookie_value, date.toUTCString() );
+			}
+
 		}
 
 		function get_current_url() {

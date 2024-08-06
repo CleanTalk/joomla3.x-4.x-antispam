@@ -125,15 +125,15 @@ class FirewallUpdater
             ['test' => 'test']
         );
 
-        if ( !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
-            return $this->directUpdate();
-        }
-
         // Set a new update ID and an update time start
         $this->fwStats->calls = 0;
         $this->fwStats->updating_id = md5((string)rand(0, 100000));
         $this->fwStats->updating_last_start = time();
         $fw_class::saveFwStats($this->fwStats);
+
+        if ( !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
+            return $this->directUpdate();
+        }
 
         Queue::clearQueue();
 

@@ -60,15 +60,15 @@ class Helper
         'https://moderate10.cleantalk.org' => '5.9.221.162',
 
         // APIX
-        'https://apix1.cleantalk.org'     => '35.158.52.161',
-        'https://apix2.cleantalk.org'     => '18.206.49.217',
-        'https://apix3.cleantalk.org'     => '3.18.23.246',
-        'https://apix4.cleantalk.org'     => '44.227.90.42',
-        'https://apix5.cleantalk.org'     => '15.188.198.212',
-        'https://apix6.cleantalk.org'     => '54.219.94.72',
+        'https://apix1.cleantalk.org' => '35.158.52.161',
+        'https://apix2.cleantalk.org' => '18.206.49.217',
+        'https://apix3.cleantalk.org' => '3.18.23.246',
+        'https://apix4.cleantalk.org' => '44.227.90.42',
+        'https://apix5.cleantalk.org' => '15.188.198.212',
+        'https://apix6.cleantalk.org' => '54.219.94.72',
         //ns
-        'http://netserv2.cleantalk.org'  => '178.63.60.214',
-        'http://netserv3.cleantalk.org'  => '188.40.14.173',
+        'http://netserv2.cleantalk.org' => '178.63.60.214',
+        'http://netserv3.cleantalk.org' => '188.40.14.173',
     );
 
     /**
@@ -83,7 +83,7 @@ class Helper
     /**
      * @var array Stored HTTP headers
      */
-    private $headers     = array();
+    private $headers = array();
 
     /**
      * Getting arrays of IP (REMOTE_ADDR, X-Forwarded-For, X-Real-Ip, Cf_Connecting_Ip)
@@ -101,32 +101,32 @@ class Helper
     {
         // If  return the IP of the current type if it already has been detected
         $ips_stored = self::getInstance()->ips_stored;
-        if ( ! empty($ips_stored[ $ip_type_to_get ]) ) {
-            return $ips_stored[ $ip_type_to_get ];
+        if ( !empty($ips_stored[$ip_type_to_get]) ) {
+            return $ips_stored[$ip_type_to_get];
         }
 
         $out = null;
 
-        switch ($ip_type_to_get) {
+        switch ( $ip_type_to_get ) {
             // Cloud Flare
             case 'cloud_flare':
                 $headers = $headers ?: self::httpGetHeaders();
                 if (
                     isset($headers['Cf-Connecting-Ip']) &&
                     (isset($headers['Cf-Ray']) || isset($headers['X-Wpe-Request-Id'])) &&
-                    ! isset($headers['X-Gt-Clientip'])
+                    !isset($headers['X-Gt-Clientip'])
                 ) {
-                    if (isset($headers['Cf-Pseudo-Ipv4'], $headers['Cf-Pseudo-Ipv6'])) {
+                    if ( isset($headers['Cf-Pseudo-Ipv4'], $headers['Cf-Pseudo-Ipv6']) ) {
                         $source = $headers['Cf-Pseudo-Ipv6'];
                     } else {
                         $source = $headers['Cf-Connecting-Ip'];
                     }
-                    $tmp        = strpos($source, ',') !== false
+                    $tmp = strpos($source, ',') !== false
                         ? explode(',', $source)
                         : (array)$source;
                     $ip_version = self::ipValidate(trim($tmp[0]));
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(trim($tmp[0])) : trim(
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(trim($tmp[0])) : trim(
                             $tmp[0]
                         );
                     }
@@ -136,10 +136,10 @@ class Helper
             // GTranslate
             case 'gtranslate':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['X-Gt-Clientip'], $headers['X-Gt-Viewer-Ip'])) {
+                if ( isset($headers['X-Gt-Clientip'], $headers['X-Gt-Viewer-Ip']) ) {
                     $ip_version = self::ipValidate($headers['X-Gt-Viewer-Ip']);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(
                             $headers['X-Gt-Viewer-Ip']
                         ) : $headers['X-Gt-Viewer-Ip'];
                     }
@@ -149,10 +149,10 @@ class Helper
             // ezoic
             case 'ezoic':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['X-Middleton'], $headers['X-Middleton-Ip'])) {
+                if ( isset($headers['X-Middleton'], $headers['X-Middleton-Ip']) ) {
                     $ip_version = self::ipValidate($headers['X-Middleton-Ip']);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(
                             $headers['X-Middleton-Ip']
                         ) : $headers['X-Middleton-Ip'];
                     }
@@ -162,10 +162,10 @@ class Helper
             // Sucury
             case 'sucury':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['X-Sucuri-Clientip'])) {
+                if ( isset($headers['X-Sucuri-Clientip']) ) {
                     $ip_version = self::ipValidate($headers['X-Sucuri-Clientip']);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(
                             $headers['X-Sucuri-Clientip']
                         ) : $headers['X-Sucuri-Clientip'];
                     }
@@ -175,10 +175,10 @@ class Helper
             // X-Forwarded-By
             case 'x_forwarded_by':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['X-Forwarded-By'], $headers['X-Client-Ip'])) {
+                if ( isset($headers['X-Forwarded-By'], $headers['X-Client-Ip']) ) {
                     $ip_version = self::ipValidate($headers['X-Client-Ip']);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(
                             $headers['X-Client-Ip']
                         ) : $headers['X-Client-Ip'];
                     }
@@ -188,10 +188,10 @@ class Helper
             // Stackpath
             case 'stackpath':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['X-Sp-Edge-Host'], $headers['X-Sp-Forwarded-Ip'])) {
+                if ( isset($headers['X-Sp-Edge-Host'], $headers['X-Sp-Forwarded-Ip']) ) {
                     $ip_version = self::ipValidate($headers['X-Sp-Forwarded-Ip']);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(
                             $headers['X-Sp-Forwarded-Ip']
                         ) : $headers['X-Sp-Forwarded-Ip'];
                     }
@@ -201,10 +201,10 @@ class Helper
             // Ico-X-Forwarded-For
             case 'ico_x_forwarded_for':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['Ico-X-Forwarded-For'], $headers['X-Forwarded-Host'])) {
+                if ( isset($headers['Ico-X-Forwarded-For'], $headers['X-Forwarded-Host']) ) {
                     $ip_version = self::ipValidate($headers['Ico-X-Forwarded-For']);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(
                             $headers['Ico-X-Forwarded-For']
                         ) : $headers['Ico-X-Forwarded-For'];
                     }
@@ -214,10 +214,10 @@ class Helper
             // OVH
             case 'ovh':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['X-Cdn-Any-Ip'], $headers['Remote-Ip'])) {
+                if ( isset($headers['X-Cdn-Any-Ip'], $headers['Remote-Ip']) ) {
                     $ip_version = self::ipValidate($headers['Remote-Ip']);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(
                             $headers['Remote-Ip']
                         ) : $headers['Remote-Ip'];
                     }
@@ -227,10 +227,10 @@ class Helper
             // Incapsula proxy
             case 'incapsula':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['Incap-Client-Ip'], $headers['X-Forwarded-For'])) {
+                if ( isset($headers['Incap-Client-Ip'], $headers['X-Forwarded-For']) ) {
                     $ip_version = self::ipValidate($headers['Incap-Client-Ip']);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(
                             $headers['Incap-Client-Ip']
                         ) : $headers['Incap-Client-Ip'];
                     }
@@ -243,11 +243,11 @@ class Helper
                 if (
                     isset($headers['X-Clientside'])
                     && (preg_match('/^([0-9a-f.:]+):\d+ -> ([0-9a-f.:]+):\d+$/', $headers['X-Clientside'], $matches)
-                    && isset($matches[1]))
+                        && isset($matches[1]))
                 ) {
                     $ip_version = self::ipValidate($matches[1]);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize($matches[1]) : $matches[1];
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize($matches[1]) : $matches[1];
                     }
                 }
                 break;
@@ -255,8 +255,8 @@ class Helper
             // Remote addr
             case 'remote_addr':
                 $ip_version = self::ipValidate(Server::get('REMOTE_ADDR'));
-                if ($ip_version) {
-                    $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
+                if ( $ip_version ) {
+                    $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize(
                         Server::get('REMOTE_ADDR')
                     ) : Server::get('REMOTE_ADDR');
                 }
@@ -265,12 +265,12 @@ class Helper
             // X-Forwarded-For
             case 'x_forwarded_for':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['X-Forwarded-For'])) {
-                    $tmp        = explode(',', trim($headers['X-Forwarded-For']));
-                    $tmp        = trim($tmp[0]);
+                if ( isset($headers['X-Forwarded-For']) ) {
+                    $tmp = explode(',', trim($headers['X-Forwarded-For']));
+                    $tmp = trim($tmp[0]);
                     $ip_version = self::ipValidate($tmp);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize($tmp) : $tmp;
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize($tmp) : $tmp;
                     }
                 }
                 break;
@@ -278,12 +278,12 @@ class Helper
             // X-Real-Ip
             case 'x_real_ip':
                 $headers = $headers ?: self::httpGetHeaders();
-                if (isset($headers['X-Real-Ip'])) {
-                    $tmp        = explode(",", trim($headers['X-Real-Ip']));
-                    $tmp        = trim($tmp[0]);
+                if ( isset($headers['X-Real-Ip']) ) {
+                    $tmp = explode(",", trim($headers['X-Real-Ip']));
+                    $tmp = trim($tmp[0]);
                     $ip_version = self::ipValidate($tmp);
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize($tmp) : $tmp;
+                    if ( $ip_version ) {
+                        $out = $ip_version === 'v6' && !$v4_only ? self::ipV6Normalize($tmp) : $tmp;
                     }
                 }
                 break;
@@ -307,7 +307,7 @@ class Helper
 
                 // Is private network
                 if (
-                    ! $out ||
+                    !$out ||
                     (
                         is_string($ip_version) && (
                             self::ipIsPrivateNetwork($out, $ip_version) ||
@@ -333,7 +333,7 @@ class Helper
 
         $ip_version = self::ipValidate($out);
 
-        if ( ! $ip_version ) {
+        if ( !$ip_version ) {
             $out = null;
         }
 
@@ -342,7 +342,7 @@ class Helper
         }
 
         // Store the IP of the current type to skip the work next time
-        self::getInstance()->ips_stored[ $ip_type_to_get ] = $out;
+        self::getInstance()->ips_stored[$ip_type_to_get] = $out;
 
         return $out;
     }
@@ -375,9 +375,9 @@ class Helper
      */
     public static function ipMaskMatch($ip, $cidr, $ip_type = 'v4', $xtet_count = 0)
     {
-        if (is_array($cidr)) {
-            foreach ($cidr as $curr_mask) {
-                if (self::ipMaskMatch($ip, $curr_mask, $ip_type)) {
+        if ( is_array($cidr) ) {
+            foreach ( $cidr as $curr_mask ) {
+                if ( self::ipMaskMatch($ip, $curr_mask, $ip_type) ) {
                     return true;
                 }
             }
@@ -385,7 +385,7 @@ class Helper
             return false;
         }
 
-        if ( ! self::ipValidate($ip) || ! self::cidrValidate($cidr) ) {
+        if ( !self::ipValidate($ip) || !self::cidrValidate($cidr) ) {
             return false;
         }
 
@@ -393,12 +393,12 @@ class Helper
 
         // Calculate mask
         $exploded = explode('/', $cidr);
-        $net_ip   = $exploded[0];
-        $mask     = (int)$exploded[1];
+        $net_ip = $exploded[0];
+        $mask = (int)$exploded[1];
 
         // Exit condition
         $xtet_end = ceil($mask / $xtet_base);
-        if ($xtet_count == $xtet_end) {
+        if ( $xtet_count == $xtet_end ) {
             return true;
         }
 
@@ -407,7 +407,7 @@ class Helper
 
         // Explode by octets/hextets from IP and Net
         $net_ip_xtets = explode($ip_type === 'v4' ? '.' : ':', $net_ip);
-        $ip_xtets     = explode($ip_type === 'v4' ? '.' : ':', $ip);
+        $ip_xtets = explode($ip_type === 'v4' ? '.' : ':', $ip);
 
         // Standartizing. Getting current octets/hextets. Adding leading zeros.
         $net_xtet = str_pad(
@@ -420,7 +420,7 @@ class Helper
             0,
             STR_PAD_LEFT
         );
-        $ip_xtet  = str_pad(
+        $ip_xtet = str_pad(
             decbin(
                 ($ip_type === 'v4' && (int)$ip_xtets[$xtet_count]) ? $ip_xtets[$xtet_count] : @hexdec(
                     $ip_xtets[$xtet_count]
@@ -432,15 +432,15 @@ class Helper
         );
 
         // Comparing bit by bit
-        for ($i = 0, $result = true; $mask != 0; $mask--, $i++) {
-            if ($ip_xtet[$i] != $net_xtet[$i]) {
+        for ( $i = 0, $result = true; $mask != 0; $mask--, $i++ ) {
+            if ( $ip_xtet[$i] != $net_xtet[$i] ) {
                 $result = false;
                 break;
             }
         }
 
         // Recursing. Moving to next octet/hextet.
-        if ($result) {
+        if ( $result ) {
             $result = self::ipMaskMatch($ip, $cidr, $ip_type, $xtet_count + 1);
         }
 
@@ -471,13 +471,13 @@ class Helper
      */
     public static function ipValidate($ip)
     {
-        if ( ! $ip) { // NULL || FALSE || '' || so on...
+        if ( !$ip ) { // NULL || FALSE || '' || so on...
             return false;
         }
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $ip != '0.0.0.0') { // IPv4
+        if ( filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $ip != '0.0.0.0' ) { // IPv4
             return 'v4';
         }
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && self::ipV6Reduce($ip) != '0::0') { // IPv6
+        if ( filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && self::ipV6Reduce($ip) != '0::0' ) { // IPv6
             return 'v6';
         }
 
@@ -509,17 +509,17 @@ class Helper
     {
         $ip = trim($ip);
         // Searching for ::ffff:xx.xx.xx.xx patterns and turn it to IPv6
-        if (preg_match('/^::ffff:([0-9]{1,3}\.?){4}$/', $ip)) {
+        if ( preg_match('/^::ffff:([0-9]{1,3}\.?){4}$/', $ip) ) {
             $ip = dechex((int)sprintf("%u", ip2long(substr($ip, 7))));
             $ip = '0:0:0:0:0:0:' . (strlen($ip) > 4 ? substr('abcde', 0, -4) : '0') . ':' . substr($ip, -4, 4);
             // Normalizing hextets number
-        } elseif (strpos($ip, '::') !== false) {
+        } elseif ( strpos($ip, '::') !== false ) {
             $ip = str_replace('::', str_repeat(':0', 8 - substr_count($ip, ':')) . ':', $ip);
             $ip = strpos($ip, ':') === 0 ? '0' . $ip : $ip;
             $ip = strpos(strrev($ip), ':') === 0 ? $ip . '0' : $ip;
         }
         // Simplifyng hextets
-        if (preg_match('/:0(?=[a-z0-9]+)/', $ip)) {
+        if ( preg_match('/:0(?=[a-z0-9]+)/', $ip) ) {
             $ip = preg_replace('/:0(?=[a-z0-9]+)/', ':', strtolower($ip));
             $ip = self::ipV6Normalize($ip);
         }
@@ -536,7 +536,7 @@ class Helper
      */
     public static function ipV6Reduce($ip)
     {
-        if (strpos($ip, ':') !== false) {
+        if ( strpos($ip, ':') !== false ) {
             $ip = preg_replace('/:0{1,4}/', ':', $ip);
             $ip = preg_replace('/:{2,}/', '::', $ip);
             $ip = strpos($ip, '0') === 0 && substr($ip, 1) !== false ? substr($ip, 1) : $ip;
@@ -555,7 +555,7 @@ class Helper
      */
     public static function ipIsCleantalks($ip)
     {
-        if (self::ipValidate($ip)) {
+        if ( self::ipValidate($ip) ) {
             $url = array_search($ip, self::$cleantalks_servers);
 
             return (bool)$url;
@@ -573,7 +573,7 @@ class Helper
      */
     public static function ipResolveCleantalks($ip)
     {
-        if (self::ipValidate($ip)) {
+        if ( self::ipValidate($ip) ) {
             $url = array_search($ip, self::$cleantalks_servers);
 
             return $url
@@ -593,9 +593,9 @@ class Helper
      */
     public static function ipResolve($ip)
     {
-        if (self::ipValidate($ip)) {
+        if ( self::ipValidate($ip) ) {
             $url = gethostbyaddr($ip);
-            if ($url) {
+            if ( $url ) {
                 return $url;
             }
         }
@@ -615,17 +615,17 @@ class Helper
     public static function dnsResolve($host, $out = false)
     {
         // Get DNS records about URL
-        if (function_exists('dns_get_record')) {
+        if ( function_exists('dns_get_record') ) {
             $records = dns_get_record($host, DNS_A);
-            if ($records !== false) {
+            if ( $records !== false ) {
                 $out = $records[0]['ip'];
             }
         }
 
         // Another try if first failed
-        if ( ! $out && function_exists('gethostbynamel')) {
+        if ( !$out && function_exists('gethostbynamel') ) {
             $records = gethostbynamel($host);
-            if ($records !== false) {
+            if ( $records !== false ) {
                 $out = $records[0];
             }
         }
@@ -654,10 +654,10 @@ class Helper
         $http = new Request();
 
         return $http->setUrl($url)
-                    ->setData($data)
-                    ->setPresets($presets)
-                    ->setOptions($opts)
-                    ->request();
+            ->setData($data)
+            ->setPresets($presets)
+            ->setOptions($opts)
+            ->request();
     }
 
     /**
@@ -669,12 +669,12 @@ class Helper
      */
     public static function httpMultiRequest($urls, $write_to = '')
     {
-        if ( ! is_array($urls) || empty($urls)) {
+        if ( !is_array($urls) || empty($urls) ) {
             return array('error' => 'CURL_MULTI: Parameter is not an array.');
         }
 
-        foreach ($urls as $url) {
-            if ( ! is_string($url)) {
+        foreach ( $urls as $url ) {
+            if ( !is_string($url) ) {
                 return array('error' => 'CURL_MULTI: Parameter elements must be strings.');
             }
         }
@@ -682,7 +682,7 @@ class Helper
         $http = new Request();
 
         $http->setUrl($urls)
-             ->setPresets('get');
+            ->setPresets('get');
 
         if ( $write_to ) {
             $http->addCallback(
@@ -701,87 +701,87 @@ class Helper
         return $http->request();
     }
 
-	/**
-	 * Wrapper for http_request
-	 * Requesting HTTP response code for $url
-	 *
-	 * @param string $url
-	 *
-	 * @return array|mixed|string
-	 */
-	public static function httpRequestGetResponseCode($url)
-	{
-		return static::httpRequest($url, array(), 'get_code get');
-	}
+    /**
+     * Wrapper for http_request
+     * Requesting HTTP response code for $url
+     *
+     * @param string $url
+     *
+     * @return array|mixed|string
+     */
+    public static function httpRequestGetResponseCode($url)
+    {
+        return static::httpRequest($url, array(), 'get_code get');
+    }
 
-	/**
-	 * Wrapper for http_request
-	 * Requesting data via HTTP request with GET method
-	 *
-	 * @param string $url
-	 *
-	 * @return array|mixed|string
-	 */
-	public static function httpRequestGetContent($url)
-	{
-		return static::httpRequest($url, array(), 'get dont_split_to_array');
-	}
+    /**
+     * Wrapper for http_request
+     * Requesting data via HTTP request with GET method
+     *
+     * @param string $url
+     *
+     * @return array|mixed|string
+     */
+    public static function httpRequestGetContent($url)
+    {
+        return static::httpRequest($url, array(), 'get dont_split_to_array');
+    }
 
-	/**
-	 * Wrapper for http_request
-	 * Get data from remote GZ archive with all following checks
-	 *
-	 * @param string $url
-	 *
-	 * @return array|mixed|string
-	 */
-	public static function httpGetDataFromRemoteGz($url)
-	{
-		$response_code = static::httpRequestGetResponseCode($url);
+    /**
+     * Wrapper for http_request
+     * Get data from remote GZ archive with all following checks
+     *
+     * @param string $url
+     *
+     * @return array|mixed|string
+     */
+    public static function httpGetDataFromRemoteGz($url)
+    {
+        $response_code = static::httpRequestGetResponseCode($url);
 
-		if ($response_code === 200) { // Check if it's there
-			$data = static::httpRequestGetContent($url);
+        if ( $response_code === 200 ) { // Check if it's there
+            $data = static::httpRequestGetContent($url);
 
-			if (empty($data['error'])) {
-				if (static::getMimeType($data, 'application/x-gzip')) {
-					if (function_exists('gzdecode')) {
-						$data = gzdecode($data);
+            if ( empty($data['error']) ) {
+                if ( static::getMimeType($data, 'application/x-gzip') ) {
+                    if ( function_exists('gzdecode') ) {
+                        $data = gzdecode($data);
 
-						if ($data !== false) {
-							return $data;
-						} else {
-							return array('error' => 'Can not unpack datafile');
-						}
-					} else {
-						return array('error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' . $data['error']);
-					}
-				} else {
-					return array('error' => 'Wrong file mime type: ' . $url);
-				}
-			} else {
-				return array('error' => 'Getting datafile ' . $url . '. Error: ' . $data['error']);
-			}
-		} else {
-			return array('error' => 'Bad HTTP response (' . (int)$response_code . ') from file location: ' . $url);
-		}
-	}
+                        if ( $data !== false ) {
+                            return $data;
+                        } else {
+                            return array('error' => 'Can not unpack datafile');
+                        }
+                    } else {
+                        return array('error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' . $data['error']);
+                    }
+                } else {
+                    return array('error' => 'Wrong file mime type: ' . $url);
+                }
+            } else {
+                return array('error' => 'Getting datafile ' . $url . '. Error: ' . $data['error']);
+            }
+        } else {
+            return array('error' => 'Bad HTTP response (' . (int)$response_code . ') from file location: ' . $url);
+        }
+    }
 
-	/**
-	 * Wrapper for http__get_data_from_remote_gz
-	 * Get data and parse CSV from remote GZ archive with all following checks
-	 *
-	 * @param string $url
-	 *
-	 * @return array|string
-	 */
-	public static function httpGetDataFromRemoteGzAndParseCsv($url)
-	{
-		$result = static::httpGetDataFromRemoteGz($url);
+    /**
+     * Wrapper for http__get_data_from_remote_gz
+     * Get data and parse CSV from remote GZ archive with all following checks
+     *
+     * @param string $url
+     *
+     * @return array|string
+     */
+    public static function httpGetDataFromRemoteGzAndParseCsv($url)
+    {
+        $result = static::httpGetDataFromRemoteGz($url);
 
-		return empty($result['error'])
-			? static::bufferParseCsv($result)
-			: $result;
-	}
+        return empty($result['error'])
+            ? static::bufferParseCsv($result)
+            : $result;
+    }
 
     /**
      * Merging arrays without resetting numeric keys
@@ -793,7 +793,7 @@ class Helper
      */
     public static function arrayMergeSaveNumericKeys($arr1, $arr2)
     {
-        foreach ($arr2 as $key => $val) {
+        foreach ( $arr2 as $key => $val ) {
             $arr1[$key] = $val;
         }
 
@@ -811,17 +811,17 @@ class Helper
      */
     public static function arrayMergeSaveNumericKeysRecursive($arr1, $arr2)
     {
-        foreach ($arr2 as $key => $val) {
+        foreach ( $arr2 as $key => $val ) {
             // Array | array => array
-            if (isset($arr1[$key]) && is_array($arr1[$key]) && is_array($val)) {
+            if ( isset($arr1[$key]) && is_array($arr1[$key]) && is_array($val) ) {
                 $arr1[$key] = self::arrayMergeSaveNumericKeysRecursive($arr1[$key], $val);
                 // Scalar | array => array
-            } elseif (isset($arr1[$key]) && ! is_array($arr1[$key]) && is_array($val)) {
-                $tmp          = $arr1[$key] =
+            } elseif ( isset($arr1[$key]) && !is_array($arr1[$key]) && is_array($val) ) {
+                $tmp = $arr1[$key] =
                 $arr1[$key] = $val;
                 $arr1[$key][] = $tmp;
                 // array  | scalar => array
-            } elseif (isset($arr1[$key]) && is_array($arr1[$key]) && ! is_array($val)) {
+            } elseif ( isset($arr1[$key]) && is_array($arr1[$key]) && !is_array($val) ) {
                 $arr1[$key][] = $val;
                 // scalar | scalar => scalar
             } else {
@@ -842,14 +842,14 @@ class Helper
     public static function removeNonUTF8($data)
     {
         // Array || object
-        if (is_array($data) || is_object($data)) {
-            foreach ($data as $_key => &$val) {
+        if ( is_array($data) || is_object($data) ) {
+            foreach ( $data as $_key => &$val ) {
                 $val = self::removeNonUTF8($val);
             }
             unset($val);
             //String
         } else {
-            if ( ! preg_match('//u', $data)) {
+            if ( !preg_match('//u', $data) ) {
                 $data = 'Nulled. Not UTF8 encoded or malformed.';
             }
         }
@@ -873,16 +873,22 @@ class Helper
                 $val = self::toUTF8($val, $data_codepage);
             }
             unset($val);
-            //String
-        } elseif(is_string($obj)) {
-            if ( ! preg_match('//u', $obj)
-                 && function_exists('mb_detect_encoding')
-                 && function_exists('mb_convert_encoding')
-            ) {
-                $encoding = mb_detect_encoding($obj);
-                $encoding = $encoding ?: $data_codepage;
-                if ($encoding) {
-                    $obj = mb_convert_encoding($obj, 'UTF-8', $encoding);
+        //String
+        } else {
+            if ( !preg_match('//u', $obj) ) {
+                if ( function_exists('mb_detect_encoding') ) {
+                    $encoding = mb_detect_encoding($obj);
+                    $encoding = $encoding ?: $data_codepage;
+                } else {
+                    $encoding = $data_codepage;
+                }
+
+                if ( $encoding ) {
+                    if ( function_exists('mb_convert_encoding') ) {
+                        $obj = mb_convert_encoding($obj, 'UTF-8', $encoding);
+                    } elseif ( version_compare(phpversion(), '8.3', '<') ) {
+                        $obj = @utf8_encode($obj);
+                    }
                 }
             }
         }
@@ -906,10 +912,14 @@ class Helper
                 $val = self::fromUTF8($val, $data_codepage);
             }
             unset($val);
-            //String
+        //String
         } else {
-            if (preg_match('u', $obj) && function_exists('mb_convert_encoding') && $data_codepage !== null) {
-                $obj = mb_convert_encoding($obj, $data_codepage, 'UTF-8');
+            if ($data_codepage !== null && preg_match('//u', $obj)) {
+                if ( function_exists('mb_convert_encoding') ) {
+                    $obj = mb_convert_encoding($obj, $data_codepage, 'UTF-8');
+                } elseif (version_compare(phpversion(), '8.3', '<')) {
+                    $obj = @utf8_decode($obj);
+                }
             }
         }
 
@@ -952,11 +962,11 @@ class Helper
     public static function getMimeType($data, $type = '')
     {
         $data = str_replace(chr(0), '', $data); // Clean input of null bytes
-        if ( ! empty($data) && @file_exists($data)) {
+        if ( !empty($data) && @file_exists($data) ) {
             $type = mime_content_type($data);
-        } elseif (function_exists('finfo_open')) {
+        } elseif ( function_exists('finfo_open') ) {
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $type  = finfo_buffer($finfo, $data);
+            $type = finfo_buffer($finfo, $data);
             finfo_close($finfo);
         }
 
@@ -967,9 +977,9 @@ class Helper
     public static function bufferTrimAndClearFromEmptyLines($buffer)
     {
         $buffer = (array)$buffer;
-        foreach ($buffer as $indx => &$line) {
+        foreach ( $buffer as $indx => &$line ) {
             $line = trim($line);
-            if ($line === '') {
+            if ( $line === '' ) {
                 unset($buffer[$indx]);
             }
         }
@@ -987,7 +997,7 @@ class Helper
     {
         $buffer = explode("\n", $buffer);
         $buffer = self::bufferTrimAndClearFromEmptyLines($buffer);
-        foreach ($buffer as &$line) {
+        foreach ( $buffer as &$line ) {
             $line = str_getcsv($line, ',', '\'');
         }
 
@@ -1003,9 +1013,9 @@ class Helper
      */
     public static function bufferCsvPopLine(&$csv)
     {
-        $pos  = strpos($csv, "\n");
+        $pos = strpos($csv, "\n");
         $line = substr($csv, 0, $pos);
-        $csv  = substr_replace($csv, '', 0, $pos + 1);
+        $csv = substr_replace($csv, '', 0, $pos + 1);
 
         return $line;
     }
@@ -1041,7 +1051,7 @@ class Helper
         $line = strpos($line, '\'') === 0
             ? str_getcsv($line, ',', '\'')
             : explode(',', $line);
-        if ($map) {
+        if ( $map ) {
             $line = array_combine($map, $line);
         }
 
@@ -1059,13 +1069,13 @@ class Helper
      */
     public static function dbPrepareParam($param, $quotes = '\'')
     {
-        if (is_array($param)) {
-            foreach ($param as &$par) {
+        if ( is_array($param) ) {
+            foreach ( $param as &$par ) {
                 $par = self::dbPrepareParam($par);
             }
             unset($par);
         }
-        switch (true) {
+        switch ( true ) {
             case is_numeric($param):
                 $param = (int)$param;
                 break;
@@ -1092,16 +1102,16 @@ class Helper
     {
         // If headers already return them
         $headers = self::getInstance()->headers;
-        if ( ! empty($headers) ) {
+        if ( !empty($headers) ) {
             return $headers;
         }
-        foreach ($_SERVER as $key => $val) {
-            if (0 === stripos($key, 'http_')) {
+        foreach ( $_SERVER as $key => $val ) {
+            if ( 0 === stripos($key, 'http_') ) {
                 $server_key = preg_replace('/^http_/i', '', $key);
-                $key_parts  = explode('_', $server_key);
-                if (strlen($server_key) > 2) {
-                    foreach ($key_parts as $part_index => $part) {
-                        if ($part === '') {
+                $key_parts = explode('_', $server_key);
+                if ( strlen($server_key) > 2 ) {
+                    foreach ( $key_parts as $part_index => $part ) {
+                        if ( $part === '' ) {
                             continue;
                         }
 
@@ -1161,8 +1171,8 @@ class Helper
     {
         $date_arr = explode('-', $date);
 
-        if (count($date_arr) === 3) {
-            if (checkdate((int)$date_arr[1], (int)$date_arr[2], (int)$date_arr[0])) {
+        if ( count($date_arr) === 3 ) {
+            if ( checkdate((int)$date_arr[1], (int)$date_arr[2], (int)$date_arr[0]) ) {
                 return true;
             }
         }
@@ -1172,6 +1182,6 @@ class Helper
 
     public static function isApikeyCorrect($api_key)
     {
-        return (bool) preg_match('/^[a-z\d]{3,30}$/', $api_key);
+        return (bool)preg_match('/^[a-z\d]{3,30}$/', $api_key);
     }
 }
