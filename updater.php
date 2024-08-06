@@ -14,6 +14,14 @@
 
 defined('_JEXEC') or die('Restricted access');
 
+//  Backward compatibility for Joomla versions from 5
+if (defined('JVERSION')) {
+    $currentVersion = substr(JVERSION, 0, 1);
+    if ((int)$currentVersion >= 5) {
+        JLoader::registerAlias('JFactory', '\\Joomla\\CMS\\Factory');
+    }
+}
+
 class plgsystemcleantalkantispamInstallerScript
 {
     public function preflight($type, $parent)

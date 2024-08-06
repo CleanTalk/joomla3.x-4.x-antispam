@@ -154,17 +154,17 @@ class Cleantalk
         switch ( $method ) {
             case 'check_message':
                 // Convert strings to UTF8
-                $request->message         = Helper::toUTF8($request->message, $this->data_codepage);
-                $request->example         = Helper::toUTF8($request->example, $this->data_codepage);
-                $request->sender_email    = Helper::toUTF8($request->sender_email, $this->data_codepage);
+                $request->message = Helper::toUTF8($request->message, $this->data_codepage);
+                $request->example = Helper::toUTF8($request->example, $this->data_codepage);
+                $request->sender_email = Helper::toUTF8($request->sender_email, $this->data_codepage);
                 $request->sender_nickname = Helper::toUTF8($request->sender_nickname, $this->data_codepage);
-                $request->message         = $this->compressData($request->message);
-                $request->example         = $this->compressData($request->example);
+                $request->message = $this->compressData($request->message);
+                $request->example = $this->compressData($request->example);
                 break;
 
             case 'check_newuser':
                 // Convert strings to UTF8
-                $request->sender_email    = Helper::toUTF8($request->sender_email, $this->data_codepage);
+                $request->sender_email = Helper::toUTF8($request->sender_email, $this->data_codepage);
                 $request->sender_nickname = Helper::toUTF8($request->sender_nickname, $this->data_codepage);
                 break;
 
@@ -183,7 +183,7 @@ class Cleantalk
         }
 
         $request->method_name = $method;
-        $request->message     = is_array($request->message) ? json_encode($request->message) : $request->message;
+        $request->message = is_array($request->message) ? json_encode($request->message) : $request->message;
 
         // Wiping cleantalk's headers but, not for send_feedback
         if ( $request->method_name !== 'send_feedback' ) {
@@ -232,9 +232,9 @@ class Cleantalk
      */
     private function compressData($data = null)
     {
-		if (!is_string($data)) {
-			return $data;
-		}
+        if ( !is_string($data) ) {
+            return $data;
+        }
 
         if ( strlen($data) > $this->dataMaxSise && function_exists('\gzencode') && function_exists('base64_encode') ) {
             $localData = \gzencode($data, $this->compressRate, FORCE_GZIP);
@@ -259,13 +259,13 @@ class Cleantalk
     private function httpRequest($msg)
     {
         // Using current server without changing it
-        $result = ! empty($this->work_url) && $this->server_changed + 86400 > time()
+        $result = !empty($this->work_url) && $this->server_changed + 86400 > time()
             ? $this->sendRequest($msg, $this->work_url, $this->server_timeout)
             : false;
 
         // Changing server if no work_url or request has an error
         if ( $result === false || (is_object($result) && $result->errno != 0) ) {
-            if ( ! empty($this->work_url) ) {
+            if ( !empty($this->work_url) ) {
                 $this->downServers[] = $this->work_url;
             }
             $this->rotateModerate();
@@ -276,14 +276,14 @@ class Cleantalk
         }
         $response = new CleantalkResponse($result);
 
-        if ( ! empty($this->data_codepage) && $this->data_codepage !== 'UTF-8' ) {
-            if ( ! empty($response->comment) ) {
+        if ( !empty($this->data_codepage) && $this->data_codepage !== 'UTF-8' ) {
+            if ( !empty($response->comment) ) {
                 $response->comment = Helper::fromUTF8($response->comment, $this->data_codepage);
             }
-            if ( ! empty($response->errstr) ) {
+            if ( !empty($response->errstr) ) {
                 $response->errstr = Helper::fromUTF8($response->errstr, $this->data_codepage);
             }
-            if ( ! empty($response->sms_error_text) ) {
+            if ( !empty($response->sms_error_text) ) {
                 $response->sms_error_text = Helper::fromUTF8($response->sms_error_text, $this->data_codepage);
             }
         }
@@ -300,30 +300,30 @@ class Cleantalk
         preg_match("/^(https?:\/\/)([^\/:]+)(.*)/i", $this->server_url, $matches);
 
         $url_protocol = isset($matches[1]) ? $matches[1] : '';
-        $url_host     = isset($matches[2]) ? $matches[2] : '';
-        $url_suffix   = isset($matches[3]) ? $matches[3] : '';
+        $url_host = isset($matches[2]) ? $matches[2] : '';
+        $url_suffix = isset($matches[3]) ? $matches[3] : '';
 
         $servers = $this->getServersIp($url_host);
 
-        if ( ! $servers ) {
+        if ( !$servers ) {
             return;
         }
 
         // Loop until find work server
         foreach ( $servers as $server ) {
             $dns = Helper::ipResolveCleantalks($server['ip']);
-            if ( ! $dns ) {
+            if ( !$dns ) {
                 continue;
             }
 
             $this->work_url = $url_protocol . $dns . $url_suffix;
 
             // Do not checking previous down server
-            if ( ! empty($this->downServers) && in_array($this->work_url, $this->downServers) ) {
+            if ( !empty($this->downServers) && in_array($this->work_url, $this->downServers) ) {
                 continue;
             }
 
-            $this->server_ttl    = $server['ttl'];
+            $this->server_ttl = $server['ttl'];
             $this->server_change = true;
             break;
         }
@@ -340,7 +340,7 @@ class Cleantalk
      */
     public function getServersIp($host)
     {
-        if ( ! isset($host) ) {
+        if ( !isset($host) ) {
             return null;
         }
 
@@ -362,9 +362,9 @@ class Cleantalk
             if ( $records !== false ) {
                 foreach ( $records as $server ) {
                     $servers[] = array(
-                        "ip"   => $server,
+                        "ip" => $server,
                         "host" => $host,
-                        "ttl"  => $this->server_ttl
+                        "ttl" => $this->server_ttl
                     );
                 }
             }
@@ -373,13 +373,13 @@ class Cleantalk
         // If couldn't get records
         if ( count($servers) === 0 ) {
             $servers[] = array(
-                "ip"   => null,
+                "ip" => null,
                 "host" => $host,
-                "ttl"  => $this->server_ttl
+                "ttl" => $this->server_ttl
             );
             // If records received
         } else {
-            $tmp               = array();
+            $tmp = array();
             $fast_server_found = false;
 
             foreach ( $servers as $server ) {
@@ -420,10 +420,10 @@ class Cleantalk
         }
 
         $starttime = microtime(true);
-        $file      = @fsockopen($host, 443, $errno, $errstr, $this->max_server_timeout / 1000);
-        $stoptime  = microtime(true);
+        $file = @fsockopen($host, 443, $errno, $errstr, $this->max_server_timeout / 1000);
+        $stoptime = microtime(true);
 
-        if ( ! $file ) {
+        if ( !$file ) {
             $status = $this->max_server_timeout / 1000;  // Site is down
         } else {
             fclose($file);
@@ -465,36 +465,38 @@ class Cleantalk
         $http = new Request();
 
         $result = $http->setUrl($url)
-                       ->setData($data)
-                       ->setOptions(['timeout' => $server_timeout])
-                       ->request();
+            ->setData($data)
+            ->setOptions(['timeout' => $server_timeout])
+            ->request();
 
-        $errstr   = null;
+        $errstr = null;
         $response = is_string($result) ? json_decode($result) : false;
         if ( $result !== false && is_object($response) ) {
-            $response->errno  = 0;
+            $response->errno = 0;
             $response->errstr = $errstr;
         } else {
             if ( isset($result['error']) ) {
                 $error = $result['error'];
-            } else if ( is_string($result) ) {
-                $error = $result;
             } else {
-                $error = '';
+                if ( is_string($result) ) {
+                    $error = $result;
+                } else {
+                    $error = '';
+                }
             }
 
             $errstr = 'Unknown response from ' . $url . ': ' . $error;
 
-            $response           = null;
-            $response['errno']  = 1;
+            $response = null;
+            $response['errno'] = 1;
             $response['errstr'] = $errstr;
-            $response           = json_decode(json_encode($response));
+            $response = json_decode(json_encode($response));
         }
 
         return $response;
     }
 
-     /**
+    /**
      * Call check_bot API method
      *
      * Make a decision if it's bot or not based on limited input JavaScript data

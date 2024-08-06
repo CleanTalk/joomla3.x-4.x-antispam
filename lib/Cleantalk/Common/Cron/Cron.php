@@ -55,17 +55,17 @@ class Cron
         }
         */
 
-        $this->cron_option_name            = $cron_option_name;
+        $this->cron_option_name = $cron_option_name;
         $this->task_execution_min_interval = $task_execution_min_interval;
         $this->cron_execution_min_interval = $cron_execution_min_interval;
         if ( time() - $this->getCronLastStart() > $this->cron_execution_min_interval ) {
-            if ( ! $this->setCronLastStart() ) {
+            if ( !$this->setCronLastStart() ) {
                 return;
             }
 
             $this->tasks = $this->getTasks();
 
-            if ( ! empty($this->tasks) ) {
+            if ( !empty($this->tasks) ) {
                 $this->createId();
                 usleep(10000); // 10 ms
             }
@@ -79,9 +79,10 @@ class Cron
      */
     public function getCronLastStart()
     {
-	    /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
-	    $storage_handler_class = Mloader::get('StorageHandler');
-        return (int) $storage_handler_class::getSetting('cleantalk_cron_last_start');
+        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        $storage_handler_class = Mloader::get('StorageHandler');
+        $storage_handler_class = new $storage_handler_class();
+        return (int)$storage_handler_class->getSetting('cleantalk_cron_last_start');
     }
 
     /**
@@ -91,9 +92,10 @@ class Cron
      */
     public function setCronLastStart()
     {
-	    /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
-	    $storage_handler_class = Mloader::get('StorageHandler');
-        return $storage_handler_class::saveSetting('cleantalk_cron_last_start', time());
+        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        $storage_handler_class = Mloader::get('StorageHandler');
+        $storage_handler_class = new $storage_handler_class();
+        return $storage_handler_class->saveSetting('cleantalk_cron_last_start', time());
     }
 
     /**
@@ -105,9 +107,10 @@ class Cron
      */
     public function saveTasks($tasks)
     {
-	    /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
-	    $storage_handler_class = Mloader::get('StorageHandler');
-        return $storage_handler_class::saveSetting($this->cron_option_name, $tasks);
+        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        $storage_handler_class = Mloader::get('StorageHandler');
+        $storage_handler_class = new $storage_handler_class();
+        return $storage_handler_class->saveSetting($this->cron_option_name, $tasks);
     }
 
     /**
@@ -117,9 +120,10 @@ class Cron
      */
     public function getTasks()
     {
-	    /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
-	    $storage_handler_class = Mloader::get('StorageHandler');
-        $tasks = $storage_handler_class::getSetting($this->cron_option_name);
+        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        $storage_handler_class = Mloader::get('StorageHandler');
+        $storage_handler_class = new $storage_handler_class();
+        $tasks = $storage_handler_class->getSetting($this->cron_option_name);
 
         return empty($tasks) ? array() : $tasks;
     }
@@ -138,20 +142,20 @@ class Cron
     public function addTask($task, $handler, $period, $first_call = null, $params = array())
     {
         // First call time() + period
-        $first_call = ! $first_call ? time() + $period : $first_call;
+        $first_call = !$first_call ? time() + $period : $first_call;
 
-        $tasks = ! empty($this->tasks) ? $this->tasks : $this->getTasks();
+        $tasks = !empty($this->tasks) ? $this->tasks : $this->getTasks();
 
-        if (isset($tasks[$task])) {
+        if ( isset($tasks[$task]) ) {
             return false;
         }
 
         // Task entry
         $tasks[$task] = array(
-            'handler'   => $handler,
+            'handler' => $handler,
             'next_call' => $first_call,
-            'period'    => $period,
-            'params'    => $params,
+            'period' => $period,
+            'params' => $params,
         );
 
         return $this->saveTasks($tasks);
@@ -167,8 +171,8 @@ class Cron
      */
     public function removeTask($task)
     {
-        $tasks = ! empty($this->tasks) ? $this->tasks : $this->getTasks();
-        if ( ! isset($tasks[$task])) {
+        $tasks = !empty($this->tasks) ? $this->tasks : $this->getTasks();
+        if ( !isset($tasks[$task]) ) {
             return false;
         }
 
@@ -191,15 +195,16 @@ class Cron
      */
     public function updateTask($task, $handler, $period, $first_call = null, $params = array())
     {
-        $tasks = ! empty($this->tasks) ? $this->tasks : $this->getTasks();
+        $tasks = !empty($this->tasks) ? $this->tasks : $this->getTasks();
 
-        if (isset($tasks[$task])) {
+        if ( isset($tasks[$task]) ) {
             // Rewrite the task
             $tasks[$task] = array(
-                'handler'   => $handler,
+                'handler' => $handler,
                 'next_call' => is_null($first_call) ? time() + $period : $first_call,
-                'period'    => $period,
-                'params'    => $params,
+                'period' => $period,
+                'params' => $params,
+                'last_call' => isset($tasks[$task]['last_call']) ? $tasks[$task]['last_call'] : 0,
             );
 
             return $this->saveTasks($tasks);
@@ -227,15 +232,60 @@ class Cron
      */
     public function checkTasks()
     {
-	    /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
-	    $storage_handler_class = Mloader::get('StorageHandler');
+        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        $storage_handler_class = Mloader::get('StorageHandler');
+        $storage_handler_class = new $storage_handler_class();
 
         // No tasks to run
-        if ( empty($this->tasks) || $storage_handler_class::getSetting('cleantalk_cron_pid') !== $this->id ) {
+        if ( empty($this->tasks) || $storage_handler_class->getSetting('cleantalk_cron_pid') !== $this->id ) {
             return false;
         }
 
+        //validate format of tasks
+        $validated_tasks = array();
+        foreach ($this->tasks as $task_name => $task_data) {
+            if (!is_array($task_data)) {
+                if ($this->debug) {
+                    error_log(var_export('Task data is not array ' . $task_name, true));
+                }
+                continue;
+            }
+
+            if ( ! isset($task_data['params'])) {
+                $task_data['params'] = array();
+            }
+
+            if (
+                !isset(
+                    $task_data['handler'],
+                    $task_data['next_call'],
+                    $task_data['period']
+                )
+            ) {
+                if ($this->debug) {
+                    error_log(var_export('Task data format is incorrect ' . $task_name, true));
+                }
+                continue;
+            }
+
+            if (!is_callable($task_data['handler'])) {
+                if ($this->debug) {
+                    error_log(var_export('Task data handler is not callable ' . $task_name, true));
+                }
+                continue;
+            }
+
+            $validated_tasks[$task_name] = $task_data;
+        }
+
+        $this->tasks = $validated_tasks;
+
+        if ($this->debug) {
+            error_log('Validated tasks ' . var_export($this->tasks, true));
+        }
+
         $tasks_to_run = array();
+
         foreach ($this->tasks as $task => &$task_data) {
             if (
                 ! isset($task_data['processing'], $task_data['last_call']) ||
@@ -243,7 +293,9 @@ class Cron
                 time() - $task_data['last_call'] > $this->task_execution_min_interval)
             ) {
                 $task_data['processing'] = false;
-                $task_data['last_call']  = 0;
+                if ( ! isset($task_data['last_call'])) {
+                    $task_data['last_call'] = 0;
+                }
             }
 
             if (
@@ -251,13 +303,13 @@ class Cron
                 $task_data['next_call'] <= time() // default condition
             ) {
                 $task_data['processing'] = true;
-                $task_data['last_call']  = time();
+                $task_data['last_call'] = time();
 
                 $tasks_to_run[] = $task;
             }
 
             // Hard bug fix
-            if ( ! isset($task_data['params'])) {
+            if ( !isset($task_data['params']) ) {
                 $task_data['params'] = array();
             }
         }
@@ -282,9 +334,9 @@ class Cron
             return;
         }
 
-        foreach ($tasks as $task) {
-            if (is_callable($this->tasks[$task]['handler'])) {
-                if ($this->debug) {
+        foreach ( $tasks as $task ) {
+            if ( is_callable($this->tasks[$task]['handler']) ) {
+                if ( $this->debug ) {
                     error_log(var_export('Task ' . $task . ' will be run.', true));
                 }
 
@@ -293,24 +345,26 @@ class Cron
                     isset($this->tasks[$task]['params']) ? $this->tasks[$task]['params'] : array()
                 );
 
-                if ($this->debug) {
+                if ( $this->debug ) {
                     error_log(var_export('Result:', true));
                     error_log(var_export($result, true));
                 }
 
-                if (empty($result['error'])) {
+                if ( empty($result['error']) ) {
                     $this->tasks_completed[$task] = true;
 
-                    if ($this->tasks[$task]['period'] == 0) {
+                    if ( $this->tasks[$task]['period'] == 0 ) {
                         // One time scheduled event
                         unset($this->tasks[$task]);
                     } else {
                         // Multi time scheduled event
                         $this->tasks[$task]['next_call'] = time() + $this->tasks[$task]['period'];
+                        $this->tasks[$task]['last_call'] = time();
                     }
                 } else {
-                    $this->tasks_completed[$task]    = $result['error'];
+                    $this->tasks_completed[$task] = $result['error'];
                     $this->tasks[$task]['next_call'] = time() + $this->tasks[$task]['period'] / 4;
+                    $this->tasks[$task]['last_call'] = time();
                 }
             } else {
                 $this->tasks_completed[$task] = $this->tasks[$task]['handler'] . '_IS_NOT_EXISTS';
@@ -327,10 +381,39 @@ class Cron
      */
     public function createId()
     {
-	    /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
-	    $storage_handler_class = Mloader::get('StorageHandler');
+        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        $storage_handler_class = Mloader::get('StorageHandler');
+        $storage_handler_class = new $storage_handler_class();
 
         $this->id = mt_rand(0, mt_getrandmax());
-	    $storage_handler_class::saveSetting('cleantalk_cron_pid', $this->id);
+        $storage_handler_class->saveSetting('cleantalk_cron_pid', $this->id);
+    }
+
+    /**
+     * Service function for launching cron tasks
+     *
+     * @param string $task
+     * @param int $time
+     * @return void
+     */
+    public function serveCronActions($task, $time)
+    {
+        if ( ! is_string($task) || ! is_int($time) ) {
+            return;
+        }
+
+        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        $storage_handler_class = Mloader::get('StorageHandler');
+        $storage_handler_class = new $storage_handler_class();
+
+        $tasks = $storage_handler_class->getSetting($this->cron_option_name);
+
+        if ( ! isset($tasks[$task]) ) {
+            return;
+        }
+
+        $tasks[$task]['next_call'] = $time;
+
+        $this->saveTasks($tasks);
     }
 }

@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       3.2.2
+ * @version       3.2.3
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -13,6 +13,22 @@
  */
 
 defined('_JEXEC') or die('Restricted access');
+
+//  Backward compatibility for Joomla versions from 5
+if (defined('JVERSION')) {
+    $currentVersion = substr(JVERSION, 0, 1);
+    if ((int)$currentVersion >= 5) {
+        JLoader::registerAlias('JPlugin', '\\Joomla\\CMS\\Plugin\\CMSPlugin', '6.0');
+        JLoader::registerAlias('JPluginHelper', '\\Joomla\\CMS\\Plugin\\PluginHelper');
+        JLoader::registerAlias('JRegistry', '\\Joomla\\Registry\\Registry');
+        JLoader::registerAlias('JFactory', '\\Joomla\\CMS\\Factory', '6.0');
+        JLoader::registerAlias('JText', '\\Joomla\\CMS\\Language\\Text');
+        JLoader::registerAlias('JHtml', '\\Joomla\\CMS\\HTML\\HTMLHelper');
+        JLoader::registerAlias('JURI', '\\Joomla\\CMS\\Uri\\Uri');
+        JLoader::registerAlias('JTable', '\\Joomla\\CMS\\Table\\Table');
+    }
+}
+
 jimport('joomla.plugin.plugin');
 jimport('joomla.application.application');
 jimport('joomla.application.web');
@@ -48,6 +64,7 @@ define('APBCT_SPAMSCAN_LOGS',     'cleantalk_spamscan_logs'); // Table with sess
 define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
 define('APBCT_WRITE_LIMIT',       5000); // Write limit for firewall data.
 define('APBCT_DIR_PATH',          __DIR__);
+//define('APBCT_EXCLUSION_STRICT_MODE', true);
 
 class plgSystemCleantalkantispam extends JPlugin
 {
@@ -55,7 +72,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * Plugin version string for server
      * @since         1.0
      */
-    const ENGINE = 'joomla34-322';
+    const ENGINE = 'joomla34-323';
 
     /**
      * Flag marked JComments form initialization.
@@ -310,6 +327,15 @@ class plgSystemCleantalkantispam extends JPlugin
             if (isset($_POST['get_auto_key']) && $_POST['get_auto_key'] === 'yes')
             {
                 $output = $api_class::methodGetApiKey('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
+
+	            if ( isset($output['account_exists']) && $output['account_exists'] == 1) {
+		            $output['error_message'] = sprintf(
+			            'Please, get the Access Key from %s CleanTalk Control Panel %s and insert it in the Access Key field',
+			            '<a href="https://cleantalk.org/my/?cp_mode=antispam" target="_blank">',
+			            '</a>'
+		            );
+	            }
+
                 // Checks if the user token is empty, then get user token by notice_paid_till()
                 if( empty( $output['user_token'] ) && ! empty( $output['auth_key'] ) ){
 
@@ -384,6 +410,20 @@ class plgSystemCleantalkantispam extends JPlugin
                 $output['result']                  = 'success';
                 $output['data']                    = 'Success.';
                 $save_params['connection_reports'] = array('success' => 0, 'negative' => 0, 'negative_report' => null);
+            }
+
+            // Serve buttons
+            if (isset($_POST['ct_serve_run_cron_sfw_send_logs']) && $_POST['ct_serve_run_cron_sfw_send_logs'] === 'yes') {
+                /** @var \Cleantalk\Common\Cron\Cron $cron_class */
+                $cron_class = Mloader::get('Cron');
+                $cron_class = new $cron_class;
+                $cron_class->serveCronActions('sfw_send_logs', time() + 120);
+            }
+            if (isset($_POST['ct_serve_run_cron_sfw_update']) && $_POST['ct_serve_run_cron_sfw_update'] === 'yes') {
+                /** @var \Cleantalk\Common\Cron\Cron $cron_class */
+                $cron_class = Mloader::get('Cron');
+                $cron_class = new $cron_class;
+                $cron_class->serveCronActions('sfw_update', time() + 120);
             }
 
             $this->saveCTConfig($save_params);
@@ -494,7 +534,9 @@ class plgSystemCleantalkantispam extends JPlugin
     public function onUserBeforeSave($user, $isnew, $new)
     {
         if ($isnew)
-            $this->moderateUser();
+        {
+	        return $this->moderateUser();
+        }
 
         return null;
     }
@@ -517,14 +559,33 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         if ($this->params->get('ct_tell_about_cleantalk') && strpos($_SERVER['REQUEST_URI'], '/administrator/') === false)
         {
-            if ($this->params->get('spam_count') && $this->params->get('spam_count') > 0)
-                $code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br>" . $this->params->get('spam_count') . " spam blocked</div>";
-            else
-                $code = "<div id='cleantalk_footer_link' style='width:100%;text-align:center;'><a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!<br></div>";
+            if ($this->params->get('spam_count') && $this->params->get('spam_count') > 0) {
+	            $code = "
+					<div id='cleantalk_footer_link' style='width:100%;text-align:center;'>
+						<a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!
+						<br>" . $this->params->get('spam_count') . " spam blocked
+					</div>";
+            } else {
+	            $code = "
+					<div id='cleantalk_footer_link' style='width:100%;text-align:center;'>
+						<a href='https://cleantalk.org/joomla-anti-spam-plugin-without-captcha'>Anti-spam by CleanTalk</a> for Joomla!
+						<br>
+					</div>";
+            }
 
-            $documentbody = $this->getDocumentBody();
-            $documentbody = str_replace("</footer>", $code . " </footer>", $documentbody);
-            $this->setDocumentBody($documentbody);
+            $document_body = $this->getDocumentBody();
+
+			// Joomla 3
+			if ( strpos($document_body, "</footer>") !== false ) {
+				$document_body = str_replace("</footer>", $code . " </footer>", $document_body);
+			}
+
+			// Joomla 5
+	        if ( strpos($document_body, '<div class="site-grid">') !== false ) {
+		        $document_body = str_replace("</body>", $code . " </body>", $document_body);
+	        }
+
+            $this->setDocumentBody($document_body);
         }
     }
 
@@ -656,6 +717,7 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_key_is_bad_notice = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_KEY_IS_BAD') . '",
 						ct_register_error="' . addslashes(JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_ERROR_AUTO_GET_KEY')) . '",
 						ct_exclusions_common_notice = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_COMMON_NOTICE') . '",
+						ct_exclusions_know_more = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_KNOW_MORE') . '",
 						ct_spamcheck_checksusers = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CHECKUSERS_LABEL') . '" // delete,
 						ct_spamcheck_checkscomments = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CHECKCOMMENTS_LABEL') . '",
 						ct_spamcheck_notice = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_NOTICE') . '",
@@ -682,10 +744,12 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_joomla_version = "' . $this->getCmsVersion() . '";
 				');
                 //Admin JS and CSS
-                JHtml::_('jquery.framework');
-                $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-checkusers.js?" . time());
-                $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-settings.js?" . time());
-                $document->addStyleSheet(JURI::root(true) . "/plugins/system/cleantalkantispam/css/ct-settings.css?" . time());
+	            if ( $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id ) {
+		            JHtml::_('jquery.framework');
+		            $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-checkusers.js?" . time());
+		            $document->addScript(JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-settings.js?" . time());
+		            $document->addStyleSheet(JURI::root(true) . "/plugins/system/cleantalkantispam/css/ct-settings.css?" . time());
+	            }
 
                 if ($config->get('show_review') && $config->get('show_review') == 1 && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id)
                 {
@@ -837,7 +901,9 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
 
-        if ($_SERVER['REQUEST_METHOD'] == 'POST')
+		$isBreezingFormSubmit = $option_cmd === 'com_breezingforms' && $app->input->get('ff_task') === 'submit';
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' || $isBreezingFormSubmit)
         {
             $this->ct_direct_post = 1;
             /** @var \Cleantalk\Common\Helper\Helper $helper_class */
@@ -890,7 +956,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $post_info['comment_type'] = 'contact_form_joomla_vtem';
 
                 //BreezingForms
-            }elseif ($option_cmd === 'com_breezingforms' && $app->input->get('ff_task') === 'submit'){
+            }elseif ($isBreezingFormSubmit){
                 $ct_temp_msg_data = $helper_class::get_fields_any($_POST, $this->params->get('fields_exclusions'));
 
                 $sender_email     = ($ct_temp_msg_data['email'] ? $ct_temp_msg_data['email'] : '');
@@ -944,8 +1010,9 @@ class plgSystemCleantalkantispam extends JPlugin
                 $form_data = [];
                 if ( $_POST['creativecontactform_fields'] ) {
 
-                    foreach( $_POST['creativecontactform_fields'] as $element ) {
-                        $form_data[] = $element[0];
+                    foreach( $_POST['creativecontactform_fields'] as $element => $key ) {
+                        $field_name = 'creativecontactform_fields' . '_' . $element . '_' . '0';
+                        $form_data[$field_name] = $key[0];
                     }
                 } else {
                     $form_data = $_POST;
@@ -1308,12 +1375,22 @@ class plgSystemCleantalkantispam extends JPlugin
         if ($post_info === false)
             $post_info = '';
 
+		if ( is_object($data) ) {
+			$sender_nickname = $data->user_name_key;
+			$sender_email    = $data->user_email_key;
+			$message         = $data->subject_key . "\n " . $data->message_key;
+		} else {
+			$sender_nickname = $data[$user_name_key];
+            $sender_email    = $data[$user_email_key];
+            $message         = $data[$subject_key] . "\n " . $data[$message_key];
+		}
+
         $ctResponse = $this->ctSendRequest(
             'check_message',
             array(
-                'sender_nickname' => $data[$user_name_key],
-                'sender_email'    => $data[$user_email_key],
-                'message'         => $data[$subject_key] . "\n " . $data[$message_key],
+                'sender_nickname' => $sender_nickname,
+                'sender_email'    => $sender_email,
+                'message'         => $message,
                 'post_info'       => $post_info,
             )
         );
@@ -1524,7 +1601,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		            $db->execute();
 
 		            return ('XHR OK');
-	            case 'check_ajax': 
+	            case 'check_ajax':
                     $ctResponse = $this->ctSendRequest('check_newuser', array());
 
                     if ($ctResponse['allow'] == 0) {
@@ -1677,13 +1754,24 @@ class plgSystemCleantalkantispam extends JPlugin
             JFactory::getApplication()->input->get('option') === 'com_easysocial'
         )
         {
-            return false;
+            return true;
         }
         $post = $_POST;
 
         $post_name     = isset($post['name']) ? $post['name'] : (isset($post['jform']['name']) ? $post['jform']['name'] : null);
         $post_username = isset($post['username']) ? $post['username'] : (isset($post['jform']['username']) ? $post['jform']['username'] : null);
         $post_email    = isset($post['email']) ? $post['email'] : (isset($post['jform']['email1']) ? $post['jform']['email1'] : null);
+
+	    // Custom register plugin integration
+		if (
+			JFactory::getApplication()->input->get('option') === 'com_ajax' &&
+			JFactory::getApplication()->input->get('plugin') === 'registration'
+		) {
+			$app = Factory::getApplication();
+			$input = $app->input;
+			$post_username = $input->get('name', '', "STRING");
+			$post_email = $input->get('email', '', "filter");
+		}
 
         $session = JFactory::getSession();
 
@@ -1721,6 +1809,16 @@ class plgSystemCleantalkantispam extends JPlugin
                         {
                             die($ctResponse['comment']);
                         }
+
+						// Custom register plugin integration
+	                    if(
+		                    JFactory::getApplication()->input->get('option') === 'com_ajax' &&
+		                    JFactory::getApplication()->input->get('plugin') === 'registration'
+	                    )
+	                    {
+							return false;
+	                    }
+
                         $session->set('ct_register_form_data', $post);
 
                         $app = JFactory::getApplication();
@@ -1756,6 +1854,7 @@ class plgSystemCleantalkantispam extends JPlugin
                     $session->set('register_username', $post_username);
                     $session->set('register_email', $post_email);
                     $session->set('ct_request_id', $ctResponse['id']);
+					return true;
                 }
             }
         }
@@ -1879,9 +1978,14 @@ class plgSystemCleantalkantispam extends JPlugin
             if ($this->params->get('ct_key_is_ok') && $this->params->get('ct_key_is_ok') == 0)
                 return;
 
-            //Skip backend or admin checking
-            if ($this->isAdmin() || JFactory::getUser()->authorise('core.admin'))
-                return;
+			//Skip backend or admin checking
+	        if (
+		        $this->isAdmin() ||
+		        ( JFactory::getUser()->authorise('core.admin') && JFactory::getApplication()->input->get('option') !== 'com_ajax' )
+	        )
+	        {
+		        return;
+	        }
 
             if ($this->params->get('ct_skip_registered_users') && !JFactory::getUser()->guest)
                 return;
@@ -2071,6 +2175,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * @return string
      */
     function ct_visibile_fields__process($visible_fields) {
+        $visible_fields = !is_null($visible_fields) ? $visible_fields : '';
         if(strpos($visible_fields, 'wpforms') !== false){
             $visible_fields = preg_replace(
                 array('/\[/', '/\]/'),
@@ -2383,17 +2488,13 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         if (!$this->isAdmin() && $this->params->get('ct_sfw_enable') && $_SERVER["REQUEST_METHOD"] === 'GET')
         {
-            /** @var \Cleantalk\Common\Db\Db $db_class */
-            $db_class = Mloader::get('Db');
-            $db_obj = $db_class::getInstance();
-
             $firewall = new \Cleantalk\Common\Firewall\Firewall(
                 $this->params->get('apikey'),
-                $db_obj->prefix . APBCT_TBL_FIREWALL_LOG
+                APBCT_TBL_FIREWALL_LOG
             );
             $firewall->loadFwModule( new \Cleantalk\Common\Firewall\Modules\Sfw(
-                $db_obj->prefix . APBCT_TBL_FIREWALL_LOG,
-                $db_obj->prefix . APBCT_TBL_FIREWALL_DATA,
+                APBCT_TBL_FIREWALL_LOG,
+                APBCT_TBL_FIREWALL_DATA,
                 array(
                     'sfw_counter'   => 0,
                     'cookie_domain' => \Cleantalk\Common\Variables\Server::get('HTTP_HOST'),
@@ -2415,8 +2516,8 @@ class plgSystemCleantalkantispam extends JPlugin
 
         $cron = new $cron_class();
         if (!$this->params->get($cron->getCronOptionName())) {
-            $cron->addTask( 'sfw_update', 'apbct_sfw_update', 86400, time() + 60 );
-            $cron->addTask( 'sfw_send_logs', 'apbct_sfw_send_logs', 3600 );
+            $cron->addTask( 'sfw_update', '\plgSystemCleantalkantispam::apbct_sfw_update', 86400, time() + 60 );
+            $cron->addTask( 'sfw_send_logs', '\plgSystemCleantalkantispam::apbct_sfw_send_logs', 3600 );
         }
         $tasks_to_run = $cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
         if(
@@ -2442,13 +2543,9 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
 
-        /** @var \Cleantalk\Common\Db\Db $db_class */
-        $db_class = Mloader::get('Db');
-        $db_obj = $db_class::getInstance();
-
         $firewall = new \Cleantalk\Common\Firewall\Firewall(
             $access_key,
-            $db_obj->prefix . APBCT_TBL_FIREWALL_LOG
+            APBCT_TBL_FIREWALL_LOG
         );
 
         return $firewall->getUpdater()->update();
@@ -2465,11 +2562,7 @@ class plgSystemCleantalkantispam extends JPlugin
             }
         }
 
-        /** @var \Cleantalk\Common\Db\Db $db_class */
-        $db_class = Mloader::get('Db');
-        $db_obj = $db_class::getInstance();
-
-        $firewall = new \Cleantalk\Common\Firewall\Firewall( $access_key, $db_obj->prefix . APBCT_TBL_FIREWALL_LOG );
+        $firewall = new \Cleantalk\Common\Firewall\Firewall( $access_key, APBCT_TBL_FIREWALL_LOG );
         $result = $firewall->sendLogs();
 
         return true;
@@ -2648,15 +2741,19 @@ class plgSystemCleantalkantispam extends JPlugin
 
         $_urls = explode(',', $urls);
 
+        $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+
         foreach ($_urls as $url) {
             // @ToDo need to detect ajax request
             // @ToDo implement support for a regexp
-            $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-            $current_page_url = explode('?', $current_page_url);
-            $current_page_url = $current_page_url[0];
-
-            if( strpos($current_page_url, $url) !== false) {
-                return true;
+            if (defined('APBCT_EXCLUSION_STRICT_MODE') && APBCT_EXCLUSION_STRICT_MODE) {
+                if ($current_page_url === $url) {
+                    return true;
+                }
+            } else {
+                if( strpos($current_page_url, $url) !== false) {
+                    return true;
+                }
             }
         }
 
