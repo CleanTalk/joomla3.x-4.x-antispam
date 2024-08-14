@@ -519,7 +519,8 @@ class plgSystemCleantalkantispam extends JPlugin
             ($option_cmd == 'com_virtuemart' && $task_cmd == 'cart') ||
             ($option_cmd == 'com_rsform' && $task_cmd == 'ajaxValidate') || // RSFrom ajax validation on multipage form
             ($option_cmd == 'com_virtuemart' && !empty($ctask_cmd) && ($ctask_cmd !== 'savebtaddress' || empty($post_field_stage) || $post_field_stage !== 'final')) ||
-            $option_cmd === 'com_civicrm'
+            $option_cmd === 'com_civicrm' ||
+            ($option_cmd === 'com_jshopping' && $task_cmd === 'loginsave')
         )
             return true;
 
