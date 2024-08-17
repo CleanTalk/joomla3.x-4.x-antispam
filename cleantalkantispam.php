@@ -863,38 +863,37 @@ class plgSystemCleantalkantispam extends JPlugin
             }
 
         }
-        if ($_SERVER['REQUEST_METHOD'] == 'GET')
-        {
-            if ($this->params->get('ct_check_search'))
-            {
-                if ( $option_cmd === 'com_search' && isset($_GET['searchword']) && $_GET['searchword'] !== '' ) // Search form
-                {
-                    $post_info['comment_type'] = 'site_search_joomla34';
-                    $sender_email              = JFactory::getUser()->email;
-                    $sender_nickname           = JFactory::getUser()->username;
-                    $message                   = trim($_GET['searchword']);
-                    $ctResponse                = $this->ctSendRequest(
-                        'check_message',
-                        array(
-                            'sender_nickname' => $sender_nickname,
-                            'sender_email'    => $sender_email,
-                            'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
-                            'post_info'       => json_encode($post_info),
-                        )
-                    );
-                    if ($ctResponse)
-                    {
-                        if (!empty($ctResponse) && is_array($ctResponse))
-                        {
-                            if ($ctResponse['errno'] != 0)
-                                $this->sendAdminEmail("CleanTalk. Can't verify search form!", $ctResponse['comment']);
-                            else
-                            {
-                                if ($ctResponse['allow'] == 0)
-                                {
-                                    $this->doBlockPage($ctResponse['comment']);
 
-                                }
+        // Search form
+        if ($_SERVER['REQUEST_METHOD'] == 'GET' && $this->params->get('ct_check_search')) {
+            if ($option_cmd === 'com_search' && isset($_GET['searchword']) && $_GET['searchword'] !== '' ||
+                $option_cmd === 'com_finder' && isset($_GET['q']) && $_GET['q'] !== ''
+            ) {
+                $post_info['comment_type'] = 'site_search_joomla34';
+                $sender_email              = JFactory::getUser()->email;
+                $sender_nickname           = JFactory::getUser()->username;
+                $message                   = isset($_GET['searchword']) ? trim($_GET['searchword']) : trim($_GET['q']);
+                $ctResponse                = $this->ctSendRequest(
+                    'check_message',
+                    array(
+                        'sender_nickname' => $sender_nickname,
+                        'sender_email'    => $sender_email,
+                        'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
+                        'post_info'       => json_encode($post_info),
+                    )
+                );
+                if ($ctResponse)
+                {
+                    if (!empty($ctResponse) && is_array($ctResponse))
+                    {
+                        if ($ctResponse['errno'] != 0)
+                            $this->sendAdminEmail("CleanTalk. Can't verify search form!", $ctResponse['comment']);
+                        else
+                        {
+                            if ($ctResponse['allow'] == 0)
+                            {
+                                $this->doBlockPage($ctResponse['comment']);
+
                             }
                         }
                     }
