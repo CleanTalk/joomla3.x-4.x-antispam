@@ -307,9 +307,17 @@ class plgSystemCleantalkantispam extends JPlugin
             /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $remote_calls_class */
             $remote_calls_class = Mloader::get('RemoteCalls');
 
+            /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler */
+            $storage_handler = Mloader::get('StorageHandler');
+
             if( $remote_calls_class::check() ) {
-                $rc = new $remote_calls_class( $apikey );
-                $rc->process();
+                $remote_calls = new $remote_calls_class( $apikey, new $storage_handler() );
+                try {
+                    die ($remote_calls->process());
+                } catch ( \Cleantalk\Common\RemoteCalls\Exceptions\RemoteCallsException $exception ) {
+                    error_log(var_export('RC error: ' . $exception->getMessage(),1));
+                    die ('FAIL ' . json_encode(array('error' => $exception->getMessage())));
+                }
             }
         }
 
