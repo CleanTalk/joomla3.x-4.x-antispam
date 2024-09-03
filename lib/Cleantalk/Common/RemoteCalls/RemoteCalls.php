@@ -120,7 +120,7 @@ class RemoteCalls
             $action_result = static::$action_method();
 
             // Supports old results returned an array ['error'=>'Error text']
-            if ( $action_result['error'] ) {
+            if ( isset($action_result['error']) && $action_result['error'] ) {
                 throw new RemoteCallsException($action_result['error']);
             }
 
