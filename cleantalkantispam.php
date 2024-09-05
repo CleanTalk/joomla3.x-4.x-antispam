@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       3.2.3
+ * @version       3.2.4
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -72,7 +72,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * Plugin version string for server
      * @since         1.0
      */
-    const ENGINE = 'joomla34-323';
+    const ENGINE = 'joomla34-324';
 
     /**
      * Flag marked JComments form initialization.
