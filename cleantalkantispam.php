@@ -1186,7 +1186,7 @@ class plgSystemCleantalkantispam extends JPlugin
                                 } elseif (
                                     $app->input->get('option') === 'com_sppagebuilder' &&
                                     !isset($app->input->get('form')['formId']) &&
-                                    JFactory::getApplication()->input->get('option') !== 'com_ajax'
+                                    JFactory::getApplication()->input->get('option') === 'com_ajax'
                                 ) {
                                     $output['status'] = false;
                                     $output['content'] = '<span class="sppb-text-danger">' . $ctResponse['comment'] . '</span>';
