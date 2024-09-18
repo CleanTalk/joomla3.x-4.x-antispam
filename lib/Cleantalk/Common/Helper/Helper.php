@@ -867,6 +867,9 @@ class Helper
      */
     public static function toUTF8($obj, $data_codepage = null)
     {
+        if ( empty($obj) ) {
+            return $obj;
+        }
         // Array || object
         if (is_array($obj) || is_object($obj)) {
             foreach ($obj as $_key => &$val) {
