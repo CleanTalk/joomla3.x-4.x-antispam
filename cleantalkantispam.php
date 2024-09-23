@@ -1123,12 +1123,19 @@ class plgSystemCleantalkantispam extends JPlugin
                 if( ! isset( $post_info['comment_type'] ) )
                     $post_info['comment_type'] = 'feedback_general_contact_form';
 
+                if (is_string($message)) {
+                    $message = json_decode($message, true);
+                }
+                if (isset($message['ct_bot_detector_event_token'])) {
+                    unset($message['ct_bot_detector_event_token']);
+                }
+
                 $ctResponse = $this->ctSendRequest(
                     'check_message',
                     array(
                         'sender_nickname' => $sender_nickname,
                         'sender_email'    => $sender_email,
-                        'message'         => $message,
+                        'message'         => json_encode($message),
                         'post_info'       => json_encode($post_info),
                     )
                 );
