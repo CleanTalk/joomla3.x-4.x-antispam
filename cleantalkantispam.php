@@ -489,9 +489,31 @@ class plgSystemCleantalkantispam extends JPlugin
                 $new_config = json_decode($data->params, true);
                 $access_key = trim($new_config['apikey']);
 
+                $cron_class = Mloader::get('Cron');
+                $cron = new $cron_class();
+
                 if (isset($new_config['ct_sfw_enable'])) {
-                    self::apbct_sfw_update($access_key);
-                    self::apbct_sfw_send_logs($access_key);
+                    if ($new_config['ct_sfw_enable'] == 1) {
+                        //update tasks
+                        /** @var \Cleantalk\Common\Cron\Cron $cron */
+                        $cron->updateTask( 'sfw_update', '\plgSystemCleantalkantispam::apbct_sfw_update', 86400, time() + 60 );
+                        $cron->updateTask( 'sfw_send_logs', '\plgSystemCleantalkantispam::apbct_sfw_send_logs', 3600 );
+                        // run update itself
+                        $update_result = self::apbct_sfw_update($access_key);
+                        self::apbct_sfw_send_logs($access_key);
+                    } else {
+                        //remove tasks
+                        $cron->removeTask( 'sfw_update');
+                        $cron->removeTask( 'sfw_send_logs');
+                        $cron->removeTask( 'sfw_update_checker');
+                        //remove fwstats
+                        $firewall = new \Cleantalk\Common\Firewall\Firewall(
+                            $access_key,
+                            APBCT_TBL_FIREWALL_LOG
+                        );
+                        $empty_stats = new \Cleantalk\Common\Firewall\FwStats();
+                        $firewall::saveFwStats($empty_stats);
+                    }
                 }
                 $this->ctSendFeedback($access_key, '0:' . self::ENGINE);
 
