@@ -131,7 +131,7 @@ class FirewallUpdater
         $this->fwStats->updating_last_start = time();
         $fw_class::saveFwStats($this->fwStats);
 
-        if ( !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
+        if ( (defined('APBCT_SFW_DIRECT_UPDATE') && APBCT_SFW_DIRECT_UPDATE) || !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
             return $this->directUpdate();
         }
 
@@ -219,7 +219,7 @@ class FirewallUpdater
             }
         }
 
-        if ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) {
+        if ( ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) ) {
             $this->updateFallback();
 
             $direct_upd_res = $this->directUpdate();
