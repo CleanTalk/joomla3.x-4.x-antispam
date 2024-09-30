@@ -727,9 +727,10 @@ class FirewallUpdater
         $cron = new $cron_class();
         $sfw_update_handler = defined(
             'APBCT_CRON_HANDLER__SFW_UPDATE'
-        ) ? APBCT_CRON_HANDLER__SFW_UPDATE : 'apbct_sfw_update__init';
+        ) ? APBCT_CRON_HANDLER__SFW_UPDATE : '\plgSystemCleantalkantispam::apbct_sfw_update';
         $cron->updateTask('sfw_update', $sfw_update_handler, $fw_stats->update_period);
         $cron->removeTask('sfw_update_checker');
+
 
         self::removeUpdDir($fw_stats->updating_folder);
 
@@ -971,7 +972,7 @@ class FirewallUpdater
         $cron->removeTask('sfw_update_checker');
         $sfw_update_handler = defined(
             'APBCT_CRON_HANDLER__SFW_UPDATE'
-        ) ? APBCT_CRON_HANDLER__SFW_UPDATE : 'apbct_sfw_update__init';
+        ) ? APBCT_CRON_HANDLER__SFW_UPDATE : '\plgSystemCleantalkantispam::apbct_sfw_update';
         $cron->updateTask('sfw_update', $sfw_update_handler, $fw_stats->update_period);
 
         /**

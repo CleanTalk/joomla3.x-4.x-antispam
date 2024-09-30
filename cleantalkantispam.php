@@ -2519,11 +2519,16 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         /** @var \Cleantalk\Common\Cron\Cron $cron_class */
         $cron_class = Mloader::get('Cron');
+        $cron = new $cron_class();
+
         /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $rc_class */
         $rc_class = Mloader::get('RemoteCalls');
 
-        $cron = new $cron_class();
-        if (!$this->params->get($cron->getCronOptionName())) {
+        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        $storage_handler_class = Mloader::get('StorageHandler');
+        $storage_handler_class = new $storage_handler_class();
+
+        if ( (int)$storage_handler_class->getSetting($cron->getCronOptionName()) === 0 ) {
             $cron->addTask( 'sfw_update', '\plgSystemCleantalkantispam::apbct_sfw_update', 86400, time() + 60 );
             $cron->addTask( 'sfw_send_logs', '\plgSystemCleantalkantispam::apbct_sfw_send_logs', 3600 );
         }

@@ -64,7 +64,6 @@ class Cron
             }
 
             $this->tasks = $this->getTasks();
-
             if ( !empty($this->tasks) ) {
                 $this->createId();
                 usleep(10000); // 10 ms
@@ -124,7 +123,6 @@ class Cron
         $storage_handler_class = Mloader::get('StorageHandler');
         $storage_handler_class = new $storage_handler_class();
         $tasks = $storage_handler_class->getSetting($this->cron_option_name);
-
         return empty($tasks) ? array() : $tasks;
     }
 
@@ -238,6 +236,9 @@ class Cron
 
         // No tasks to run
         if ( empty($this->tasks) || $storage_handler_class->getSetting('cleantalk_cron_pid') !== $this->id ) {
+            if ($this->debug) {
+                error_log(var_export('Wrong cleantalk_cron_pid or task list empty', true));
+            }
             return false;
         }
 
