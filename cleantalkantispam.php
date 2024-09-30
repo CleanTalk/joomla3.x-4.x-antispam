@@ -64,6 +64,7 @@ define('APBCT_SPAMSCAN_LOGS',     'cleantalk_spamscan_logs'); // Table with sess
 define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
 define('APBCT_WRITE_LIMIT',       5000); // Write limit for firewall data.
 define('APBCT_DIR_PATH',          __DIR__);
+define('APBCT_CRON_HANDLER__SFW_UPDATE', 'plgSystemCleantalkantispam::apbct_sfw_update');
 //define('APBCT_EXCLUSION_STRICT_MODE', true);
 
 class plgSystemCleantalkantispam extends JPlugin
