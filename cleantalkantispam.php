@@ -48,6 +48,7 @@ use Cleantalk\Common\Antispam\CleantalkRequest;
 use Cleantalk\Common\Cleaner\Sanitize;
 use Cleantalk\Common\Mloader\Mloader;
 
+use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Server;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
@@ -2329,7 +2330,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
         } else {
             // To cookies
-            setcookie($name, $value, 0, '/');
+            Cookie::set($name, $value);
         }
     }
 
