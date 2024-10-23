@@ -345,8 +345,8 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 
 					// Removes whitespaces
                     $value = !is_null($value) ? $value : '';
-					$value = urldecode( trim( $value ) ); // Fully cleaned message
 					$value_for_email = trim( $value );    // Removes shortcodes to do better spam filtration on server side.
+					$value = urldecode( trim( $value ) ); // Fully cleaned message
 
 					// Email
 					if ( ! $email && preg_match( "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $value_for_email ) ) {

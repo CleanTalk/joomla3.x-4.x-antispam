@@ -276,6 +276,10 @@ function checkEasySocial(form) {
 }
 
 function ct_is_excluded_forms(form) {
+    if (form.onsubmit_prev && form.onsubmit_prev.toString().includes('validateRegistrationForm')) {
+        return true;
+    }
+
     let value;
     for (let key in form.elements){
         if (isNaN(+key)) {

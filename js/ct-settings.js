@@ -194,7 +194,7 @@ jQuery(document).ready(function(){
 				.append("<br><br>")
 				.append("<a id='ct_license_agreement' href='https://cleantalk.org/publicoffer' target='_blank'>"+ct_license_notice+"</a>");
 
-				jQuery('#key_buttons_wrapper').closest('.control-label').css('width', 'auto').next().empty();
+			jQuery('#key_buttons_wrapper').closest('.control-label').css('width', 'auto').next().empty();
 
 		}
 	}
@@ -357,7 +357,7 @@ jQuery(document).ready(function(){
 			}
 		}
 
-		if (joomlaVersion() === '4') {
+		if (joomlaVersion() === '4' || joomlaVersion() === '5') {
 			const apbctSettingsTabs = jQuery('#myTab button[role="tab"]');
 			jQuery.each(apbctSettingsTabs, function (index, tab) {
 				let tabElement = jQuery(tab);

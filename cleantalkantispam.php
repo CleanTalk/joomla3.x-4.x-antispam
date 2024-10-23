@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       3.2.4
+ * @version       3.2.5
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -48,6 +48,7 @@ use Cleantalk\Common\Antispam\CleantalkRequest;
 use Cleantalk\Common\Cleaner\Sanitize;
 use Cleantalk\Common\Mloader\Mloader;
 
+use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Server;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
@@ -64,6 +65,7 @@ define('APBCT_SPAMSCAN_LOGS',     'cleantalk_spamscan_logs'); // Table with sess
 define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
 define('APBCT_WRITE_LIMIT',       5000); // Write limit for firewall data.
 define('APBCT_DIR_PATH',          __DIR__);
+define('APBCT_CRON_HANDLER__SFW_UPDATE', 'plgSystemCleantalkantispam::apbct_sfw_update');
 //define('APBCT_EXCLUSION_STRICT_MODE', true);
 
 class plgSystemCleantalkantispam extends JPlugin
@@ -72,7 +74,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * Plugin version string for server
      * @since         1.0
      */
-    const ENGINE = 'joomla34-324';
+    const ENGINE = 'joomla34-325';
 
     /**
      * Flag marked JComments form initialization.
@@ -489,9 +491,31 @@ class plgSystemCleantalkantispam extends JPlugin
                 $new_config = json_decode($data->params, true);
                 $access_key = trim($new_config['apikey']);
 
+                $cron_class = Mloader::get('Cron');
+                $cron = new $cron_class();
+
                 if (isset($new_config['ct_sfw_enable'])) {
-                    self::apbct_sfw_update($access_key);
-                    self::apbct_sfw_send_logs($access_key);
+                    if ($new_config['ct_sfw_enable'] == 1) {
+                        //update tasks
+                        /** @var \Cleantalk\Common\Cron\Cron $cron */
+                        $cron->updateTask( 'sfw_update', '\plgSystemCleantalkantispam::apbct_sfw_update', 86400, time() + 60 );
+                        $cron->updateTask( 'sfw_send_logs', '\plgSystemCleantalkantispam::apbct_sfw_send_logs', 3600 );
+                        // run update itself
+                        $update_result = self::apbct_sfw_update($access_key);
+                        self::apbct_sfw_send_logs($access_key);
+                    } else {
+                        //remove tasks
+                        $cron->removeTask( 'sfw_update');
+                        $cron->removeTask( 'sfw_send_logs');
+                        $cron->removeTask( 'sfw_update_checker');
+                        //remove fwstats
+                        $firewall = new \Cleantalk\Common\Firewall\Firewall(
+                            $access_key,
+                            APBCT_TBL_FIREWALL_LOG
+                        );
+                        $empty_stats = new \Cleantalk\Common\Firewall\FwStats();
+                        $firewall::saveFwStats($empty_stats);
+                    }
                 }
                 $this->ctSendFeedback($access_key, '0:' . self::ENGINE);
 
@@ -527,7 +551,8 @@ class plgSystemCleantalkantispam extends JPlugin
             ($option_cmd == 'com_virtuemart' && $task_cmd == 'cart') ||
             ($option_cmd == 'com_rsform' && $task_cmd == 'ajaxValidate') || // RSFrom ajax validation on multipage form
             ($option_cmd == 'com_virtuemart' && !empty($ctask_cmd) && ($ctask_cmd !== 'savebtaddress' || empty($post_field_stage) || $post_field_stage !== 'final')) ||
-            $option_cmd === 'com_civicrm'
+            $option_cmd === 'com_civicrm' ||
+            ($option_cmd === 'com_jshopping' && $task_cmd === 'loginsave')
         )
             return true;
 
@@ -870,38 +895,37 @@ class plgSystemCleantalkantispam extends JPlugin
             }
 
         }
-        if ($_SERVER['REQUEST_METHOD'] == 'GET')
-        {
-            if ($this->params->get('ct_check_search'))
-            {
-                if ( $option_cmd === 'com_search' && isset($_GET['searchword']) && $_GET['searchword'] !== '' ) // Search form
-                {
-                    $post_info['comment_type'] = 'site_search_joomla34';
-                    $sender_email              = JFactory::getUser()->email;
-                    $sender_nickname           = JFactory::getUser()->username;
-                    $message                   = trim($_GET['searchword']);
-                    $ctResponse                = $this->ctSendRequest(
-                        'check_message',
-                        array(
-                            'sender_nickname' => $sender_nickname,
-                            'sender_email'    => $sender_email,
-                            'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
-                            'post_info'       => json_encode($post_info),
-                        )
-                    );
-                    if ($ctResponse)
-                    {
-                        if (!empty($ctResponse) && is_array($ctResponse))
-                        {
-                            if ($ctResponse['errno'] != 0)
-                                $this->sendAdminEmail("CleanTalk. Can't verify search form!", $ctResponse['comment']);
-                            else
-                            {
-                                if ($ctResponse['allow'] == 0)
-                                {
-                                    $this->doBlockPage($ctResponse['comment']);
 
-                                }
+        // Search form
+        if ($_SERVER['REQUEST_METHOD'] == 'GET' && $this->params->get('ct_check_search')) {
+            if ($option_cmd === 'com_search' && isset($_GET['searchword']) && $_GET['searchword'] !== '' ||
+                $option_cmd === 'com_finder' && isset($_GET['q']) && $_GET['q'] !== ''
+            ) {
+                $post_info['comment_type'] = 'site_search_joomla34';
+                $sender_email              = JFactory::getUser()->email;
+                $sender_nickname           = JFactory::getUser()->username;
+                $message                   = isset($_GET['searchword']) ? trim($_GET['searchword']) : trim($_GET['q']);
+                $ctResponse                = $this->ctSendRequest(
+                    'check_message',
+                    array(
+                        'sender_nickname' => $sender_nickname,
+                        'sender_email'    => $sender_email,
+                        'message'         => trim(preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $message)),
+                        'post_info'       => json_encode($post_info),
+                    )
+                );
+                if ($ctResponse)
+                {
+                    if (!empty($ctResponse) && is_array($ctResponse))
+                    {
+                        if ($ctResponse['errno'] != 0)
+                            $this->sendAdminEmail("CleanTalk. Can't verify search form!", $ctResponse['comment']);
+                        else
+                        {
+                            if ($ctResponse['allow'] == 0)
+                            {
+                                $this->doBlockPage($ctResponse['comment']);
+
                             }
                         }
                     }
@@ -1123,12 +1147,19 @@ class plgSystemCleantalkantispam extends JPlugin
                 if( ! isset( $post_info['comment_type'] ) )
                     $post_info['comment_type'] = 'feedback_general_contact_form';
 
+                if (is_string($message)) {
+                    $message = json_decode($message, true);
+                }
+                if (isset($message['ct_bot_detector_event_token'])) {
+                    unset($message['ct_bot_detector_event_token']);
+                }
+
                 $ctResponse = $this->ctSendRequest(
                     'check_message',
                     array(
                         'sender_nickname' => $sender_nickname,
                         'sender_email'    => $sender_email,
-                        'message'         => $message,
+                        'message'         => json_encode($message),
                         'post_info'       => json_encode($post_info),
                     )
                 );
@@ -1185,7 +1216,8 @@ class plgSystemCleantalkantispam extends JPlugin
                                     die();
                                 } elseif (
                                     $app->input->get('option') === 'com_sppagebuilder' &&
-                                    !isset($app->input->get('form')['formId'])
+                                    !isset($app->input->get('form')['formId']) &&
+                                    JFactory::getApplication()->input->get('option') === 'com_ajax'
                                 ) {
                                     $output['status'] = false;
                                     $output['content'] = '<span class="sppb-text-danger">' . $ctResponse['comment'] . '</span>';
@@ -2298,7 +2330,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
         } else {
             // To cookies
-            setcookie($name, $value, 0, '/');
+            Cookie::set($name, $value);
         }
     }
 
@@ -2519,11 +2551,16 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         /** @var \Cleantalk\Common\Cron\Cron $cron_class */
         $cron_class = Mloader::get('Cron');
+        $cron = new $cron_class();
+
         /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $rc_class */
         $rc_class = Mloader::get('RemoteCalls');
 
-        $cron = new $cron_class();
-        if (!$this->params->get($cron->getCronOptionName())) {
+        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        $storage_handler_class = Mloader::get('StorageHandler');
+        $storage_handler_class = new $storage_handler_class();
+
+        if ( (int)$storage_handler_class->getSetting($cron->getCronOptionName()) === 0 ) {
             $cron->addTask( 'sfw_update', '\plgSystemCleantalkantispam::apbct_sfw_update', 86400, time() + 60 );
             $cron->addTask( 'sfw_send_logs', '\plgSystemCleantalkantispam::apbct_sfw_send_logs', 3600 );
         }

@@ -131,7 +131,7 @@ class FirewallUpdater
         $this->fwStats->updating_last_start = time();
         $fw_class::saveFwStats($this->fwStats);
 
-        if ( !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
+        if ( (defined('APBCT_SFW_DIRECT_UPDATE') && APBCT_SFW_DIRECT_UPDATE) || !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
             return $this->directUpdate();
         }
 
@@ -219,7 +219,7 @@ class FirewallUpdater
             }
         }
 
-        if ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) {
+        if ( ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) ) {
             $this->updateFallback();
 
             $direct_upd_res = $this->directUpdate();
@@ -730,6 +730,7 @@ class FirewallUpdater
         ) ? APBCT_CRON_HANDLER__SFW_UPDATE : 'apbct_sfw_update__init';
         $cron->updateTask('sfw_update', $sfw_update_handler, $fw_stats->update_period);
         $cron->removeTask('sfw_update_checker');
+
 
         self::removeUpdDir($fw_stats->updating_folder);
 
