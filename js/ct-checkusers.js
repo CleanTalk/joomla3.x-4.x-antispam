@@ -48,7 +48,7 @@ window.apbct = window.apbct || {};
 
     usersChecker.setListeners = () => {
         $('#check_spam_users').click(() => {
-            if (scanInProgress) {
+            if (scanInProgress || usersChecker.cleared) {
                 return;
             }
             usersChecker.improvedCheck = $("#ct_impspamcheck_checkbox").is(":checked");
@@ -134,13 +134,9 @@ window.apbct = window.apbct || {};
     };
 
     usersChecker.clearUserCheckerResults = () => {
-        if (usersChecker.cleared)
-        {
-            return;
-        }
-        usersChecker.cleared = true;
         usersChecker.layoutClearById('spamusers_table');
         const data = {action: 'usersChecker', route: 'clearResults'};
+        usersChecker.cleared = true;
         return usersChecker.ajaxRequest(data);
     };
 
