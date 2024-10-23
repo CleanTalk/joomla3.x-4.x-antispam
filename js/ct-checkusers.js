@@ -11,7 +11,8 @@ window.apbct = window.apbct || {};
         totalUsers: 0,
         limit: 20,
         offset: 0,
-        improvedCheck: false
+        improvedCheck: false,
+        cleared: false
     };
 
     apbct = apbct || {};
@@ -47,6 +48,9 @@ window.apbct = window.apbct || {};
 
     usersChecker.setListeners = () => {
         $('#check_spam_users').click(() => {
+            if (scanInProgress) {
+                return;
+            }
             usersChecker.improvedCheck = $("#ct_impspamcheck_checkbox").is(":checked");
 
             usersChecker.clearUserCheckerResults()
@@ -130,6 +134,11 @@ window.apbct = window.apbct || {};
     };
 
     usersChecker.clearUserCheckerResults = () => {
+        if (usersChecker.cleared)
+        {
+            return;
+        }
+        usersChecker.cleared = true;
         usersChecker.layoutClearById('spamusers_table');
         const data = {action: 'usersChecker', route: 'clearResults'};
         return usersChecker.ajaxRequest(data);
@@ -176,6 +185,7 @@ window.apbct = window.apbct || {};
                 response => {
                     try {
                         usersChecker.runUserCheckerSuccess(JSON.parse(response));
+                        usersChecker.cleared = false;
                     } catch (error) {
                         usersChecker.runUserCheckerError(error);
                     }
