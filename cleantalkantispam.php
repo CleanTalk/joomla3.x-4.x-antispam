@@ -1958,6 +1958,7 @@ class plgSystemCleantalkantispam extends JPlugin
             // URL Exclusions
             $url_check = true;
             $url_exclusion = $this->params->get('url_exclusions');
+            $is_url_exclusions_by_regexp = $this->params->get('ct_url_exclusions_regexp');
             if (! is_null( $url_exclusion ) && !empty( $url_exclusion ) )
             {
                 $url_exclusion = explode(',', $url_exclusion);
@@ -1965,11 +1966,15 @@ class plgSystemCleantalkantispam extends JPlugin
                 // Not always we have 'HTTP_X_REQUESTED_WITH' :(
                 // @ToDo need to detect ajax request
 
-                // @ToDo implement support for a regexp
-                $check_type = 0;
                 foreach ($url_exclusion as $key => $value) {
-                    if( $check_type == 1 ) { // If RegExp
-                        if( @preg_match( '/' . $value . '/', $_SERVER['REQUEST_URI'] ) ) {
+                    if($is_url_exclusions_by_regexp) {
+                        if( @preg_match( '#' . $value . '#', $_SERVER['REQUEST_URI'] ) ) {
+                            $url_check = false;
+                        }
+                        if (strpos($_SERVER['REQUEST_URI'], 'option=com_baforms') !== false &&
+                            isset($_REQUEST['page-url']) &&
+                            @preg_match( '#' . $value . '#', $_REQUEST['page-url'] )
+                        ) {
                             $url_check = false;
                         }
                     } else {
@@ -2784,19 +2789,24 @@ class plgSystemCleantalkantispam extends JPlugin
             return false;
         }
 
+        $is_url_exclusions_by_regexp = $this->params->get('ct_url_exclusions_regexp');
+
         $_urls = explode(',', $urls);
 
         $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 
         foreach ($_urls as $url) {
             // @ToDo need to detect ajax request
-            // @ToDo implement support for a regexp
             if (defined('APBCT_EXCLUSION_STRICT_MODE') && APBCT_EXCLUSION_STRICT_MODE) {
                 if ($current_page_url === $url) {
                     return true;
                 }
             } else {
-                if( strpos($current_page_url, $url) !== false) {
+                if(strpos($current_page_url, $url) !== false) {
+                    return true;
+                }
+
+                if ($is_url_exclusions_by_regexp && preg_match('#' . $url . '#', $current_page_url)) {
                     return true;
                 }
             }
