@@ -273,6 +273,18 @@
 			<fieldset name="exclusions">
 				<field type="note" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_NOTE" />
 				<field name="url_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL_DESC" />
+				<field
+						name="ct_url_exclusions_regexp"
+						type="radio"
+						class="btn-group"
+						label="PLG_SYSTEM_CLEANTALKANTISPAM_CT_URL_EXCLUSIONS_REGEXP"
+						description="PLG_SYSTEM_CLEANTALKANTISPAM_CT_URL_EXCLUSIONS_REGEXP_DESCRIPTION"
+						default="0"
+						filter="integer"
+				>
+					<option value="0">JOFF</option>
+					<option value="1">JON</option>
+				</field>	
 				<field name="fields_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS_DESC" />
 				<field name="roles_exclusions" type="textarea" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
 			</fieldset>
