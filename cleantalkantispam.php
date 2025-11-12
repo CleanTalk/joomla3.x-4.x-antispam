@@ -660,7 +660,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
             // Bot detector
             if ($config->get('ct_use_bot_detector')) {
-                $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
+                $document->addScript("https://fd.cleantalk.org/ct-bot-detector-wrapper.js");
             }
 
             $set_cookies = $this->params->get('ct_set_cookies') != 0 ;
@@ -856,7 +856,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
             // Bot detector
             if ($config->get('ct_use_bot_detector')) {
-                $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
+                $document->addScript("https://fd.cleantalk.org/ct-bot-detector-wrapper.js");
             }
 
             $set_cookies = $this->params->get('ct_set_cookies') != 0 ;
