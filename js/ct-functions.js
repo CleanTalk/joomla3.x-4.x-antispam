@@ -167,6 +167,11 @@ function ct_ready(){
                 continue;
             }
 
+            // Exclude `cbactivity` plugin: has conflicted.
+            if ( form.classList.contains('streamItemForm') ) {
+                continue;
+            }
+
             // Get only fields
             var elements = [];
             for(var key in this.elements){
