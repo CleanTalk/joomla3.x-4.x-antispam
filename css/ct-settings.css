@@ -57,7 +57,7 @@
 {
     text-align: center;
 }
-#delete_sel_spam_users, #delete_all_spam_users, #delete_sel_spam_comments, #delete_all_spam_comments, #send_connection_report
+#delete_sel_spam_users, #delete_all_spam_users, #delete_all_on_page_spam_users, #delete_sel_spam_comments, #delete_all_spam_comments, #send_connection_report
 {
     margin: 0 0 10px 15px;
     float:right;
