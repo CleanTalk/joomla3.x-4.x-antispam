@@ -25,6 +25,10 @@ window.apbct = window.apbct || {};
 
     let scanInProgress = false;
 
+    usersChecker.deleteAll = 'delete_all';
+    usersChecker.deleteAllOnPage = 'delete_all_on_page';
+    usersChecker.deleteSelected = 'delete_selected';
+
     usersChecker.init = () => {
 
         if ( tabIsLoaded ) {
@@ -111,8 +115,9 @@ window.apbct = window.apbct || {};
                 }
             );
         });
-        $('#delete_all_spam_users').click(() => usersChecker.deleteUsers(true));
-        $('#delete_sel_spam_users').click(() => usersChecker.deleteUsers());
+        $('#delete_all_spam_users').click(() => usersChecker.deleteUsers(usersChecker.deleteAll));
+        $('#delete_all_on_page_spam_users').click(() => usersChecker.deleteUsers(usersChecker.deleteAllOnPage));
+        $('#delete_sel_spam_users').click(() => usersChecker.deleteUsers(usersChecker.deleteSelected));
     };
 
     usersChecker.getTabContent = () => {
@@ -200,53 +205,63 @@ window.apbct = window.apbct || {};
         scanInProgress = false;
     };
 
-    usersChecker.deleteUsers = (all) => {
+    usersChecker.deleteUsers = (selected = usersChecker.deleteSelected) => {
         let data = {
             action: 'usersChecker',
             route: 'delete',
-            ct_del_user_ids : []
+            ct_del_user_ids : [],
+            delete_all : false,
         };
-        if ( all ) {
-            $("input[type=checkbox]").each(function() {
-                if ( $(this).attr('name').startsWith('ct_del_user') ) {
-                    let id = $(this).attr('name').substring($(this).attr('name').lastIndexOf("[") + 1, $(this).attr('name').lastIndexOf("]"));
-                    data.ct_del_user_ids.push(id);
-                }
-            });
-        } else {
-            $("input:checked").each(function() {
-                if ( $(this).attr('name').startsWith('ct_del_user') ) {
-                    let id = $(this).attr('name').substring($(this).attr('name').lastIndexOf("[") + 1, $(this).attr('name').lastIndexOf("]"));
-                    data.ct_del_user_ids.push(id);
-                }
-            });
-        }
-        if ( data.ct_del_user_ids.length > 0 ) {
-            // @ToDo make this text translatable
-            if ( window.confirm('Are you sure?')===true )
-            {
-                usersChecker.layoutAppend(preloader);
-                usersChecker.ajaxRequest(data).then(
-                    response => {
-                        usersChecker.disablePreloader();
-                        response = jQuery.parseJSON(response);
-                        alert(response.data);
-                        usersChecker.loadScanResults(1).then(
-                            content => {
-                                usersChecker.loadScanResultsSuccess(content);
-                                usersChecker.setListeners();
-                            },
-                            error  => {
-                                usersChecker.loadScanResultsError(error);
-                            }
-                        );
-                    }
-                );
-            }
 
-        } else  {
-            // @ToDo make this text translatable
-            alert('No users selected.');
+        switch (selected) {
+            case usersChecker.deleteAllOnPage:
+                $("input[type=checkbox]").each(function() {
+                    if ( $(this).attr('name').startsWith('ct_del_user') ) {
+                        let id = $(this).attr('name').substring($(this).attr('name').lastIndexOf("[") + 1, $(this).attr('name').lastIndexOf("]"));
+                        data.ct_del_user_ids.push(id);
+                    }
+                });
+                break;
+            case usersChecker.deleteSelected:
+                $("input:checked").each(function() {
+                    if ( $(this).attr('name').startsWith('ct_del_user') ) {
+                        let id = $(this).attr('name').substring($(this).attr('name').lastIndexOf("[") + 1, $(this).attr('name').lastIndexOf("]"));
+                        data.ct_del_user_ids.push(id);
+                    }
+                });
+                break;
+            case usersChecker.deleteAll:
+                if ( window.confirm(ct_checkusers_delconfirm_all) === true ) {
+                    data.delete_all = true;
+                } else {
+                    return;
+                }
+                break;
+        }
+
+        if ( selected !== usersChecker.deleteAll && data.ct_del_user_ids.length < 1 ) {
+            alert(ct_checkusers_no_users_selected);
+            return;
+        }
+
+        if ( window.confirm(ct_checkusers_delconfirm) === true ) {
+            usersChecker.layoutAppend(preloader);
+            usersChecker.ajaxRequest(data).then(
+                response => {
+                    usersChecker.disablePreloader();
+                    response = jQuery.parseJSON(response);
+                    alert(response.data);
+                    usersChecker.loadScanResults(1).then(
+                        content => {
+                            usersChecker.loadScanResultsSuccess(content);
+                            usersChecker.setListeners();
+                        },
+                        error  => {
+                            usersChecker.loadScanResultsError(error);
+                        }
+                    );
+                }
+            );
         }
     };
 

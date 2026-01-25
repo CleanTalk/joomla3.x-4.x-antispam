@@ -768,6 +768,9 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_spamcheck_users_delconfirm_error = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM_ERROR') . '",
 						ct_spamcheck_comments_delconfirm = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM') . '",
 						ct_spamcheck_comments_delconfirm_error = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR') . '",
+						ct_checkusers_no_users_selected = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_NO_USERS_SELECTED') . '",
+						ct_checkusers_delconfirm = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_DELCONFIRM') . '",
+						ct_checkusers_delconfirm_all = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_DELCONFIRM_ALL') . '",
 						ct_spamcheck_load_more_results = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_LOAD_MORE_RESULTS') . '",
 						ct_connection_reports_no_reports = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CONNECTIONREPORTS_NO_REPORTS') . '",
 						ct_connection_reports_send_report = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CONNECTIONREPORTS_SENDBUTTON_LABEL') . '",
@@ -1608,6 +1611,22 @@ class plgSystemCleantalkantispam extends JPlugin
                     // @ToDo add an error handling here
                     return ['success' => 'The notice dismissing was remembered'];
 	            case 'usersChecker' :
+		            // Security check: Only allow administrators to use usersChecker
+		            $user = Factory::getUser();
+		            if ($user->guest || !$user->authorise('core.admin')) {
+		                http_response_code(403);
+		                die(json_encode(['result' => 'error', 'data' => Text::_('JERROR_ALERTNOAUTHOR')]));
+		            }
+		            
+		            // Additional security check for delete operations
+		            if (isset($data['route']) && $data['route'] === 'delete') {
+		                // Check if user has permission to delete users
+		                if (!$user->authorise('core.delete', 'com_users')) {
+		                    http_response_code(403);
+		                    die(json_encode(['result' => 'error', 'data' => Text::_('JERROR_ALERTNOAUTHOR')]));
+		                }
+		            }
+		            
 		            $data['api_key'] = $this->params->get('apikey');
 					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
 					return $users_checker->getResponse();

@@ -133,6 +133,7 @@ class UsersChecker
 
 		$replaces = array(
 			'{{buttonDeleteAll}}' => JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_DELALL'),
+			'{{buttonDeleteAllOnPage}}' => JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_DELALLONPAGE'),
 			'{{buttonDeleteSelected}}' => JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_DELSEL'),
 		);
 
@@ -370,8 +371,26 @@ class UsersChecker
 
 	private function delete($data)
 	{
-		if ( ! isset($data['ct_del_user_ids']) ) {
-			// No selected users
+		$output = [
+			'result' => null,
+			'data'   => null,
+		];
+
+		if ( isset($data['delete_all']) && $data['delete_all'] ) {
+			try {
+				$this->model->deleteAllUsers();
+				$output['result'] = 'success';
+				$output['data']   = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_DELALLDONE');
+			}
+			catch (\Exception $e) {
+				$output['result'] = 'error';
+				$output['data']   = $e->getMessage();
+			}
+			return json_encode($output);
+		}
+
+		// No selected users
+		if ( ! isset($data['ct_del_user_ids'])) {
 			$output['result'] = 'error';
 			$output['data']   = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_DELCONFIRM_ERROR');
 			return json_encode($output);
@@ -380,9 +399,6 @@ class UsersChecker
 		$ids = array_map(function($id) {
 			return (int) $id;
 		}, $data['ct_del_user_ids']);
-
-		$output['result'] = null;
-		$output['data']   = null;
 
 		if ( count($ids) ) {
 			try {
