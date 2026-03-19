@@ -10,3 +10,4 @@
 composer.lock
 package-lock.json
 /*fw_files*
+/tests/.phpunit.result.cache
