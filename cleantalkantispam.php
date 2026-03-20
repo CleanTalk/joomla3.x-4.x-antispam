@@ -1976,38 +1976,32 @@ class plgSystemCleantalkantispam extends JPlugin
         if ($executed_check) {
 
             $executed_check = false;
+            
             // URL Exclusions
-            $url_check = true;
+            $current_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
             $url_exclusion = $this->params->get('url_exclusions');
-            $is_url_exclusions_by_regexp = $this->params->get('ct_url_exclusions_regexp');
-            if (! is_null( $url_exclusion ) && !empty( $url_exclusion ) )
-            {
-                $url_exclusion = explode(',', $url_exclusion);
+            $url_exclusion_regex = $this->params->get('url_exclusions_regex');
 
-                // Not always we have 'HTTP_X_REQUESTED_WITH' :(
-                // @ToDo need to detect ajax request
+            // Check simple URL exclusions
+            if ($this->isUrlInSimpleExclusions($current_url, $url_exclusion)) {
+                return;
+            }
 
-                foreach ($url_exclusion as $key => $value) {
-                    if($is_url_exclusions_by_regexp) {
-                        if( @preg_match( '#' . $value . '#', $_SERVER['REQUEST_URI'] ) ) {
-                            $url_check = false;
-                        }
-                        if (strpos($_SERVER['REQUEST_URI'], 'option=com_baforms') !== false &&
-                            isset($_REQUEST['page-url']) &&
-                            @preg_match( '#' . $value . '#', $_REQUEST['page-url'] )
-                        ) {
-                            $url_check = false;
-                        }
-                    } else {
-                        if( strpos($_SERVER['HTTP_REFERER'], $value) !== false) { // Simple string checking
-                            $url_check = false;
-                        }
-                    }
-
+            // Check regex URL exclusions (check both HTTP_REFERER and REQUEST_URI)
+            if (
+                $this->isUrlInRegexExclusions($current_url, $url_exclusion_regex) ||
+                $this->isUrlInRegexExclusions($_SERVER['REQUEST_URI'], $url_exclusion_regex)
+            ) {
+                return;
+            }
+            
+            // Additional check for com_baforms
+            if (strpos($_SERVER['REQUEST_URI'], 'option=com_baforms') !== false && isset($_REQUEST['page-url'])) {
+                if ($this->isUrlInSimpleExclusions($_REQUEST['page-url'], $url_exclusion) ||
+                    $this->isUrlInRegexExclusions($_REQUEST['page-url'], $url_exclusion_regex)) {
+                    return;
                 }
             }
-            if (!$url_check)
-                return;
             // END URL Exclusions
 
             // Roles Exclusions
@@ -2800,38 +2794,93 @@ class plgSystemCleantalkantispam extends JPlugin
     }
 
     /**
+     * Check if URL matches any of the simple exclusion patterns
+     *
+     * @param string $url URL to check
+     * @param string $exclusions Comma-separated list of URL patterns
+     * @return boolean
+     */
+    private function isUrlInSimpleExclusions($url, $exclusions) {
+        if (empty($exclusions) || empty($url)) {
+            return false;
+        }
+
+        $_exclusions = explode(',', $exclusions);
+        foreach ($_exclusions as $pattern) {
+            $pattern = trim($pattern);
+            if (empty($pattern)) {
+                continue;
+            }
+            if (defined('APBCT_EXCLUSION_STRICT_MODE') && APBCT_EXCLUSION_STRICT_MODE) {
+                if ($url === $pattern) {
+                    return true;
+                }
+            } else {
+                if (strpos($url, $pattern) !== false) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if URL matches any of the regex exclusion patterns
+     *
+     * @param string $url URL to check
+     * @param string $patterns Comma-separated list of regex patterns (without delimiters)
+     * @return boolean
+     */
+    private function isUrlInRegexExclusions($url, $patterns) {
+        file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
+$url], true).PHP_EOL, FILE_APPEND | LOCK_EX);
+
+file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
+$patterns], true).PHP_EOL, FILE_APPEND | LOCK_EX);
+
+        if (empty($patterns) || empty($url)) {
+            return false;
+        }
+
+        $_patterns = explode(',', $patterns);
+        foreach ($_patterns as $pattern) {
+            $pattern = trim($pattern);
+            if (empty($pattern)) {
+                continue;
+            }
+            file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
+            $pattern], true).PHP_EOL, FILE_APPEND | LOCK_EX);
+            file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
+            $url], true).PHP_EOL, FILE_APPEND | LOCK_EX);
+            file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
+            @preg_match('#' . $pattern . '#', $url)], true).PHP_EOL, FILE_APPEND | LOCK_EX);
+            if (@preg_match('#' . $pattern . '#', $url)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Checking the page in the exception
      *
      * @param string $urls
      * @return boolean
      */
     public function pageExcluded($urls) {
-        if (empty($urls)) {
-            return false;
-        }
-
-        $is_url_exclusions_by_regexp = $this->params->get('ct_url_exclusions_regexp');
-
-        $_urls = explode(',', $urls);
-
         $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 
-        foreach ($_urls as $url) {
-            $url = trim($url);
-            // @ToDo need to detect ajax request
-            if (defined('APBCT_EXCLUSION_STRICT_MODE') && APBCT_EXCLUSION_STRICT_MODE) {
-                if ($current_page_url === $url) {
-                    return true;
-                }
-            } else {
-                if(strpos($current_page_url, $url) !== false) {
-                    return true;
-                }
+        // Check simple URL exclusions
+        if ($this->isUrlInSimpleExclusions($current_page_url, $urls)) {
+            return true;
+        }
 
-                if ($is_url_exclusions_by_regexp && preg_match('#' . $url . '#', $current_page_url)) {
-                    return true;
-                }
-            }
+        // Check regex URL exclusions
+        $url_exclusions_regex = $this->params->get('url_exclusions_regex');
+        if ($this->isUrlInRegexExclusions($current_page_url, $url_exclusions_regex)) {
+            return true;
         }
 
         return false;
