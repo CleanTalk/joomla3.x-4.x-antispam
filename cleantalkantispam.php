@@ -1974,9 +1974,8 @@ class plgSystemCleantalkantispam extends JPlugin
         static $executed_check = true;
 
         if ($executed_check) {
-
             $executed_check = false;
-            
+
             // URL Exclusions
             $current_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
             $url_exclusion = $this->params->get('url_exclusions');
@@ -2833,12 +2832,6 @@ class plgSystemCleantalkantispam extends JPlugin
      * @return boolean
      */
     private function isUrlInRegexExclusions($url, $patterns) {
-        file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
-$url], true).PHP_EOL, FILE_APPEND | LOCK_EX);
-
-file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
-$patterns], true).PHP_EOL, FILE_APPEND | LOCK_EX);
-
         if (empty($patterns) || empty($url)) {
             return false;
         }
@@ -2849,12 +2842,7 @@ $patterns], true).PHP_EOL, FILE_APPEND | LOCK_EX);
             if (empty($pattern)) {
                 continue;
             }
-            file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
-            $pattern], true).PHP_EOL, FILE_APPEND | LOCK_EX);
-            file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
-            $url], true).PHP_EOL, FILE_APPEND | LOCK_EX);
-            file_put_contents( __DIR__ . "/av_ct_test", print_r([__FILE__.' '.__LINE__, 
-            @preg_match('#' . $pattern . '#', $url)], true).PHP_EOL, FILE_APPEND | LOCK_EX);
+
             if (@preg_match('#' . $pattern . '#', $url)) {
                 return true;
             }

@@ -9,7 +9,7 @@ class cleantalk_test extends \PHPUnit\Framework\TestCase {
 
 	protected $ct;
 
-	protected function setUp()
+	protected function setUp(): void
 	{
 		$this->ct = new Cleantalk();
 		$this->ct->server_url = 'https://moderate.cleantalk.org';
