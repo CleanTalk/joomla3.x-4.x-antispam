@@ -2207,6 +2207,8 @@ class plgSystemCleantalkantispam extends JPlugin
             $params['cookies'] = array('set_cookies' => 0, 'use_alternative_cookies' => 0);
         }
 
+        unset($params['connection_reports']);
+
         $sender_info = array(
             'REFFERRER'              => (isset($_SERVER['HTTP_REFERER'])) ? htmlspecialchars((string) $_SERVER['HTTP_REFERER']) : null,
             'post_url'               => (isset($_SERVER['HTTP_REFERER'])) ? htmlspecialchars((string) $_SERVER['HTTP_REFERER']) : null,
