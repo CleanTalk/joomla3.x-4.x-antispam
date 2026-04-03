@@ -60,6 +60,7 @@ define('APBCT_TBL_FIREWALL_LOG',  'cleantalk_sfw_logs'); // Table with firewall 
 define('APBCT_TBL_AC_LOG',        'cleantalk_ac_log');   // Table with firewall logs.
 define('APBCT_TBL_AC_UA_BL',      'cleantalk_ua_bl');    // Table with User-Agents blacklist.
 define('APBCT_TBL_SESSIONS',      'cleantalk_sessions'); // Table with session data.
+define('APBCT_TBL_STORAGE',      'cleantalk_custom_storage'); // Table with session data.
 define('APBCT_SFW_SEND_LOGS_LIMIT', 1000);
 define('APBCT_SPAMSCAN_LOGS',     'cleantalk_spamscan_logs'); // Table with session data.
 define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
@@ -1617,7 +1618,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		                http_response_code(403);
 		                die(json_encode(['result' => 'error', 'data' => Text::_('JERROR_ALERTNOAUTHOR')]));
 		            }
-		            
+
 		            // Additional security check for delete operations
 		            if (isset($data['route']) && $data['route'] === 'delete') {
 		                // Check if user has permission to delete users
@@ -1626,7 +1627,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		                    die(json_encode(['result' => 'error', 'data' => Text::_('JERROR_ALERTNOAUTHOR')]));
 		                }
 		            }
-		            
+
 		            $data['api_key'] = $this->params->get('apikey');
 					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
 					return $users_checker->getResponse();
@@ -1993,7 +1994,7 @@ class plgSystemCleantalkantispam extends JPlugin
             ) {
                 return;
             }
-            
+
             // Additional check for com_baforms
             if (strpos($_SERVER['REQUEST_URI'], 'option=com_baforms') !== false && isset($_REQUEST['page-url'])) {
                 if ($this->isUrlInSimpleExclusions($_REQUEST['page-url'], $url_exclusion) ||

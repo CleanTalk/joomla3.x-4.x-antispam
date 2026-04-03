@@ -44,3 +44,8 @@ CREATE TABLE IF NOT EXISTS `#__cleantalk_usermeta` (
     `meta_value` longtext DEFAULT NULL,
     PRIMARY KEY (`id`)
 );
+CREATE TABLE IF NOT EXISTS `#__cleantalk_custom_storage` (
+    `name` VARCHAR(100) NOT NULL DEFAULT '',
+    `value` MEDIUMTEXT NULL DEFAULT NULL,
+    PRIMARY KEY (`name`)
+);
