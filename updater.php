@@ -22,6 +22,9 @@ if (defined('JVERSION')) {
     }
 }
 
+use Cleantalk\Common\Mloader\Mloader;
+use Joomla\CMS\Factory;
+
 class plgsystemcleantalkantispamInstallerScript
 {
     public function preflight($type, $parent)
@@ -57,6 +60,12 @@ class plgsystemcleantalkantispamInstallerScript
 
             $params['roles_exclusions'] = implode(',', $new_data_roles_excluded);
             $this->setParams($params);
+        }
+
+        $newVersion = (string) $parent->getManifest()->version;
+
+        if (version_compare($newVersion, '3.2.6', '>=')) {
+            $this->updateStorageTable();
         }
     }
 
@@ -111,5 +120,87 @@ class plgsystemcleantalkantispamInstallerScript
                           ' WHERE element = "cleantalkantispam"' );
             $db->query();
         }
+    }
+
+    /**
+     * Update or create a new storage table and move legacy data to a brand new.
+     * @return bool
+     */
+    private function updateStorageTable()
+    {
+        $result = true;
+        $new_table_ok = $this->createStorageTable();
+        $current_data = $this->getExtensionCustomData();
+        if (!$new_table_ok || empty($current_data)) {
+            $result = false;
+        } else {
+            /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+            $storage_handler_class = Mloader::get('StorageHandler');
+            $storage = new $storage_handler_class();
+            if ($storage_handler_class) {
+                foreach ($current_data as $name => $value) {
+                    $iteration = $storage->saveSetting($name, $value);
+                    if (!$iteration) {
+                        $result = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
+
+    /**
+     * Create table for custom storage (APBCT_TBL_STORAGE).
+     * @return bool
+     */
+    private function createStorageTable()
+    {
+        $db = Factory::getDbo();
+
+        $table = '#__' . APBCT_TBL_STORAGE;
+        $existingTables = in_array($table, $db->getTableList($table));
+
+        $result = true;
+
+        if (!$existingTables) {
+            $query = "CREATE TABLE IF NOT EXISTS {$table} (
+                `name` VARCHAR(100) NOT NULL DEFAULT '',
+                `value` MEDIUMTEXT NULL DEFAULT NULL,
+                PRIMARY KEY (`name`)
+            );";
+
+            $db->setQuery($query);
+
+            try {
+                $result = $db->execute();
+            } catch (\Exception $e) {
+                error_log('DB Error due plugin update: ' . $e->getMessage());
+                $result = false;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get legacy custom_data data.
+     * @return false|mixed
+     */
+    private function getExtensionCustomData()
+    {
+        $result = false;
+        $db = JFactory::getDbo();
+        $db->setQuery('SELECT custom_data FROM #__extensions WHERE element = "cleantalkantispam"');
+        $loaded = $db->loadResult();
+
+        if ($loaded) {
+            $result = json_decode($loaded, true);
+        }
+
+        $result = empty($result) ? false : $result;
+
+        return $result;
     }
 }
