@@ -20,6 +20,8 @@ Example how to use plugin to filter spam bots at any Joomla form.
                 JFactory::getApplication()->enqueueMessage($this->_subject->getError(),'error');
             }
 
+If you find this project useful, please consider starring ⭐ it on GitHub — it helps us grow and support development!
+
 ## Requirements
 
 * CleanTalk account https://cleantalk.org/register?product=anti-spam
