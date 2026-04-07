@@ -50,6 +50,7 @@ use Cleantalk\Common\Mloader\Mloader;
 
 use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Server;
+use Cleantalk\Custom\ConnectionReports;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Session\Session;
@@ -383,45 +384,23 @@ class plgSystemCleantalkantispam extends JPlugin
                     $output['data']   = $e->getMessage();
                 }
             }
-            if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes')
-            {
-                $output['result']   = null;
-                $output['data']     = null;
-                $connection_reports = $this->params->get('connection_reports') ? json_decode(json_encode($this->params->get('connection_reports')), true) : null;
-                if ($connection_reports && is_array($connection_reports) && count($connection_reports) > 0)
-                {
-                    $to      = "welcome@cleantalk.org";
-                    $subject = "Connection report for " . $_SERVER['HTTP_HOST'];
-                    $message = '
-					<html lang="en">
-						<head>
-							<title></title>
-						</head>
-						<body>
-							<p>From ' . date('d M', $connection_reports['negative_report'][0]->date) . ' to ' . date('d M') . ' has been made ' . ($connection_reports['success'] + $connection_reports['negative']) . ' calls, where ' . $connection_reports['success'] . ' were success and ' . $connection_reports['negative'] . ' were negative</p>
-							<p>Negative report:</p>
-							<table>  <tr>
-						<td>&nbsp;</td>
-						<td><b>Date</b></td>
-						<td><b>Page URL</b></td>
-						<td><b>Library report</b></td>
-					  </tr>
-					';
-                    foreach ($connection_reports['negative_report'] as $key => $report)
-                    {
-                        $message .= "<tr><td>" . ($key + 1) . ".</td><td>" . $report->date . "</td><td>" . $report->page_url . "</td><td>" . $report->lib_report . "</td></tr>";
-                    }
-                    $message .= '</table></body></html>';
 
-                    $headers = "Content-type: text/html; charset=windows-1251 \r\n";
-                    $headers .= "From: " . JFactory::getConfig()->get('mailfrom');
-                    mail($to, $subject, $message, $headers);
+            // handle connection reports
+            $connection_reports = $this->params->get('connection_reports')
+                ? json_decode(json_encode($this->params->get('connection_reports')), true)
+                : ConnectionReports::getClearReports();
+            $connection_reports = ConnectionReports::validate($connection_reports);
+            $connection_reports = ConnectionReports::filter($connection_reports);
+            if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes') {
+                $sending_result = ConnectionReports::sendMail($connection_reports, JFactory::getConfig()->get('mailfrom'));
+
+                $output['result']                  = $sending_result ? 'success' : 'error';
+                $output['data']                    = $sending_result ? 'Success.' : 'Something went wrong.';
+                if ($sending_result) {
+                    $output['result'] = ConnectionReports::getClearReports();
                 }
-
-                $output['result']                  = 'success';
-                $output['data']                    = 'Success.';
-                $save_params['connection_reports'] = array('success' => 0, 'negative' => 0, 'negative_report' => null);
             }
+            $save_params['connection_reports'] = $connection_reports;
 
             // Serve buttons
             if (isset($_POST['ct_serve_run_cron_sfw_send_logs']) && $_POST['ct_serve_run_cron_sfw_send_logs'] === 'yes') {
@@ -721,6 +700,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 }
 
                 $connection_reports = $config->get('connection_reports') ? json_decode(json_encode($config->get('connection_reports')), true) : array();
+                $connection_reports = ConnectionReports::validate($connection_reports);
                 $adminmail          = JFactory::getConfig()->get('mailfrom');
 
                 // Passing parameters to JS
@@ -2099,26 +2079,39 @@ class plgSystemCleantalkantispam extends JPlugin
             // Result should be an 	associative array
             $result = json_decode(json_encode($result), true);
 
-            $connection_reports = $this->params->get('connection_reports') ? json_decode(json_encode($this->params->get('connection_reports')), true) : array('success' => 0, 'negative' => 0, 'negative_report' => null);
-            if (isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on) == 1)
-            {
-                $result['allow'] = 1;
-                $result['errno'] = 0;
-                $connection_reports['negative']++;
-                if (isset($result['errstr']))
-                    $connection_reports['negative_report'][] = array('date' => date("Y-m-d H:i:s"), 'page_url' => $_SERVER['REQUEST_URI'], 'lib_report' => $result['errstr']);
+            // Get connection reports
+            $connection_reports = $this->params->get('connection_reports')
+                ? json_decode(json_encode($this->params->get('connection_reports')), true)
+                : ConnectionReports::getClearReports();
+
+            if (isset($result['errno'])) { // if error key exist
+                if (intval($result['errno']) !== 0) { // if it has not 0 as error number
+                    $result['errno'] = 0;
+
+                    //get lib report
+                    $lib_report = !empty($result['errstr']) && is_string($result['errstr'])
+                        ? $result['errstr']
+                        : 'no lib report';
+
+                    //check if JS enabled
+                    if (intval($ct_request->js_on) == 1) {
+                        $result['allow'] = 1;
+                    } else {
+                        $result['allow']      = 0;
+                        $result['spam']       = 1;
+                        $result['stop_queue'] = 1;
+                        $result['comment']    = 'Forbidden. Please, enable Javascript.';
+                    }
+
+                    //add negative connection report
+                    $connection_reports = ConnectionReports::add($connection_reports, false, $lib_report);
+                } else { // if it has 0 as error number
+                    if ($result['errstr'] == '') { // if no error occurred on lib
+                        //add success connection report
+                        $connection_reports = ConnectionReports::add($connection_reports, true);
+                    }
+                }
             }
-            if (isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on) != 1)
-            {
-                $result['allow']      = 0;
-                $result['spam']       = 1;
-                $result['stop_queue'] = 1;
-                $result['comment']    = 'Forbidden. Please, enable Javascript.';
-                $result['errno']      = 0;
-                $connection_reports['negative']++;
-            }
-            if (isset($result['errno']) && intval($result['errno']) === 0 && $result['errstr'] == '')
-                $connection_reports['success']++;
 
             $save_params['connection_reports'] = $connection_reports;
             $this->saveCTConfig($save_params);
