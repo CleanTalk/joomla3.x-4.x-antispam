@@ -204,8 +204,13 @@ jQuery(document).ready(function(){
 		var negative_report = JSON.parse(ct_connection_reports_negative_report);
 		if (negative_report) {
 			negative_report.forEach(function(item,i,arr){
+				let date = null;
+				if (typeof negative_report[i].date === "number") {
+					date = new Date(negative_report[i].date * 1000);
+					date = date.toISOString().replace('T', ' ').substring(0, 19);
+				}
 				html+='<tr>';
-				html+='<td>'+negative_report[i].date+'</td>';
+				html+='<td>'+ (date || 'Unknown date') +'</td>';
 				html+='<td>'+negative_report[i].page_url+'</td>';
 				html+='<td>'+negative_report[i].lib_report+'</td>';
 				html+='</tr>';
