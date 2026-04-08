@@ -14,7 +14,7 @@
             <tag>stable</tag>
         </tags>
         <section>Updates</section>
-        <targetplatform name="joomla" version="3.[1234567890]"/>
+        <targetplatform name="joomla" version="3.[1234567890]|5.[1234567890]"/>
         <client>site</client>
     </update>
 </updates>
