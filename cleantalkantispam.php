@@ -397,7 +397,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $output['result']                  = $sending_result ? 'success' : 'error';
                 $output['data']                    = $sending_result ? 'Success.' : 'Something went wrong.';
                 if ($sending_result) {
-                    $output['result'] = ConnectionReports::getClearReports();
+                    $connection_reports = ConnectionReports::getClearReports();
                 }
             }
             $save_params['connection_reports'] = $connection_reports;
