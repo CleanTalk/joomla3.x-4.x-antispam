@@ -13,7 +13,7 @@
  */
 
 defined('_JEXEC') or die('Restricted access');
-
+!defined('APBCT_TBL_STORAGE') && define('APBCT_TBL_STORAGE', 'cleantalk_custom_storage');
 //  Backward compatibility for Joomla versions from 5
 if (defined('JVERSION')) {
     $currentVersion = substr(JVERSION, 0, 1);
