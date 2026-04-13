@@ -7,7 +7,7 @@
 	<license>GNU/GPLv2</license>
 	<authorEmail>welcome@cleantalk.org</authorEmail>
 	<authorUrl>cleantalk.org</authorUrl>
-	<version>3.2.5</version>
+	<version>3.2.6</version>
 	<description>PLG_SYSTEM_CLEANTALKANTISPAM_DESCRIPTION</description>
 	<scriptfile>updater.php</scriptfile>
 	<files>
@@ -273,6 +273,7 @@
 			<fieldset name="exclusions">
 				<field type="note" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_NOTE" />
 				<field name="url_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL_DESC" />
+				<field name="url_exclusions_regex" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL_REGEX" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_URL_REGEX_DESC" />
 				<field name="fields_exclusions" type="text" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_FIELDS_DESC" />
 				<field name="roles_exclusions" type="textarea" label="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES" description="PLG_SYSTEM_CLEANTALKANTISPAM_EXCLUSIONS_ROLES_DESC" />
 			</fieldset>

@@ -349,7 +349,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 					$value = urldecode( trim( $value ) ); // Fully cleaned message
 
 					// Email
-					if ( ! $email && preg_match( "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $value_for_email ) ) {
+					if ( ! $email && preg_match( "/^[a-zA-Z0-9._%+~-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $value_for_email ) ) {
 						$email = $value_for_email;
 
 						// Names

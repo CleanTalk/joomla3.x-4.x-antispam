@@ -91,4 +91,39 @@ class Model
 			$db->execute();
 		}
 	}
+
+	public function deleteAllUsers()
+	{
+		$db = JFactory::getDBO();
+		
+		// Get all user IDs marked as spam in usermeta
+		$db->setQuery("SELECT DISTINCT user_id FROM `#__cleantalk_usermeta` 
+			WHERE meta_key = 'ct_marked_as_spam' AND meta_value = '1'");
+		$spam_user_ids = $db->loadColumn();
+		
+		if (empty($spam_user_ids)) {
+			return;
+		}
+		
+		$user_ids = implode(',', array_map('intval', $spam_user_ids));
+		
+		// Delete users
+		$db->setQuery("DELETE FROM `#__users` WHERE id IN (" . $user_ids . ")");
+		$db->execute();
+		
+		// Delete user group mappings
+		$db->setQuery("DELETE FROM `#__user_usergroup_map` WHERE user_id IN (" . $user_ids . ")");
+		$db->execute();
+		
+		// Clear usermeta
+		$this->clearUsersMeta($user_ids);
+		
+		// Delete JComments if table exists
+		$db->setQuery("SHOW TABLES LIKE '#__jcomments'");
+		$jtable = $db->loadAssocList();
+		if (!empty($jtable)) {
+			$db->setQuery("DELETE FROM `#__jcomments` WHERE userid IN (" . $user_ids . ")");
+			$db->execute();
+		}
+	}
 }

@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       3.2.5
+ * @version       3.2.6
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -50,6 +50,7 @@ use Cleantalk\Common\Mloader\Mloader;
 
 use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Server;
+use Cleantalk\Custom\ConnectionReports;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Session\Session;
@@ -60,6 +61,7 @@ define('APBCT_TBL_FIREWALL_LOG',  'cleantalk_sfw_logs'); // Table with firewall 
 define('APBCT_TBL_AC_LOG',        'cleantalk_ac_log');   // Table with firewall logs.
 define('APBCT_TBL_AC_UA_BL',      'cleantalk_ua_bl');    // Table with User-Agents blacklist.
 define('APBCT_TBL_SESSIONS',      'cleantalk_sessions'); // Table with session data.
+!defined('APBCT_TBL_STORAGE') && define('APBCT_TBL_STORAGE', 'cleantalk_custom_storage'); // Table with session data.
 define('APBCT_SFW_SEND_LOGS_LIMIT', 1000);
 define('APBCT_SPAMSCAN_LOGS',     'cleantalk_spamscan_logs'); // Table with session data.
 define('APBCT_SELECT_LIMIT',      5000); // Select limit for logs.
@@ -74,7 +76,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * Plugin version string for server
      * @since         1.0
      */
-    const ENGINE = 'joomla34-325';
+    const ENGINE = 'joomla34-326';
 
     /**
      * Flag marked JComments form initialization.
@@ -382,45 +384,23 @@ class plgSystemCleantalkantispam extends JPlugin
                     $output['data']   = $e->getMessage();
                 }
             }
-            if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes')
-            {
-                $output['result']   = null;
-                $output['data']     = null;
-                $connection_reports = $this->params->get('connection_reports') ? json_decode(json_encode($this->params->get('connection_reports')), true) : null;
-                if ($connection_reports && is_array($connection_reports) && count($connection_reports) > 0)
-                {
-                    $to      = "welcome@cleantalk.org";
-                    $subject = "Connection report for " . $_SERVER['HTTP_HOST'];
-                    $message = '
-					<html lang="en">
-						<head>
-							<title></title>
-						</head>
-						<body>
-							<p>From ' . date('d M', $connection_reports['negative_report'][0]->date) . ' to ' . date('d M') . ' has been made ' . ($connection_reports['success'] + $connection_reports['negative']) . ' calls, where ' . $connection_reports['success'] . ' were success and ' . $connection_reports['negative'] . ' were negative</p>
-							<p>Negative report:</p>
-							<table>  <tr>
-						<td>&nbsp;</td>
-						<td><b>Date</b></td>
-						<td><b>Page URL</b></td>
-						<td><b>Library report</b></td>
-					  </tr>
-					';
-                    foreach ($connection_reports['negative_report'] as $key => $report)
-                    {
-                        $message .= "<tr><td>" . ($key + 1) . ".</td><td>" . $report->date . "</td><td>" . $report->page_url . "</td><td>" . $report->lib_report . "</td></tr>";
-                    }
-                    $message .= '</table></body></html>';
 
-                    $headers = "Content-type: text/html; charset=windows-1251 \r\n";
-                    $headers .= "From: " . JFactory::getConfig()->get('mailfrom');
-                    mail($to, $subject, $message, $headers);
+            // handle connection reports
+            $connection_reports = $this->params->get('connection_reports')
+                ? json_decode(json_encode($this->params->get('connection_reports')), true)
+                : ConnectionReports::getClearReports();
+            $connection_reports = ConnectionReports::validate($connection_reports);
+            $connection_reports = ConnectionReports::filter($connection_reports);
+            if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes') {
+                $sending_result = ConnectionReports::sendMail($connection_reports, JFactory::getConfig()->get('mailfrom'));
+
+                $output['result']                  = $sending_result ? 'success' : 'error';
+                $output['data']                    = $sending_result ? 'Success.' : 'Something went wrong.';
+                if ($sending_result) {
+                    $connection_reports = ConnectionReports::getClearReports();
                 }
-
-                $output['result']                  = 'success';
-                $output['data']                    = 'Success.';
-                $save_params['connection_reports'] = array('success' => 0, 'negative' => 0, 'negative_report' => null);
             }
+            $save_params['connection_reports'] = $connection_reports;
 
             // Serve buttons
             if (isset($_POST['ct_serve_run_cron_sfw_send_logs']) && $_POST['ct_serve_run_cron_sfw_send_logs'] === 'yes') {
@@ -552,7 +532,9 @@ class plgSystemCleantalkantispam extends JPlugin
             ($option_cmd == 'com_rsform' && $task_cmd == 'ajaxValidate') || // RSFrom ajax validation on multipage form
             ($option_cmd == 'com_virtuemart' && !empty($ctask_cmd) && ($ctask_cmd !== 'savebtaddress' || empty($post_field_stage) || $post_field_stage !== 'final')) ||
             $option_cmd === 'com_civicrm' ||
-            ($option_cmd === 'com_jshopping' && $task_cmd === 'loginsave')
+            ($option_cmd === 'com_jshopping' && $task_cmd === 'loginsave') ||
+            ($option_cmd === 'com_baforms' && $task_cmd === 'form.renderFormsCalendar') ||
+            ($option_cmd === 'com_baforms' && $task_cmd === 'form.uploadAttachmentFile')
         )
             return true;
 
@@ -658,7 +640,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
             // Bot detector
             if ($config->get('ct_use_bot_detector')) {
-                $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
+                $document->addScript("https://fd.cleantalk.org/ct-bot-detector-wrapper.js");
             }
 
             $set_cookies = $this->params->get('ct_set_cookies') != 0 ;
@@ -718,6 +700,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 }
 
                 $connection_reports = $config->get('connection_reports') ? json_decode(json_encode($config->get('connection_reports')), true) : array();
+                $connection_reports = ConnectionReports::validate($connection_reports);
                 $adminmail          = JFactory::getConfig()->get('mailfrom');
 
                 // Passing parameters to JS
@@ -766,6 +749,9 @@ class plgSystemCleantalkantispam extends JPlugin
 						ct_spamcheck_users_delconfirm_error = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_USERS_DELCONFIRM_ERROR') . '",
 						ct_spamcheck_comments_delconfirm = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM') . '",
 						ct_spamcheck_comments_delconfirm_error = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR') . '",
+						ct_checkusers_no_users_selected = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_NO_USERS_SELECTED') . '",
+						ct_checkusers_delconfirm = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_DELCONFIRM') . '",
+						ct_checkusers_delconfirm_all = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_DELCONFIRM_ALL') . '",
 						ct_spamcheck_load_more_results = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_LOAD_MORE_RESULTS') . '",
 						ct_connection_reports_no_reports = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CONNECTIONREPORTS_NO_REPORTS') . '",
 						ct_connection_reports_send_report = "' . JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_CONNECTIONREPORTS_SENDBUTTON_LABEL') . '",
@@ -854,7 +840,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
             // Bot detector
             if ($config->get('ct_use_bot_detector')) {
-                $document->addScript("https://moderate.cleantalk.org/ct-bot-detector-wrapper.js");
+                $document->addScript("https://fd.cleantalk.org/ct-bot-detector-wrapper.js");
             }
 
             $set_cookies = $this->params->get('ct_set_cookies') != 0 ;
@@ -1606,6 +1592,22 @@ class plgSystemCleantalkantispam extends JPlugin
                     // @ToDo add an error handling here
                     return ['success' => 'The notice dismissing was remembered'];
 	            case 'usersChecker' :
+		            // Security check: Only allow administrators to use usersChecker
+		            $user = Factory::getUser();
+		            if ($user->guest || !$user->authorise('core.admin')) {
+		                http_response_code(403);
+		                die(json_encode(['result' => 'error', 'data' => Text::_('JERROR_ALERTNOAUTHOR')]));
+		            }
+
+		            // Additional security check for delete operations
+		            if (isset($data['route']) && $data['route'] === 'delete') {
+		                // Check if user has permission to delete users
+		                if (!$user->authorise('core.delete', 'com_users')) {
+		                    http_response_code(403);
+		                    die(json_encode(['result' => 'error', 'data' => Text::_('JERROR_ALERTNOAUTHOR')]));
+		                }
+		            }
+
 		            $data['api_key'] = $this->params->get('apikey');
 					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
 					return $users_checker->getResponse();
@@ -1953,35 +1955,33 @@ class plgSystemCleantalkantispam extends JPlugin
         static $executed_check = true;
 
         if ($executed_check) {
-
             $executed_check = false;
+
             // URL Exclusions
-            $url_check = true;
+            $current_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
             $url_exclusion = $this->params->get('url_exclusions');
-            if (! is_null( $url_exclusion ) && !empty( $url_exclusion ) )
-            {
-                $url_exclusion = explode(',', $url_exclusion);
+            $url_exclusion_regex = $this->params->get('url_exclusions_regex');
 
-                // Not always we have 'HTTP_X_REQUESTED_WITH' :(
-                // @ToDo need to detect ajax request
+            // Check simple URL exclusions
+            if ($this->isUrlInSimpleExclusions($current_url, $url_exclusion)) {
+                return;
+            }
 
-                // @ToDo implement support for a regexp
-                $check_type = 0;
-                foreach ($url_exclusion as $key => $value) {
-                    if( $check_type == 1 ) { // If RegExp
-                        if( @preg_match( '/' . $value . '/', $_SERVER['REQUEST_URI'] ) ) {
-                            $url_check = false;
-                        }
-                    } else {
-                        if( strpos($_SERVER['HTTP_REFERER'], $value) !== false) { // Simple string checking
-                            $url_check = false;
-                        }
-                    }
+            // Check regex URL exclusions (check both HTTP_REFERER and REQUEST_URI)
+            if (
+                $this->isUrlInRegexExclusions($current_url, $url_exclusion_regex) ||
+                $this->isUrlInRegexExclusions($_SERVER['REQUEST_URI'], $url_exclusion_regex)
+            ) {
+                return;
+            }
 
+            // Additional check for com_baforms
+            if (strpos($_SERVER['REQUEST_URI'], 'option=com_baforms') !== false && isset($_REQUEST['page-url'])) {
+                if ($this->isUrlInSimpleExclusions($_REQUEST['page-url'], $url_exclusion) ||
+                    $this->isUrlInRegexExclusions($_REQUEST['page-url'], $url_exclusion_regex)) {
+                    return;
                 }
             }
-            if (!$url_check)
-                return;
             // END URL Exclusions
 
             // Roles Exclusions
@@ -2079,26 +2079,39 @@ class plgSystemCleantalkantispam extends JPlugin
             // Result should be an 	associative array
             $result = json_decode(json_encode($result), true);
 
-            $connection_reports = $this->params->get('connection_reports') ? json_decode(json_encode($this->params->get('connection_reports')), true) : array('success' => 0, 'negative' => 0, 'negative_report' => null);
-            if (isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on) == 1)
-            {
-                $result['allow'] = 1;
-                $result['errno'] = 0;
-                $connection_reports['negative']++;
-                if (isset($result['errstr']))
-                    $connection_reports['negative_report'][] = array('date' => date("Y-m-d H:i:s"), 'page_url' => $_SERVER['REQUEST_URI'], 'lib_report' => $result['errstr']);
+            // Get connection reports
+            $connection_reports = $this->params->get('connection_reports')
+                ? json_decode(json_encode($this->params->get('connection_reports')), true)
+                : ConnectionReports::getClearReports();
+
+            if (isset($result['errno'])) { // if error key exist
+                if (intval($result['errno']) !== 0) { // if it has not 0 as error number
+                    $result['errno'] = 0;
+
+                    //get lib report
+                    $lib_report = !empty($result['errstr']) && is_string($result['errstr'])
+                        ? $result['errstr']
+                        : 'no lib report';
+
+                    //check if JS enabled
+                    if (intval($ct_request->js_on) == 1) {
+                        $result['allow'] = 1;
+                    } else {
+                        $result['allow']      = 0;
+                        $result['spam']       = 1;
+                        $result['stop_queue'] = 1;
+                        $result['comment']    = 'Forbidden. Please, enable Javascript.';
+                    }
+
+                    //add negative connection report
+                    $connection_reports = ConnectionReports::add($connection_reports, false, $lib_report);
+                } else { // if it has 0 as error number
+                    if ($result['errstr'] == '') { // if no error occurred on lib
+                        //add success connection report
+                        $connection_reports = ConnectionReports::add($connection_reports, true);
+                    }
+                }
             }
-            if (isset($result['errno']) && intval($result['errno']) !== 0 && intval($ct_request->js_on) != 1)
-            {
-                $result['allow']      = 0;
-                $result['spam']       = 1;
-                $result['stop_queue'] = 1;
-                $result['comment']    = 'Forbidden. Please, enable Javascript.';
-                $result['errno']      = 0;
-                $connection_reports['negative']++;
-            }
-            if (isset($result['errno']) && intval($result['errno']) === 0 && $result['errstr'] == '')
-                $connection_reports['success']++;
 
             $save_params['connection_reports'] = $connection_reports;
             $this->saveCTConfig($save_params);
@@ -2186,6 +2199,8 @@ class plgSystemCleantalkantispam extends JPlugin
         if (!isset($params['cookies'])) {
             $params['cookies'] = array('set_cookies' => 0, 'use_alternative_cookies' => 0);
         }
+
+        unset($params['connection_reports']);
 
         $sender_info = array(
             'REFFERRER'              => (isset($_SERVER['HTTP_REFERER'])) ? htmlspecialchars((string) $_SERVER['HTTP_REFERER']) : null,
@@ -2774,32 +2789,82 @@ class plgSystemCleantalkantispam extends JPlugin
     }
 
     /**
+     * Check if URL matches any of the simple exclusion patterns
+     *
+     * @param string $url URL to check
+     * @param string $exclusions Comma-separated list of URL patterns
+     * @return boolean
+     */
+    private function isUrlInSimpleExclusions($url, $exclusions) {
+        if (empty($exclusions) || empty($url)) {
+            return false;
+        }
+
+        $_exclusions = explode(',', $exclusions);
+        foreach ($_exclusions as $pattern) {
+            $pattern = trim($pattern);
+            if (empty($pattern)) {
+                continue;
+            }
+            if (defined('APBCT_EXCLUSION_STRICT_MODE') && APBCT_EXCLUSION_STRICT_MODE) {
+                if ($url === $pattern) {
+                    return true;
+                }
+            } else {
+                if (strpos($url, $pattern) !== false) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if URL matches any of the regex exclusion patterns
+     *
+     * @param string $url URL to check
+     * @param string $patterns Comma-separated list of regex patterns (without delimiters)
+     * @return boolean
+     */
+    private function isUrlInRegexExclusions($url, $patterns) {
+        if (empty($patterns) || empty($url)) {
+            return false;
+        }
+
+        $_patterns = explode(',', $patterns);
+        foreach ($_patterns as $pattern) {
+            $pattern = trim($pattern);
+            if (empty($pattern)) {
+                continue;
+            }
+
+            if (@preg_match('#' . $pattern . '#', $url)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Checking the page in the exception
      *
      * @param string $urls
      * @return boolean
      */
     public function pageExcluded($urls) {
-        if (empty($urls)) {
-            return false;
-        }
-
-        $_urls = explode(',', $urls);
-
         $current_page_url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 
-        foreach ($_urls as $url) {
-            // @ToDo need to detect ajax request
-            // @ToDo implement support for a regexp
-            if (defined('APBCT_EXCLUSION_STRICT_MODE') && APBCT_EXCLUSION_STRICT_MODE) {
-                if ($current_page_url === $url) {
-                    return true;
-                }
-            } else {
-                if( strpos($current_page_url, $url) !== false) {
-                    return true;
-                }
-            }
+        // Check simple URL exclusions
+        if ($this->isUrlInSimpleExclusions($current_page_url, $urls)) {
+            return true;
+        }
+
+        // Check regex URL exclusions
+        $url_exclusions_regex = $this->params->get('url_exclusions_regex');
+        if ($this->isUrlInRegexExclusions($current_page_url, $url_exclusions_regex)) {
+            return true;
         }
 
         return false;
