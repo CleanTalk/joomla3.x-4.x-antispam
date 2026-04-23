@@ -182,11 +182,13 @@ class UsersChecker
 
 		foreach ($scan_results as $scan_result) {
 			$table_content_replaces = array(
-				'{{tableId}}' => $scan_result['user_id'],
-				'{{tableUsername}}' => $scan_result['username'],
-				'{{tableJoined}}' => $scan_result['registerDate'],
-				'{{tableEmail}}' => $scan_result['email'],
-				'{{tableLastVisit}}' => $scan_result['lastvisitDate'] === '0000-00-00 00:00:00' ? '-' : $scan_result['lastvisitDate'],
+				'{{tableId}}' => (int)$scan_result['user_id'],
+				'{{tableUsername}}' => htmlspecialchars($scan_result['username'], ENT_QUOTES, 'UTF-8'),
+				'{{tableJoined}}' => htmlspecialchars($scan_result['registerDate'], ENT_QUOTES, 'UTF-8'),
+				'{{tableEmail}}' => htmlspecialchars($scan_result['email'], ENT_QUOTES, 'UTF-8'),
+				'{{tableLastVisit}}' => $scan_result['lastvisitDate'] === '0000-00-00 00:00:00'
+					? '-'
+					: htmlspecialchars($scan_result['lastvisitDate'], ENT_QUOTES, 'UTF-8'),
 			);
 			$out .= str_replace(array_keys($table_content_replaces), array_values($table_content_replaces), $table_content);
 		}
