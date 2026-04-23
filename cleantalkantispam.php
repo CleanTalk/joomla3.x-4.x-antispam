@@ -369,7 +369,11 @@ class plgSystemCleantalkantispam extends JPlugin
             }
             if (isset($_POST['ct_del_comment_ids']))
             {
-                $spam_comments    = implode(',', $_POST['ct_del_comment_ids']);
+	            $spam_comments_array = array_map(function($id) {
+		            return (int) $id;
+	            }, $_POST['ct_del_comment_ids']);
+	            $spam_comments = implode(',', $spam_comments_array);
+
                 $output['result'] = null;
                 $output['data']   = null;
                 try
