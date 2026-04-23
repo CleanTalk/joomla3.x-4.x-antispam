@@ -457,18 +457,52 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 	 * Print html form for external forms()
 	 * @return string
 	 */
-	static public function print_form($arr, $k)
+	public static function printForm()
 	{
-		foreach ($arr as $key => $value)
-		{
-			if (!is_array($value))
-			{
+		// Validate action is an allowed URL
+		$form_action = filter_var($_POST['ct_action'], FILTER_VALIDATE_URL);
+		if (!$form_action) {
+			// Invalid form action
+			return '';
+		}
 
-				if ($k == '')
-					print '<textarea name="' . $key . '" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
-				else
-					print '<textarea name="' . $k . '[' . $key . ']" style="display:none;">' . htmlspecialchars($value) . '</textarea>';
+		// Optionally restrict to same origin
+		$action_host = parse_url($form_action, PHP_URL_HOST);
+		if ($action_host !== $_SERVER['HTTP_HOST']) {
+			// External redirects not allowed
+			return '';
+		}
+
+		// Whitelist method
+		$form_method = in_array(strtolower($_POST['ct_method']), ['get','post'], true)
+			? $_POST['ct_method']
+			: 'post';
+
+		$form_open_tag = sprintf(
+			"<form method='%s' action='%s'>",
+			htmlspecialchars($form_method, ENT_QUOTES, 'UTF-8'),
+			htmlspecialchars($form_action, ENT_QUOTES, 'UTF-8')
+		);
+		$form_close_tag = '</form>';
+		$autosubmit_script = "<script>
+									if(document.forms[0].submit != 'undefined'){
+										const objects = document.getElementsByName('submit');
+										if(objects.length > 0)
+											document.forms[0].removeChild(objects[0]);
+									}
+									document.forms[0].submit();
+								</script>";
+
+		$form_elements = '';
+		foreach ($_POST as $key => $value) {
+			if ( ! is_array($value) ) {
+				$form_elements .= '<textarea name="' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '" style="display:none;">' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '</textarea>';
 			}
 		}
+
+		unset($_POST['ct_action'], $_POST['ct_method']);
+
+		return "<html lang=\"en\"><body>$form_open_tag $form_elements $form_close_tag $autosubmit_script</body></html>";
+
 	}
 }

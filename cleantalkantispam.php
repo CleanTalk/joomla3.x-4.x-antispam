@@ -1289,21 +1289,8 @@ class plgSystemCleantalkantispam extends JPlugin
                                     die();
                                 }
 
-                                $form_action = $_POST['ct_action'];
-                                $form_method = $_POST['ct_method'];
-                                unset($_POST['ct_action']);
-                                unset($_POST['ct_method']);
-                                print "<html><body><form method='$form_method' action='$form_action'>";
-                                $helper_class::print_form($_POST, '');
-                                print "</form></body></html>";
-                                print "<script>
-									if(document.forms[0].submit != 'undefined'){
-										var objects = document.getElementsByName('submit');
-										if(objects.length > 0)
-											document.forms[0].removeChild(objects[0]);
-									}
-									document.forms[0].submit();
-								</script>";
+	                            print $helper_class::printForm();
+
                                 die();
                             }
 
