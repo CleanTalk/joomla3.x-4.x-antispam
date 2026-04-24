@@ -2880,7 +2880,7 @@ class plgSystemCleantalkantispam extends JPlugin
         // Translation
         $replaces = array(
             '{MESSAGE_TITLE}' => $message_title,
-            '{MESSAGE}'       => $apbctBlockComment,
+            '{MESSAGE}'       => htmlspecialchars($apbctBlockComment, ENT_QUOTES, 'UTF-8'),
             '{BACK_LINK}'     => $back_link,
             '{BACK_SCRIPT}'   => $back_script
         );
