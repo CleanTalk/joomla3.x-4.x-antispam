@@ -157,13 +157,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             }
             $needles = array_unique($needles);
 
-            $query = "SELECT
-				network, mask, status, source
-				FROM " . $this->db__table__data . "
-				WHERE network IN (" . implode(',', $needles) . ")
-				AND	network = " . $current_ip_v4 . " & mask 
-				AND " . rand(1, 100000) . "  
-				ORDER BY status DESC LIMIT 1";
+            $query = $this->db->sfwGetFromBlacklist($this->db__table__data, $needles, $current_ip_v4);
 
             $db_results = $this->db->fetchAll($query);
 
@@ -218,33 +212,10 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public function updateLog($ip, $status, $network = 'NULL', $source = 'NULL')
     {
-        $id = md5($ip . $this->module_name);
-        $time = time();
+        $query = $this->db->getUpdateLogQuery($this->db__table__logs, $this->module_name, $status, $ip, $source);
 
         $this->db->prepareAndExecute(
-            "INSERT INTO " . $this->db__table__logs . "
-            SET
-                id = '$id',
-                ip = '$ip',
-                status = '$status',
-                all_entries = 1,
-                blocked_entries = " . (strpos($status, 'DENY') !== false ? 1 : 0) . ",
-                entries_timestamp = '" . $time . "',
-                ua_name = %s,
-                source = $source,
-                network = %s,
-                first_url = %s,
-                last_url = %s
-            ON DUPLICATE KEY
-            UPDATE
-                status = '$status',
-                source = $source,
-                all_entries = all_entries + 1,
-                blocked_entries = blocked_entries" . (strpos($status, 'DENY') !== false ? ' + 1' : '') . ",
-                entries_timestamp = '" . $time . "',
-                ua_name = %s,
-                network = %s,
-                last_url = %s",
+            $query,
             array(
                 Server::get('HTTP_USER_AGENT'),
                 $network,
@@ -305,8 +276,8 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             $cookie_val = md5($result['ip'] . $this->api_key) . $status;
 
             $block_message = sprintf(
-                'SpamFireWall is checking your browser and IP %s for spam bots',
-                '<a href="' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
+                $this->localize->translate('SpamFireWall is checking your browser and IP %s for spam bots'),
+                '<a href="https://cleantalk.org/blacklists/' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
             );
 
             $request_uri = Server::get('REQUEST_URI');
@@ -322,17 +293,17 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             // Translation
             $replaces = array(
                 '{SFW_DIE_NOTICE_IP}' => $block_message,
-                '{SFW_DIE_MAKE_SURE_JS_ENABLED}' => 'To continue working with the web site, please make sure that you have enabled JavaScript.',
-                '{SFW_DIE_CLICK_TO_PASS}' => 'Please click the link below to pass the protection,',
+                '{SFW_DIE_MAKE_SURE_JS_ENABLED}' => $this->localize->translate('To continue working with the web site, please make sure that you have enabled JavaScript.'),
+                '{SFW_DIE_CLICK_TO_PASS}' => $this->localize->translate('Please click the link below to pass the protection,'),
                 '{SFW_DIE_YOU_WILL_BE_REDIRECTED}' => sprintf(
-                    'Or you will be automatically redirected to the requested page after %d seconds.',
+                    $this->localize->translate('Or you will be automatically redirected to the requested page after %d seconds.'),
                     3
                 ),
-                '{CLEANTALK_TITLE}' => ($this->test ? 'This is the testing page for SpamFireWall' : ''),
+                '{CLEANTALK_TITLE}' => ($this->test ? $this->localize->translate('This is the testing page for SpamFireWall') : ''),
                 '{REMOTE_ADDRESS}' => $result['ip'],
                 '{SERVICE_ID}' => $net_count,
                 '{HOST}' => $remote_calls_class::getSiteUrl(),
-                '{GENERATED}' => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . '</p>',
+                '{GENERATED}' => '<p>' . $this->localize->translate('The page was generated at') . '&nbsp;' . date('D, d M Y H:i:s') . '</p>',
                 '{REQUEST_URI}' => $request_uri,
 
                 // Cookie
@@ -360,11 +331,11 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
              * Message about IP status
              */
             if ( $this->test ) {
-                $message_ip_status = 'IP in the common blacklist';
+                $message_ip_status = $this->localize->translate('IP in the common blacklist');
                 $message_ip_status_color = 'red';
 
                 if ( $this->test_status === 1 ) {
-                    $message_ip_status = 'IP in the whitelist';
+                    $message_ip_status = $this->localize->translate('IP in the whitelist');
                     $message_ip_status_color = 'green';
                 }
 
@@ -373,9 +344,9 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 
             // Test
             if ( $this->test ) {
-                $replaces['{TEST_TITLE}'] = 'This is the testing page for SpamFireWall';
-                $replaces['{REAL_IP__HEADER}'] = 'Real IP:';
-                $replaces['{TEST_IP__HEADER}'] = 'Test IP:';
+                $replaces['{TEST_TITLE}'] = $this->localize->translate('This is the testing page for SpamFireWall');
+                $replaces['{REAL_IP__HEADER}'] = $this->localize->translate('Real IP:');
+                $replaces['{TEST_IP__HEADER}'] = $this->localize->translate('Test IP:');
                 $replaces['{TEST_IP}'] = $this->test_ip;
                 $replaces['{REAL_IP}'] = $this->real_ip;
             }
@@ -683,7 +654,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
         /** @var \Cleantalk\Common\Helper\Helper $helper_class */
         $helper_class = Mloader::get('Helper');
 
-        $query = 'INSERT INTO `' . $db__table__data . '` (network, mask, status) VALUES ';
+        $query = 'INSERT INTO ' . $db__table__data . ' (network, mask, status) VALUES ';
 
         //Exclusion for servers IP (SERVER_ADDR)
         if ( Server::get('HTTP_HOST') ) {
@@ -734,16 +705,17 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
         foreach ( $table_names as $table_name ) {
             $table_name__temp = $table_name . '_temp';
 
-            if ( !$db->execute('CREATE TABLE IF NOT EXISTS `' . $table_name__temp . '` LIKE `' . $table_name . '`;') ) {
+            // Delete temporary table if it exists, to avoid errors after bad db migration
+            if ( $db->isTableExists($table_name__temp) && !$db->execute('DROP TABLE ' . $table_name__temp . ';') ) {
                 return array(
-                    'error' => 'CREATE TEMP TABLES: COULD NOT CREATE ' . $table_name__temp
+                    'error' => 'DELETE TEMP TABLES: COULD NOT DROP ' . $table_name__temp
                         . ' DB Error: ' . $db->getLastError()
                 );
             }
 
-            if ( !$db->execute('TRUNCATE TABLE `' . $table_name__temp . '`;') ) {
+            if ( !$db->execute('CREATE TABLE `' . $table_name__temp . '` LIKE `' . $table_name . '`;') ) {
                 return array(
-                    'error' => 'CREATE TEMP TABLES: COULD NOT TRUNCATE' . $table_name__temp
+                    'error' => 'CREATE TEMP TABLES: COULD NOT CREATE ' . $table_name__temp
                         . ' DB Error: ' . $db->getLastError()
                 );
             }
@@ -801,8 +773,8 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                 //return array('error' => 'RENAME TABLE: MAIN TABLE IS STILL EXISTS: ' . $table_name);
             }
 
-            $alter_res = $db->execute('ALTER TABLE `' . $table_name__temp . '` RENAME `' . $table_name . '`;');
-            if ( ! $alter_res ) {
+            $rename_res = $db->renameTable($table_name__temp, $table_name);
+            if ( !$rename_res ) {
                 return array(
                     'error' => 'RENAME TABLE: FAILED TO RENAME: ' . $table_name
                         . ' DB Error: ' . $db->getLastError()
