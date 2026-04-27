@@ -34,10 +34,6 @@ jimport('joomla.application.application');
 jimport('joomla.application.web');
 jimport('joomla.application.component.helper');
 
-// Sessions
-define('APBCT_SESSION__LIVE_TIME', 86400*2);
-define('APBCT_SESSION__CHANCE_TO_CLEAN', 100);
-
 // Autoload
 require_once(dirname(__FILE__) . '/lib/autoload.php');
 
@@ -50,6 +46,7 @@ use Cleantalk\Common\Mloader\Mloader;
 
 use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Server;
+use Cleantalk\Custom\AltCookies;
 use Cleantalk\Custom\ConnectionReports;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
@@ -1577,7 +1574,7 @@ class plgSystemCleantalkantispam extends JPlugin
     /**
      * The spot to handle all ajax request for the plugin
      *
-     * @return string[]|void
+     * @return string
      *
      * @throws Exception
      * @since version
@@ -1612,37 +1609,9 @@ class plgSystemCleantalkantispam extends JPlugin
 					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
 					return $users_checker->getResponse();
 	            case 'set_alt_cookies' :
-		            self::_apbct_alt_sessions__remove_old();
-
-		            // To database
-		            $db = JFactory::getDbo();
-		            $columns = array(
-			            'id',
-			            'name',
-			            'value',
-			            'last_update'
-		            );
-					$values = array();
-		            $query = $db->getQuery(true);
-		            $query->insert($db->quoteName('#__cleantalk_sessions'));
-		            $query->columns($db->quoteName($columns));
-					unset($data['action']);
-
-					foreach ($data as $cookie_name => $cookie_value) {
-						$values[] = implode(',', array(
-							$db->quote(self::_apbct_alt_session__id__get()),
-							$db->quote($cookie_name),
-							$db->quote($cookie_value),
-							$db->quote(date('Y-m-d H:i:s'))
-						));
-					}
-
-		            $query->values($values);
-
-		            $db->setQuery($query . '  ON DUPLICATE KEY UPDATE value=VALUES(value), last_update=VALUES(last_update);');
-		            $db->execute();
-
-		            return ('XHR OK');
+		            unset($data['action']);
+		            AltCookies::removeOld();
+					return AltCookies::setFromRemote($data);
 	            case 'check_ajax':
                     $ctResponse = $this->ctSendRequest('check_newuser', array());
 
@@ -2325,96 +2294,27 @@ class plgSystemCleantalkantispam extends JPlugin
         }
     }
 
-    private function ct_setcookie( $name, $value )
+    private function ct_setcookie($name, $value)
     {
         if( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
-
-            self::_apbct_alt_sessions__remove_old();
-
+			AltCookies::removeOld();
             // To database
-            $db = JFactory::getDbo();
-            $query = $db->getQuery(true);
-
-            $columns = array('id', 'name', 'value', 'last_update');
-            $values = array($db->quote(self::_apbct_alt_session__id__get()), $db->quote($name), $db->quote($value), $db->quote(date('Y-m-d H:i:s')));
-            $query
-                ->insert($db->quoteName('#__cleantalk_sessions'))
-                ->columns($db->quoteName($columns))
-                ->values(implode(',', $values));$db->setQuery($query . '  ON DUPLICATE KEY UPDATE ' . $db->quoteName('value') . ' = '.$db->quote($value).', ' . $db->quoteName('last_update') . ' = ' . $db->quote(date('Y-m-d H:i:s')));
-            $db->execute();
-
-        } else {
+	        AltCookies::set($name, $value);
+		} else {
             // To cookies
             Cookie::set($name, $value);
         }
     }
 
-    private function ct_getcookie( $name )
+    private function ct_getcookie($name)
     {
         if ( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
-
-            // From database
-            $db = JFactory::getDbo();
-            $query = $db->getQuery(true);
-
-            $query->select($db->quoteName(array('value')));
-            $query->from($db->quoteName('#__cleantalk_sessions'));
-            $query->where($db->quoteName('id') . ' = '. $db->quote(self::_apbct_alt_session__id__get()));
-            $query->where($db->quoteName('name') . ' = '. $db->quote($name));
-            $db->setQuery($query);
-            $value = $db->loadResult();
-
-            if ( ! is_null($value) ) {
-                return $value;
-            } else {
-                return null;
-            }
-
-        } else {
-
-            // From cookies
-            if (isset($_COOKIE[$name])) {
-                return $_COOKIE[$name];
-            } else {
-                return null;
-            }
-
+			// From database
+			return AltCookies::get($name);
         }
-    }
 
-    /**
-     * Clean 'cleantalk_sessions' table
-     */
-    static private function _apbct_alt_sessions__remove_old()
-    {
-        if (rand(0, 1000) < APBCT_SESSION__CHANCE_TO_CLEAN) {
-
-            $db = JFactory::getDbo();
-            $query = $db->getQuery(true);
-
-            $query->delete($db->quoteName('#__cleantalk_sessions'));
-            $query->where($db->quoteName('last_update') . ' < NOW() - INTERVAL '. APBCT_SESSION__LIVE_TIME .' SECOND');
-
-            $db->setQuery($query);
-            $db->execute();
-
-        }
-    }
-
-    /**
-     * Get hash session ID
-     *
-     * @return string
-     */
-    static private function _apbct_alt_session__id__get()
-    {
-        /** @var \Cleantalk\Common\Helper\Helper $helper_class */
-        $helper_class = Mloader::get('Helper');
-
-        $id = $helper_class::ipGet('real')
-            . filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
-            . filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
-        return hash('sha256', $id);
+		// From cookies
+	    return $_COOKIE[$name] ?? null;
     }
 
     private function get_spam_comments($offset = 0, $on_page = 20, $improved_check = false)
