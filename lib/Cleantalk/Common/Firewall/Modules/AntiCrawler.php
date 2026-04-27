@@ -153,6 +153,6 @@ class AntiCrawler
                 return array('error' => 'COULD_NOT_CLEAR_UA_BL_TABLE'); // throw an error
             }
         }
-        $db->execute("ALTER TABLE {$db__table__data} AUTO_INCREMENT = 1;"); // Drop AUTO INCREMENT
+        $db->resetAutoIncrement($db__table__data);
     }
 }

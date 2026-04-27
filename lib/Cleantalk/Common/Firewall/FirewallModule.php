@@ -80,6 +80,11 @@ abstract class FirewallModule
     protected $debug_data = array();
 
     /**
+     * @var \Cleantalk\Common\Localize\Localize
+     */
+    protected $localize;
+
+    /**
      * FirewallModule constructor.
      * Use this method to prepare any data for the module working.
      *
@@ -90,6 +95,7 @@ abstract class FirewallModule
     public function __construct($log_table, $data_table, $params = array())
     {
         $this->helper = Mloader::get('Helper');
+        /** @var \Cleantalk\Common\Db\Db $db_class */
         $db_class = Mloader::get('Db');
         $this->db = $db_class::getInstance();
     }
@@ -186,6 +192,15 @@ abstract class FirewallModule
     public function setIpArray($ip_array)
     {
         $this->ip_array = $ip_array;
+    }
+
+    /**
+     * @param \Cleantalk\Common\Localize\Localize $localize
+     * @return void
+     */
+    public function setLocalize(\Cleantalk\Common\Localize\Localize $localize)
+    {
+        $this->localize = $localize;
     }
 
     /**
