@@ -96,6 +96,11 @@ class Firewall
     private $module_names = array();
 
     /**
+     * @var \Cleantalk\Common\Localize\Localize
+     */
+    private $localize;
+
+    /**
      * Set FW success checked cookies for 20 min.
      * For emergency usage only.
      *
@@ -129,7 +134,7 @@ class Firewall
      * @param string $api_key
      * @param string $log_table_name
      */
-    public function __construct($api_key, $log_table_name)
+    public function __construct($api_key, $log_table_name, $locale = 'en')
     {
         $this->helper = Mloader::get('Helper');
         /** @var \Cleantalk\Common\Db\Db $db_class */
@@ -141,6 +146,8 @@ class Firewall
         $this->log_table_name = $this->db->prefix . $log_table_name;
         $this->debug = (bool)static::getVariable('debug');
         $this->ip_array = $this->ipGet();
+        $localize_class = Mloader::get('Localize');
+        $this->localize = new $localize_class(__DIR__ . '/lang', $locale);
     }
 
     /**
@@ -169,6 +176,7 @@ class Firewall
             $module->ipAppendAdditional($this->ip_array);
             $module->setIpArray($this->ip_array);
             $module->setIsDebug($this->debug);
+            $module->setLocalize($this->localize);
 
             // Store the Module Obj
             $this->fw_modules[$module->module_name] = $module;
