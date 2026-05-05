@@ -2049,8 +2049,14 @@ class plgSystemCleantalkantispam extends JPlugin
 		        return;
 	        }
 
-            if ($this->params->get('ct_skip_registered_users') && !JFactory::getUser()->guest)
+            if ($this->params->get('ct_skip_registered_users') && !JFactory::getUser()->guest) {
                 return;
+            }
+
+            //com_gdpr return https://app.doboard.com/1/task/48834
+            if (JFactory::getApplication()->input->get('option') === 'com_gdpr') {
+                return;
+            }
 
             $ct_request = new CleantalkRequest;
 
