@@ -995,14 +995,33 @@ class plgSystemCleantalkantispam extends JPlugin
             // SP Builder Forms integration
             elseif ( $app->input->get('option') === 'com_sppagebuilder' )
             {
+                //excluded fields
+                $excluded_fields = [
+                    'addon_id',
+                    'email_subject',
+                    'email_template',
+                    'form_id',
+                    'success_message',
+                    'failed_message',
+                    'g-recaptcha-response',
+                    'captcha_type',
+                    'view_type',
+                    'from_name',
+                    'from_email',
+                ];
                 $post_processed = array();
                 if (isset($_POST['data'])) {
                     foreach( $_POST['data'] as $item => $value ) {
-                        if( $value['name'] === 'from_name' || $value['name'] === 'from_email' ) {
-                            // These are the service fields
-                            continue;
+                        // These are the service fields
+                        if (isset($value['name']) && isset($value['value'])) {
+                            if( in_array( $value['name'], $excluded_fields ) ) {
+                                continue;
+                            }
+                            if (strpos($value['name'], 'dsgvo') !== false) {
+                                continue;
+                            }
+                            $post_processed[$value['name']] = $value['value'];
                         }
-                        $post_processed[$value['name']] = $value['value'];
                     }
                 } else {
                     $post_processed = $_POST;
@@ -1200,7 +1219,10 @@ class plgSystemCleantalkantispam extends JPlugin
                                 } elseif (
                                     $app->input->get('option') === 'com_sppagebuilder' &&
                                     !isset($app->input->get('form')['formId']) &&
-                                    JFactory::getApplication()->input->get('option') === 'com_ajax'
+                                    (
+                                        JFactory::getApplication()->input->get('option') === 'com_ajax' ||
+                                        JFactory::getApplication()->input->get('option') === 'com_sppagebuilder' //https://app.doboard.com/1/task/48828
+                                    )
                                 ) {
                                     $output['status'] = false;
                                     $output['content'] = '<span class="sppb-text-danger">' . $ctResponse['comment'] . '</span>';
@@ -1996,8 +2018,14 @@ class plgSystemCleantalkantispam extends JPlugin
 		        return;
 	        }
 
-            if ($this->params->get('ct_skip_registered_users') && !JFactory::getUser()->guest)
+            if ($this->params->get('ct_skip_registered_users') && !JFactory::getUser()->guest) {
                 return;
+            }
+
+            //com_gdpr return https://app.doboard.com/1/task/48834
+            if (JFactory::getApplication()->input->get('option') === 'com_gdpr') {
+                return;
+            }
 
             $ct_request = new CleantalkRequest;
 

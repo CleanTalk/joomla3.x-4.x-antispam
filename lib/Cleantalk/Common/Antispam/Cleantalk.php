@@ -2,8 +2,9 @@
 
 namespace Cleantalk\Common\Antispam;
 
+use Cleantalk\Common\Cleaner\Validate;
 use Cleantalk\Common\Helper\Helper;
-use Cleantalk\Common\Http\Request;
+use Cleantalk\Common\Mloader\Mloader;
 
 /**
  * Cleantalk base class
@@ -455,6 +456,9 @@ class Cleantalk
         $data = $tmp_data;
         unset($key, $value, $tmp_data);
 
+        $js_on = ( isset($data['js_on']) && (int)$data['js_on'] === 1 ) ||
+            ( isset($data['event_token']) && Validate::isHash($data['event_token']) );
+
         // Convert to JSON
         $data = json_encode($data);
 
@@ -462,7 +466,9 @@ class Cleantalk
             $url .= $this->api_version;
         }
 
-        $http = new Request();
+        /** @var \Cleantalk\Common\Http\Request $request_class */
+        $request_class = Mloader::get('Http\Request');
+        $http = new $request_class();
 
         $result = $http->setUrl($url)
             ->setData($data)
@@ -490,6 +496,15 @@ class Cleantalk
             $response = null;
             $response['errno'] = 1;
             $response['errstr'] = $errstr;
+
+            if ( ! $js_on ) {
+                $response['allow']   = 0;
+                $response['spam']    = '1';
+                $response['comment'] = sprintf(
+                    'We\'ve got an issue: %s. Forbidden. Please, enable Javascript.',
+                    $errstr
+                );
+            }
             $response = json_decode(json_encode($response));
         }
 

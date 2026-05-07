@@ -125,13 +125,16 @@ class FirewallUpdater
             ['test' => 'test']
         );
 
+        // Clear errors here
+        $this->fwStats->errors = [];
+
         // Set a new update ID and an update time start
         $this->fwStats->calls = 0;
         $this->fwStats->updating_id = md5((string)rand(0, 100000));
         $this->fwStats->updating_last_start = time();
         $fw_class::saveFwStats($this->fwStats);
 
-        if ( (defined('APBCT_SFW_DIRECT_UPDATE') && APBCT_SFW_DIRECT_UPDATE) || !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
+        if ( !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
             return $this->directUpdate();
         }
 
@@ -219,7 +222,7 @@ class FirewallUpdater
             }
         }
 
-        if ( ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) ) {
+        if ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) {
             $this->updateFallback();
 
             $direct_upd_res = $this->directUpdate();
@@ -731,7 +734,6 @@ class FirewallUpdater
         $cron->updateTask('sfw_update', $sfw_update_handler, $fw_stats->update_period);
         $cron->removeTask('sfw_update_checker');
 
-
         self::removeUpdDir($fw_stats->updating_folder);
 
         // Reset all FW stats
@@ -999,9 +1001,11 @@ class FirewallUpdater
     private function saveSfwUpdateError(SfwUpdateException $e)
     {
         $fw_stats = Firewall::getFwStats();
-        $fw_stats->errors[] = $e->getMessage();
+        $fw_stats->errors[time()] = $e->getMessage();
         Firewall::saveFwStats($fw_stats);
-        error_log($e->getMessage());
+        if ( $this->debug ) {
+            error_log($e->getMessage());
+        }
     }
 
     /**
