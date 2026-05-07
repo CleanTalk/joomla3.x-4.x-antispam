@@ -3,6 +3,8 @@
 namespace Cleantalk\Custom;
 
 use Cleantalk\Common\Mloader\Mloader;
+use Cleantalk\Common\RateLimiter\RateLimiterConfig;
+use Cleantalk\Custom\RateLimiter\RateLimiter;
 use JFactory;
 
 class AltCookies
@@ -10,6 +12,10 @@ class AltCookies
 	private const SESSION_LIFE_TIME = 86400 * 2; // Two days
 
 	private const SESSION_TABLE__NAME = 'cleantalk_sessions';
+
+    private const LIMITER_NAME = 'alt_cookie_limit';
+
+    private const LIMITER_LIMIT = 10;  // 10 requests per minute allowed
 
 	/**
 	 * @var string[]
@@ -81,6 +87,12 @@ class AltCookies
 
 	public static function setFromRemote($data)
 	{
+        $config = new RateLimiterConfig(self::LIMITER_NAME, self::LIMITER_LIMIT, 60);
+        $rate_limiter = new RateLimiter($config);
+        if ( ! $rate_limiter->checkPassed() ) {
+            return ('LIMIT EXCEEDED');
+        }
+
 		$db = JFactory::getDbo();
 		$columns = array(
 			'id',

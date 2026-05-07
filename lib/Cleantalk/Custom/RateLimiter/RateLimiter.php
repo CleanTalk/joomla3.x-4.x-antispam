@@ -79,7 +79,7 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
             $uid_data->uid
         ]);
 
-        return false !== $this->db_object->fetch($this->db_object->getQuery());
+        return false !== $this->db_object->execute($this->db_object->getQuery());
     }
 
     /**
@@ -103,7 +103,7 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
             $uid_data->last_call
         ]);
 
-        $result = $this->db_object->fetch($this->db_object->getQuery());
+        $result = $this->db_object->execute($this->db_object->getQuery());
 
         return false !== $result;
     }
@@ -123,8 +123,27 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
             ]
         );
 
-        $result = $this->db_object->fetch($this->db_object->getQuery());
+        $result = $this->db_object->execute($this->db_object->getQuery());
 
         return false !== $result;
     }
+
+	/**
+	 * Retrieves rate limit data for the current UID from database
+	 *
+	 * @return RateLimiterDTO|false Rate limit data object or false if not found
+	 */
+	public function selectUIDData()
+	{
+		$this->db_object->prepare(
+			'
+                SELECT uid, type, ip, ua, counter, last_call, created_at FROM ' . $this->table_name . '
+                WHERE uid = %s LIMIT 1;
+            ',
+			[$this->uid]
+		);
+		$result = $this->db_object->fetch($this->db_object->getQuery());
+
+		return !empty($result) ? new RateLimiterDTO($result) : false;
+	}
 }
