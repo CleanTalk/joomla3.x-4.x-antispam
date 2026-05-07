@@ -104,7 +104,7 @@ abstract class RateLimiter
                     throw new \Exception('INCREMENT_FAILED');
                 }
             } else {
-                $uid_data = new RateLimitDTO(
+                $uid_data = new RateLimiterDTO(
                     array(
                         'uid' => $this->uid,
                         'type' => $this->config->type,
@@ -134,10 +134,10 @@ abstract class RateLimiter
     /**
      * Checks if the current UID has exceeded the rate limit
      *
-     * @param RateLimitDTO $uid_data
+     * @param RateLimiterDTO $uid_data
      * @return bool True if rate limited, false otherwise
      */
-    protected function isLocked(RateLimitDTO $uid_data): bool
+    protected function isLocked(RateLimiterDTO $uid_data): bool
     {
         return $uid_data->data_ok && ($uid_data->counter > $this->config->limit);
     }
@@ -165,11 +165,11 @@ abstract class RateLimiter
      * Retrieves rate limit data for the current UID
      * Default implementation returns empty data
      *
-     * @return RateLimitDTO|false Rate limit data or false if not found
+     * @return RateLimiterDTO|false Rate limit data or false if not found
      */
     protected function selectUIDData()
     {
-        return new RateLimitDTO(array());
+        return new RateLimiterDTO(array());
     }
 
     /**
@@ -200,18 +200,18 @@ abstract class RateLimiter
     /**
      * Increments the counter for an existing rate limit record
      * Must be implemented by child classes
-     * @param RateLimitDTO $uid_data
+     * @param RateLimiterDTO $uid_data
      * @return bool True on success, false on failure
      */
-    abstract protected function increment(RateLimitDTO $uid_data): bool;
+    abstract protected function increment(RateLimiterDTO $uid_data): bool;
 
     /**
      * Inserts a new rate limit record
      * Must be implemented by child classes
-     * @param RateLimitDTO $uid_data
+     * @param RateLimiterDTO $uid_data
      * @return bool True on success, false on failure
      */
-    abstract protected function insert(RateLimitDTO $uid_data): bool;
+    abstract protected function insert(RateLimiterDTO $uid_data): bool;
 
     /**
      * Cleans up expired rate limit records
