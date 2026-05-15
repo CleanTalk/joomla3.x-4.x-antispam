@@ -172,6 +172,11 @@ function ct_ready(){
                 continue;
             }
 
+            // Exclude hikashop updatecart form
+            if ( form.action.indexOf('updatecart') !== -1 ) {
+                continue;
+            }
+
             // Get only fields
             var elements = [];
             for(var key in this.elements){
@@ -222,6 +227,9 @@ function ct_ready(){
             form.onsubmit_prev = form.onsubmit;
 
             form.onsubmit = function(event, visible_fields, visible_fields_count) {
+                if (event === undefined) {
+                    return;
+                }
                 if (typeof ctPublicData !== 'undefined' && ctPublicData.typeOfCookie && ctPublicData.typeOfCookie === 'alt_cookies') {
                     const cookies = {
                         ct_pointer_data: apbctLocalStorage.get('ct_pointer_data'),
