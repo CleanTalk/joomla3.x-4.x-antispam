@@ -1,4 +1,35 @@
 var close_animate=true, on_page=20,off=0;
+
+/**
+ * Append Joomla CSRF token to plugin settings AJAX POST payloads.
+ *
+ * @param {Object} data
+ * @returns {Object}
+ */
+function ct_appendCsrfToken(data) {
+	var payload = data || {};
+
+	if (typeof ct_csrf_token_name !== 'undefined' && ct_csrf_token_name) {
+		payload[ct_csrf_token_name] = '1';
+		return payload;
+	}
+
+	if (typeof Joomla !== 'undefined' && typeof Joomla.getOptions === 'function') {
+		var tokenName = Joomla.getOptions('csrf.token');
+		if (tokenName) {
+			payload[tokenName] = 1;
+			return payload;
+		}
+	}
+
+	var formToken = document.querySelector('form[name="adminForm"] input[type="hidden"]');
+	if (formToken && formToken.name) {
+		payload[formToken.name] = formToken.value || '1';
+	}
+
+	return payload;
+}
+
 function ct_getCookie(name) {
 	var matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
@@ -246,7 +277,7 @@ jQuery(document).ready(function(){
 		jQuery.ajax({
 			type: "POST",
 			url: location.href,
-			data: data,
+			data: ct_appendCsrfToken(data),
 			success: function(msg){
 				close_animate = false;
 				jQuery('#feedback_notice').hide();
@@ -275,7 +306,7 @@ jQuery(document).ready(function(){
 		jQuery.ajax({
 			type: "POST",
 			url: location.href,
-			data: data,
+			data: ct_appendCsrfToken(data),
 			// dataType: 'json',
 			success: function(msg){
 				msg=jQuery.parseJSON(msg);
@@ -320,7 +351,7 @@ jQuery(document).ready(function(){
 		jQuery.ajax({
 			type: "POST",
 			url: location.href,
-			data: data,
+			data: ct_appendCsrfToken(data),
 			// dataType: 'json',
 			success: function(msg){
 				msg=jQuery.parseJSON(msg);
@@ -340,7 +371,7 @@ jQuery(document).ready(function(){
 		jQuery.ajax({
 			type: "POST",
 			url: location.href,
-			data: data,
+			data: ct_appendCsrfToken(data),
 			// dataType: 'json',
 			success: function(msg){
 				msg=jQuery.parseJSON(msg);
@@ -445,7 +476,7 @@ function delete_comment(all=false)
 			jQuery.ajax({
 				type: "POST",
 				url: location.href,
-				data: data,
+				data: ct_appendCsrfToken(data),
 				// dataType: 'json',
 				success: function(msg){
 					msg=jQuery.parseJSON(msg);
@@ -483,7 +514,7 @@ function list_spam_results(type,offset,amount)
 	jQuery.ajax({
 		type: "POST",
 		url: location.href,
-		data: data,
+		data: ct_appendCsrfToken(data),
 		// dataType: 'json',
 		success: function(msg){
 			msg=jQuery.parseJSON(msg);
@@ -560,7 +591,7 @@ function ct_serve_buttons() {
 		jQuery.ajax({
 			type: "POST",
 			url: location.href,
-			data: data,
+			data: ct_appendCsrfToken(data),
 			success: function(msg){
 				alert('OK')
 			}
@@ -574,7 +605,7 @@ function ct_serve_buttons() {
 		jQuery.ajax({
 			type: "POST",
 			url: location.href,
-			data: data,
+			data: ct_appendCsrfToken(data),
 			success: function(msg){
 				alert('OK')
 			}
