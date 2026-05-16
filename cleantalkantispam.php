@@ -502,7 +502,6 @@ class plgSystemCleantalkantispam extends JPlugin
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($output);
         Factory::getApplication()->close();
-        die();
     }
 
     /**
