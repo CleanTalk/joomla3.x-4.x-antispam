@@ -30,6 +30,87 @@ function ct_appendCsrfToken(data) {
 	return payload;
 }
 
+/**
+ * Parse plugin settings AJAX response (always JSON object).
+ *
+ * @param {string|Object} raw
+ * @returns {Object}
+ */
+function ct_parseSettingsResponse(raw) {
+	if (typeof raw === 'object' && raw !== null) {
+		return raw;
+	}
+
+	try {
+		return JSON.parse(raw);
+	} catch (e) {
+		return {result: 'error', data: String(raw), error_message: String(raw)};
+	}
+}
+
+/**
+ * @param {Object} msg
+ * @returns {boolean}
+ */
+function ct_isSettingsError(msg) {
+	return !!(msg && msg.result === 'error');
+}
+
+/**
+ * @param {Object} msg
+ * @returns {string}
+ */
+function ct_getSettingsErrorMessage(msg) {
+	if (!msg) {
+		return '';
+	}
+
+	if (msg.result === 'error') {
+		if (typeof msg.data === 'string') {
+			return msg.data;
+		}
+		if (msg.error_message) {
+			return msg.error_message;
+		}
+	}
+
+	return msg.error_message || '';
+}
+
+/**
+ * Payload for get_auto_key (supports legacy flat API shape).
+ *
+ * @param {Object} msg
+ * @returns {Object|null}
+ */
+function ct_getAutoKeyData(msg) {
+	if (msg.result === 'success' && msg.data) {
+		return msg.data;
+	}
+
+	if (msg.auth_key) {
+		return msg;
+	}
+
+	return null;
+}
+
+/**
+ * @param {string} type success|error
+ * @param {string} message
+ * @param {string} extraHtml
+ */
+function ct_showPluginSettingsAlert(type, message, extraHtml) {
+	extraHtml = extraHtml || '';
+	var alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+	var heading = type === 'success' ? 'Success!' : 'Error';
+
+	jQuery('#system-message-container').prepend(
+		'<button type="button" class="close" data-dismiss="alert">×</button>' +
+		'<div class="alert ' + alertClass + '"><h4 class="alert-heading">' + heading + '</h4><p>' + message + extraHtml + '</p></div>'
+	);
+}
+
 function ct_getCookie(name) {
 	var matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
@@ -307,32 +388,30 @@ jQuery(document).ready(function(){
 			type: "POST",
 			url: location.href,
 			data: ct_appendCsrfToken(data),
-			// dataType: 'json',
 			success: function(msg){
-				msg=jQuery.parseJSON(msg);
-				if(msg.error_message){
+				msg = ct_parseSettingsResponse(msg);
+				jQuery('#ct_preloader').hide();
 
-					let registerError = ! msg.account_exists
-						? '<br />' + ct_register_error
-						: '';
-					//Showing error banner
-					jQuery('#system-message-container').prepend('<button type="button" class="close" data-dismiss="alert">×</button><div class="alert alert-error"><h4 class="alert-heading">Error</h4><p>' + msg.error_message + registerError + '</p></div></div>');
+				if (ct_isSettingsError(msg)) {
+					var registerError = msg.account_exists
+						? ''
+						: '<br />' + ct_register_error;
+					ct_showPluginSettingsAlert('error', ct_getSettingsErrorMessage(msg), registerError);
+					return;
+				}
 
-					jQuery('#ct_preloader').hide();
-
-				}else if(msg.auth_key){
-
-					jQuery('.cleantalk_auth_key').val(msg.auth_key);
-					jQuery('#jform_params_user_token').val(msg.user_token);
-
-					//Showing the banner
-					jQuery('#system-message-container').prepend('<button type="button" class="close" data-dismiss="alert">×</button><div class="alert alert-success"><h4 class="alert-heading">Success!</h4><p>'+ct_register_message+'</p></div></div>');
-
+				var keyData = ct_getAutoKeyData(msg);
+				if (keyData && keyData.auth_key) {
+					jQuery('.cleantalk_auth_key').val(keyData.auth_key);
+					jQuery('#jform_params_user_token').val(keyData.user_token || '');
+					ct_showPluginSettingsAlert('success', ct_register_message);
 					setTimeout(function(){
-						jQuery('#ct_preloader').hide();
 						Joomla.submitbutton('plugin.apply');
 					}, 3000);
 				}
+			},
+			error: function(){
+				jQuery('#ct_preloader').hide();
 			}
 		});
 	});
@@ -354,11 +433,17 @@ jQuery(document).ready(function(){
 			data: ct_appendCsrfToken(data),
 			// dataType: 'json',
 			success: function(msg){
-				msg=jQuery.parseJSON(msg);
-				var html='<center><h2>'+msg.data+'</h2></center>'
+				msg = ct_parseSettingsResponse(msg);
+				var text = ct_isSettingsError(msg) ? ct_getSettingsErrorMessage(msg) : (msg.data || '');
+				var html='<center><h2>'+text+'</h2></center>';
 				jQuery('#connection_reports').append(html);
 				jQuery('#ct_preloader_spam_results').hide();
-				setTimeout(function() { location.reload();}, 2000)
+				if (!ct_isSettingsError(msg)) {
+					setTimeout(function() { location.reload();}, 2000);
+				}
+			},
+			error: function(){
+				jQuery('#ct_preloader_spam_results').hide();
 			}
 
 		});
@@ -374,8 +459,12 @@ jQuery(document).ready(function(){
 			data: ct_appendCsrfToken(data),
 			// dataType: 'json',
 			success: function(msg){
-				msg=jQuery.parseJSON(msg);
-				alert(msg.result);
+				msg = ct_parseSettingsResponse(msg);
+				if (ct_isSettingsError(msg)) {
+					alert(ct_getSettingsErrorMessage(msg));
+				} else {
+					alert(msg.result || 'OK');
+				}
 			}
 
 		});
@@ -479,11 +568,17 @@ function delete_comment(all=false)
 				data: ct_appendCsrfToken(data),
 				// dataType: 'json',
 				success: function(msg){
-					msg=jQuery.parseJSON(msg);
-					var html='<center><h2>'+msg.data+'</h2></center>';
+					msg = ct_parseSettingsResponse(msg);
+					var text = ct_isSettingsError(msg) ? ct_getSettingsErrorMessage(msg) : (msg.data || '');
+					var html='<center><h2>'+text+'</h2></center>';
 					jQuery('#spam_results').append(html);
 					jQuery('#ct_preloader_spam_results').hide();
-					setTimeout(function() { jQuery('#check_spam_comments').click();}, 2000)
+					if (!ct_isSettingsError(msg)) {
+						setTimeout(function() { jQuery('#check_spam_comments').click();}, 2000);
+					}
+				},
+				error: function(){
+					jQuery('#ct_preloader_spam_results').hide();
 				}
 
 			});
@@ -517,7 +612,7 @@ function list_spam_results(type,offset,amount)
 		data: ct_appendCsrfToken(data),
 		// dataType: 'json',
 		success: function(msg){
-			msg=jQuery.parseJSON(msg);
+			msg = ct_parseSettingsResponse(msg);
 			var html='';
 			if (msg.result == 'success')
 			{
@@ -567,11 +662,14 @@ function list_spam_results(type,offset,amount)
 				}
 			}
 			if (msg.result == 'error' && (!document.getElementById('spamusers_table' || !document.getElementById('spamcomments_table')))){
-				html+='<center><h2>'+msg.data+'</h2></center>';
+				html+='<center><h2>'+ct_getSettingsErrorMessage(msg)+'</h2></center>';
 				jQuery('#spam_results').append(html);
 			}
 			jQuery('#ct_preloader_spam_results').hide();
 
+		},
+		error: function(){
+			jQuery('#ct_preloader_spam_results').hide();
 		}
 	});
 }
@@ -593,7 +691,15 @@ function ct_serve_buttons() {
 			url: location.href,
 			data: ct_appendCsrfToken(data),
 			success: function(msg){
-				alert('OK')
+				msg = ct_parseSettingsResponse(msg);
+				if (ct_isSettingsError(msg)) {
+					alert(ct_getSettingsErrorMessage(msg));
+				} else {
+					alert('OK');
+				}
+			},
+			error: function(){
+				alert('Request failed');
 			}
 		});
 	});
@@ -607,7 +713,15 @@ function ct_serve_buttons() {
 			url: location.href,
 			data: ct_appendCsrfToken(data),
 			success: function(msg){
-				alert('OK')
+				msg = ct_parseSettingsResponse(msg);
+				if (ct_isSettingsError(msg)) {
+					alert(ct_getSettingsErrorMessage(msg));
+				} else {
+					alert('OK');
+				}
+			},
+			error: function(){
+				alert('Request failed');
 			}
 		});
 	});

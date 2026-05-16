@@ -436,10 +436,9 @@ class plgSystemCleantalkantispam extends JPlugin
 
         if ($user->guest || !$user->authorise('core.admin'))
         {
-            $this->sendPluginSettingsJsonResponse(array(
-                'result' => 'error',
-                'data'   => Text::_('JERROR_ALERTNOAUTHOR'),
-            ));
+            $this->sendPluginSettingsJsonResponse(
+                $this->pluginSettingsJsonError(Text::_('JERROR_ALERTNOAUTHOR'))
+            );
         }
     }
 
@@ -450,11 +449,47 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         if (!Session::checkToken('post'))
         {
-            $this->sendPluginSettingsJsonResponse(array(
-                'result' => 'error',
-                'data'   => Text::_('JINVALID_TOKEN'),
-            ));
+            $this->sendPluginSettingsJsonResponse(
+                $this->pluginSettingsJsonError(Text::_('JINVALID_TOKEN'))
+            );
         }
+    }
+
+    /**
+     * Standard error payload for plugin settings AJAX (ct-settings.js).
+     *
+     * @param   string|array  $data   Message or structured payload
+     * @param   array         $extra  Optional extra keys (e.g. account_exists)
+     *
+     * @return array
+     */
+    private function pluginSettingsJsonError($data, array $extra = array())
+    {
+        $message = is_string($data) ? $data : '';
+
+        return array_merge(
+            array(
+                'result'        => 'error',
+                'data'          => $data,
+                'error_message' => $message,
+            ),
+            $extra
+        );
+    }
+
+    /**
+     * Standard success payload for plugin settings AJAX (ct-settings.js).
+     *
+     * @param   mixed  $data
+     *
+     * @return array
+     */
+    private function pluginSettingsJsonSuccess($data)
+    {
+        return array(
+            'result' => 'success',
+            'data'   => $data,
+        );
     }
 
     /**
@@ -480,29 +515,54 @@ class plgSystemCleantalkantispam extends JPlugin
 
         $output = $api_class::methodGetApiKey('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
 
-        if (isset($output['account_exists']) && $output['account_exists'] == 1)
+        if (isset($output['account_exists']) && (int) $output['account_exists'] === 1)
         {
-            $output['error_message'] = sprintf(
-                'Please, get the Access Key from %s CleanTalk Control Panel %s and insert it in the Access Key field',
-                '<a href="https://cleantalk.org/my/?cp_mode=antispam" target="_blank">',
-                '</a>'
+            return $this->pluginSettingsJsonError(
+                sprintf(
+                    'Please, get the Access Key from %s CleanTalk Control Panel %s and insert it in the Access Key field',
+                    '<a href="https://cleantalk.org/my/?cp_mode=antispam" target="_blank">',
+                    '</a>'
+                ),
+                array('account_exists' => 1)
             );
         }
 
-        if (empty($output['user_token']) && !empty($output['auth_key']))
+        if (!empty($output['error_message']))
+        {
+            return $this->pluginSettingsJsonError(
+                $output['error_message'],
+                array(
+                    'account_exists' => isset($output['account_exists']) ? (int) $output['account_exists'] : 0,
+                )
+            );
+        }
+
+        if (empty($output['auth_key']))
+        {
+            return $this->pluginSettingsJsonError(JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_ERROR_AUTO_GET_KEY'));
+        }
+
+        $user_token = !empty($output['user_token']) ? $output['user_token'] : '';
+
+        if ($user_token === '' && !empty($output['auth_key']))
         {
             $result_tmp = $api_class::methodNoticePaidTill(
                 $output['auth_key'],
                 preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1)
             );
 
-            if (empty($result_tmp['error']))
+            if (empty($result_tmp['error']) && !empty($result_tmp['user_token']))
             {
-                $output['user_token'] = $result_tmp['user_token'];
+                $user_token = $result_tmp['user_token'];
             }
         }
 
-        return $output;
+        return $this->pluginSettingsJsonSuccess(
+            array(
+                'auth_key'    => $output['auth_key'],
+                'user_token'  => $user_token,
+            )
+        );
     }
 
     /**
