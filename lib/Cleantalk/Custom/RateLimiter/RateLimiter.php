@@ -68,9 +68,9 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
         $this->db_object->prepare(
             '
             UPDATE ' . $this->table_name . ' SET
-                counter = %d,
-                last_call = %d,
-                created_at = %d
+                counter = %s,
+                last_call = %s,
+                created_at = %s
             WHERE uid = %s
         ', [
             $uid_data->counter,
@@ -79,7 +79,9 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
             $uid_data->uid
         ]);
 
-        return false !== $this->db_object->execute($this->db_object->getQuery());
+	    $result = $this->db_object->execute($this->db_object->getQuery());
+
+        return false !== $result;
     }
 
     /**
@@ -91,15 +93,15 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
             '
             INSERT INTO ' . $this->table_name . '
                 (uid, type, ip, ua, counter, last_call, created_at)
-            VALUES (%s, %s, %s, %s, 1, %d, %d)
+            VALUES (%s, %s, %s, %s, 1, %s, %s)
             ON DUPLICATE KEY UPDATE last_call = %s, counter = counter + 1;
             ',[
             $uid_data->uid,
             $uid_data->type,
             $uid_data->ip,
             $uid_data->ua,
-            $uid_data->last_call,
-            $uid_data->created_at,
+	        $uid_data->last_call,
+	        $uid_data->created_at,
             $uid_data->last_call
         ]);
 
@@ -116,7 +118,7 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
         $threshold = $this->current_ts - ($this->config->period + 10);
 
         $this->db_object->prepare(
-            'DELETE FROM ' . $this->table_name . ' WHERE created_at < %d AND type = %s;',
+            'DELETE FROM ' . $this->table_name . ' WHERE created_at < %s AND type = %s;',
             [
                 $threshold,
                 $this->config->type
