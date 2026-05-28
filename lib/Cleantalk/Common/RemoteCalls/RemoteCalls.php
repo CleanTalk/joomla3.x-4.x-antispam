@@ -57,11 +57,17 @@ class RemoteCalls
      */
     public static function check()
     {
-        return
-            static::getVariable('spbc_remote_call_token') &&
-            static::getVariable('spbc_remote_call_action') &&
-            static::getVariable('plugin_name') &&
-            in_array(static::getVariable('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
+        if (static::getVariable('spbc_remote_call_action')) {
+            static::getVariable('spbc_remote_call_token')
+            ? self::checkWithToken()
+            : false;
+        }
+        return false;
+    }
+
+    public static function checkWithToken()
+    {
+        return in_array(static::getVariable('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
     }
 
     /**
@@ -159,7 +165,34 @@ class RemoteCalls
 
     public static function getSiteUrl()
     {
-        return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . (isset($_SERVER['SCRIPT_URL']) ? $_SERVER['SCRIPT_URL'] : '');
+        $scheme = (
+            isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'
+                ? 'https'
+                : 'http'
+        );
+
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+        $host = preg_replace('/[^A-Za-z0-9.\-:\[\]]/', '', $host);
+
+        $path = '';
+        if ( isset($_SERVER['SCRIPT_URL']) ) {
+            $path = $_SERVER['SCRIPT_URL'];
+        } elseif ( isset($_SERVER['REQUEST_URI']) ) {
+            $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        }
+
+        $path = $path ? (string)$path : '';
+        $path = preg_replace('/[\x00-\x1F\x7F]/', '', $path);
+        $path = preg_replace('/[^A-Za-z0-9\-._~\/%]/', '', $path);
+        $path = preg_replace_callback('/%[0-9a-fA-F]{2}/', static function ($matches) {
+            return strtoupper($matches[0]);
+        }, $path);
+        $path = preg_replace('/%(?![0-9A-Fa-f]{2})/', '', $path);
+        if ( $path !== '' && $path[0] !== '/' ) {
+            $path = '/' . $path;
+        }
+
+        return $scheme . '://' . $host . $path;
     }
 
     public static function buildParameters($rc_action, $plugin_name, $api_key, $additional_params)
@@ -177,7 +210,6 @@ class RemoteCalls
     /**
      * Performs remote call to the current website
      *
-     * @param string $host
      * @param string $rc_action
      * @param string $plugin_name
      * @param string $api_key

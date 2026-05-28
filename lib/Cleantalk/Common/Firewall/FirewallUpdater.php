@@ -613,10 +613,6 @@ class FirewallUpdater
         $db_class = Mloader::get('Db');
         $db_obj = $db_class::getInstance();
 
-        if ( !$db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA) ) {
-            throw new SfwUpdateException('endOfUpdateRenamingTables: SFW main table does not exist');
-        }
-
         if ( !$db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp') ) {
             throw new SfwUpdateException('endOfUpdateRenamingTables: SFW temp table does not exist');
         }
@@ -625,17 +621,11 @@ class FirewallUpdater
         Firewall::saveFwStats($fw_stats);
         usleep(10000);
 
-        // REMOVE AND RENAME
-        $result = \Cleantalk\Common\Firewall\Modules\Sfw::dataTablesDelete(
+        // ATOMIC REMOVE AND RENAME
+        $result = \Cleantalk\Common\Firewall\Modules\Sfw::replaceDataTablesAtomically(
             $db_obj,
             $db_obj->prefix . APBCT_TBL_FIREWALL_DATA
         );
-        if ( empty($result['error']) ) {
-            $result = \Cleantalk\Common\Firewall\Modules\Sfw::renameDataTablesFromTempToMain(
-                $db_obj,
-                $db_obj->prefix . APBCT_TBL_FIREWALL_DATA
-            );
-        }
 
         $fw_stats->update_mode = 0;
         Firewall::saveFwStats($fw_stats);

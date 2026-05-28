@@ -286,6 +286,8 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                 $request_uri = preg_replace('%sfw_test_ip=\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}&?%', '', $request_uri);
             }
 
+            $request_uri = htmlspecialchars($request_uri, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
             // @ToDo not implemented yet
             // Custom Logo
             //$custom_logo_img = '';
@@ -779,6 +781,62 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                     'error' => 'RENAME TABLE: FAILED TO RENAME: ' . $table_name
                         . ' DB Error: ' . $db->getLastError()
                 );
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Replace main table with temp table atomically using RENAME TABLE.
+     * Main is renamed to _old, temp to main in one statement so the table is never missing.
+     *
+     * @param \Cleantalk\Common\Db\Db $db database handler
+     * @param array|string $table_names Array with table names to replace
+     *
+     * @return bool|array true on success, array with 'error' key on failure
+     */
+    public static function replaceDataTablesAtomically($db, $table_names)
+    {
+        // Cast it to array for simple input
+        $table_names = (array)$table_names;
+
+        foreach ( $table_names as $table_name ) {
+            $table_name__temp = $table_name . '_temp';
+            $table_name__old = $table_name . '_old';
+
+            if ( !$db->isTableExists($table_name__temp) ) {
+                return array('error' => 'ATOMIC RENAME: TEMP TABLE NOT EXISTS: ' . $table_name__temp);
+            }
+
+            // Drop old table if exists from previous update
+            if ( $db->isTableExists($table_name__old) ) {
+                if ( !$db->execute('DROP TABLE IF EXISTS `' . $table_name__old . '`;') ) {
+                    return array(
+                        'error' => 'ATOMIC RENAME: FAILED TO DROP OLD TABLE: ' . $table_name__old
+                            . ' DB Error: ' . $db->getLastError()
+                    );
+                }
+            }
+
+            // Atomic rename: main -> old, temp -> main (or just temp -> main if main not exists)
+            if ( $db->isTableExists($table_name) ) {
+                $query = 'RENAME TABLE `' . $table_name . '` TO `' . $table_name__old . '`, '
+                       . '`' . $table_name__temp . '` TO `' . $table_name . '`;';
+            } else {
+                $query = 'RENAME TABLE `' . $table_name__temp . '` TO `' . $table_name . '`;';
+            }
+
+            if ( !$db->execute($query) ) {
+                return array(
+                    'error' => 'ATOMIC RENAME: FAILED: ' . $query
+                        . ' DB Error: ' . $db->getLastError()
+                );
+            }
+
+            // Clean up old table
+            if ( $db->isTableExists($table_name__old) ) {
+                $db->execute('DROP TABLE IF EXISTS `' . $table_name__old . '`;');
             }
         }
 
