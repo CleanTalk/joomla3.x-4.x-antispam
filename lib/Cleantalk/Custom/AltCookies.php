@@ -90,7 +90,8 @@ class AltCookies
         $config = new RateLimiterConfig(self::LIMITER_NAME, self::LIMITER_LIMIT, 60);
         $rate_limiter = new RateLimiter($config);
         if ( ! $rate_limiter->checkPassed() ) {
-            return ('LIMIT EXCEEDED');
+            http_response_code(403);
+            die(json_encode(['error' => 'LIMIT EXCEEDED']));
         }
 
 		$db = JFactory::getDbo();

@@ -1646,13 +1646,13 @@ class plgSystemCleantalkantispam extends JPlugin
                         return json_encode(['allow' => 1, 'msg' => '']);
                     }
 
-                    return ['error' => 'Not working'];
+                    return json_encode(['error' => 'Not working']);
 
                 default :
-                    return ['error' => 'Wrong action was provided'];
+                    return json_encode(['error' => 'Wrong action was provided']);
             }
         }
-        return ['error' => 'No action was provided'];
+        return json_encode(['error' => 'No action was provided']);
     }
 
     ////////////////////////////
