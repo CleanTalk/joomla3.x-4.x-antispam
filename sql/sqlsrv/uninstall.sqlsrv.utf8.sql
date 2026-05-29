@@ -4,3 +4,4 @@ DROP TABLE IF EXISTS `#__cleantalk_sessions`;
 DROP TABLE IF EXISTS `#__cleantalk_ua_bl`;
 DROP TABLE IF EXISTS `#__cleantalk_usermeta`;
 DROP TABLE IF EXISTS `#__cleantalk_custom_storage`;
+DROP TABLE IF EXISTS `#__cleantalk_rate_limits`;
