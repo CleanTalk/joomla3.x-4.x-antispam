@@ -15,6 +15,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
     public $module_name = 'SFW';
 
     private $test_status;
+    private $test_entry;
     private $blocked_ips = array();
 
     /**
@@ -195,6 +196,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 
             if ( $this->test && $_origin === 'sfw_test' ) {
                 $this->test_status = $test_status;
+                $this->test_entry = $result_entry;
             }
         }
 
@@ -332,15 +334,32 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             /**
              * Message about IP status
              */
-            if ( $this->test ) {
-                $message_ip_status = $this->localize->translate('IP in the common blacklist');
+            $message_ip_status = '';
+            $message_ip_status_color = 'green';
+
+            // Determine entry to use: test_entry for test mode, $result for live mode
+            $status_entry = $this->test ? $this->test_entry : $result;
+            $entry_status = isset($status_entry['status']) ? $status_entry['status'] : null;
+            $is_personal = isset($status_entry['is_personal']) && (int)$status_entry['is_personal'] === 1;
+
+            $common_text_passed = $this->localize->translate('This IP is passed');
+            $common_text_blocked = $this->localize->translate('This IP is blocked');
+            $global_text = $this->localize->translate('(in global lists)');
+            $personal_text = $this->localize->translate('(in personal lists)');
+            $lists_text = $is_personal ? $personal_text : $global_text;
+
+            if ( $entry_status === 'PASS_SFW__BY_WHITELIST' ) {
+                $message_ip_status = $common_text_passed . ' ' . $lists_text;
+                $message_ip_status_color = 'green';
+            } elseif ( $entry_status === 'DENY_SFW' ) {
+                $message_ip_status = $common_text_blocked . ' ' . $lists_text;
                 $message_ip_status_color = 'red';
+            } elseif ( $entry_status === 'PASS_SFW' || $entry_status === 'PASS_SFW__BY_COOKIE' ) {
+                $message_ip_status = $this->localize->translate('This IP is passed (not in any lists)');
+                $message_ip_status_color = 'green';
+            }
 
-                if ( $this->test_status === 1 ) {
-                    $message_ip_status = $this->localize->translate('IP in the whitelist');
-                    $message_ip_status_color = 'green';
-                }
-
+            if ( !empty($message_ip_status) ) {
                 $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:$message_ip_status_color;'>$message_ip_status</h3>";
             }
 

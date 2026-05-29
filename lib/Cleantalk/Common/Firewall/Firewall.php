@@ -256,6 +256,9 @@ class Firewall
                     $this->fw_modules[$module_name]->actionsForPassed($result);
                     $this->fw_modules[$module_name]->diePage($result);
                 } else {
+                    if ( Get::get('sfw_test_ip') ) {
+                        $this->fw_modules[$module_name]->diePage($result);
+                    }
                     $this->fw_modules[$module_name]->actionsForPassed($result);
                 }
             }
