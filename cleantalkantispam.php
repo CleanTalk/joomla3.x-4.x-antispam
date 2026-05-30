@@ -317,6 +317,8 @@ class plgSystemCleantalkantispam extends JPlugin
                 $save_params['show_review_done'] = 1;
             }
 
+            $output = null;
+
             // Handle connection reports
             $connection_reports = $this->params->get('connection_reports')
                 ? json_decode(json_encode($this->params->get('connection_reports')), true)
@@ -334,10 +336,6 @@ class plgSystemCleantalkantispam extends JPlugin
             $save_params['connection_reports'] = $connection_reports;
 
             $this->saveCTConfig($save_params);
-
-            // Prepare output ------------------------------------------------------------
-
-            $output = null;
 
             /** @var \Cleantalk\Common\Api\Api $api_class */
             $api_class = Mloader::get('Api');
