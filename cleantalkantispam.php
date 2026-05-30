@@ -316,8 +316,20 @@ class plgSystemCleantalkantispam extends JPlugin
                 $save_params['show_review_done'] = 1;
             }
 
-            // handle connection reports
-            $connection_reports = $this->handleConnectionReports();
+            // Handle connection reports
+            $connection_reports = $this->params->get('connection_reports')
+                ? json_decode(json_encode($this->params->get('connection_reports')), true)
+                : ConnectionReports::getClearReports();
+            $connection_reports = ConnectionReports::validate($connection_reports);
+            $connection_reports = ConnectionReports::filter($connection_reports);
+            if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes') {
+                $sending_result = ConnectionReports::sendMail($connection_reports, JFactory::getConfig()->get('mailfrom'));
+                $output['result']                  = $sending_result ? 'success' : 'error';
+                $output['data']                    = $sending_result ? 'Success.' : 'Something went wrong.';
+                if ($sending_result) {
+                    $connection_reports = ConnectionReports::getClearReports();
+                }
+            }
             $save_params['connection_reports'] = $connection_reports;
 
             $this->saveCTConfig($save_params);
@@ -444,32 +456,6 @@ class plgSystemCleantalkantispam extends JPlugin
         }
 
         return $output;
-    }
-
-    /**
-     * Handle connection reports
-     * @return array|string
-     */
-    private function handleConnectionReports()
-    {
-        $connection_reports = $this->params->get('connection_reports')
-            ? json_decode(json_encode($this->params->get('connection_reports')), true)
-            : ConnectionReports::getClearReports();
-
-        $connection_reports = ConnectionReports::validate($connection_reports);
-        $connection_reports = ConnectionReports::filter($connection_reports);
-
-        if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes') {
-            $sending_result = ConnectionReports::sendMail($connection_reports, JFactory::getConfig()->get('mailfrom'));
-
-            $output['result']                  = $sending_result ? 'success' : 'error';
-            $output['data']                    = $sending_result ? 'Success.' : 'Something went wrong.';
-            if ($sending_result) {
-                $connection_reports = ConnectionReports::getClearReports();
-            }
-        }
-
-        return $connection_reports;
     }
 
     /**
