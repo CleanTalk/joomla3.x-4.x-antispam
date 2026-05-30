@@ -507,7 +507,7 @@ function list_spam_results(type,offset,amount)
 				off = spam_content[spam_content.length - 1]["id"];
 			}
 		}
-		if (msg.result == 'error' && (!document.getElementById('spamusers_table' || !document.getElementById('spamcomments_table')))) {
+		if (msg.result == 'error' && (!document.getElementById('spamusers_table') || !document.getElementById('spamcomments_table'))) {
 			html += '<center><h2>' + msg.data + '</h2></center>';
 			jQuery('#spam_results').append(html);
 		}
