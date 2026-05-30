@@ -30,6 +30,21 @@ function animate_banner(to){
 	}
 }
 
+function ctAdminRequest(data, onSuccess, onError) {
+	Joomla.request({
+		url: location.href,
+		method: 'POST',
+		data: jQuery.param(data),
+		headers: {
+			'Cache-Control': 'no-cache'
+		},
+		onSuccess: onSuccess,
+		onError: onError || function (xhr) {
+			console.error('CleanTalk admin request failed:', xhr.status);
+		}
+	});
+}
+
 // Get system messages and handle these
 document.addEventListener('DOMContentLoaded', () => {
 	setTimeout(dispatchJoomlaNotices, 0);
@@ -243,14 +258,9 @@ jQuery(document).ready(function(){
 			'ct_delete_notice': 'yes'
 		};
 		ct_setCookie('ct_notice_cookie', '1');
-		jQuery.ajax({
-			type: "POST",
-			url: location.href,
-			data: data,
-			success: function(msg){
-				close_animate = false;
-				jQuery('#feedback_notice').hide();
-			}
+		ctAdminRequest(data, function () {
+			close_animate = false;
+			jQuery('#feedback_notice').hide();
 		});
 	});
 
@@ -272,36 +282,30 @@ jQuery(document).ready(function(){
 			'get_auto_key': 'yes'
 		};
 		jQuery('#ct_preloader').show();
-		jQuery.ajax({
-			type: "POST",
-			url: location.href,
-			data: data,
-			// dataType: 'json',
-			success: function(msg){
-				msg=jQuery.parseJSON(msg);
-				if(msg.error_message){
+		ctAdminRequest(data, function (msg) {
+			msg = jQuery.parseJSON(msg);
+			if (msg.error_message) {
 
-					let registerError = ! msg.account_exists
-						? '<br />' + ct_register_error
-						: '';
-					//Showing error banner
-					jQuery('#system-message-container').prepend('<button type="button" class="close" data-dismiss="alert">×</button><div class="alert alert-error"><h4 class="alert-heading">Error</h4><p>' + msg.error_message + registerError + '</p></div></div>');
+				let registerError = ! msg.account_exists
+					? '<br />' + ct_register_error
+					: '';
+				//Showing error banner
+				jQuery('#system-message-container').prepend('<button type="button" class="close" data-dismiss="alert">×</button><div class="alert alert-error"><h4 class="alert-heading">Error</h4><p>' + msg.error_message + registerError + '</p></div></div>');
 
+				jQuery('#ct_preloader').hide();
+
+			} else if (msg.auth_key) {
+
+				jQuery('.cleantalk_auth_key').val(msg.auth_key);
+				jQuery('#jform_params_user_token').val(msg.user_token);
+
+				//Showing the banner
+				jQuery('#system-message-container').prepend('<button type="button" class="close" data-dismiss="alert">×</button><div class="alert alert-success"><h4 class="alert-heading">Success!</h4><p>' + ct_register_message + '</p></div></div>');
+
+				setTimeout(function () {
 					jQuery('#ct_preloader').hide();
-
-				}else if(msg.auth_key){
-
-					jQuery('.cleantalk_auth_key').val(msg.auth_key);
-					jQuery('#jform_params_user_token').val(msg.user_token);
-
-					//Showing the banner
-					jQuery('#system-message-container').prepend('<button type="button" class="close" data-dismiss="alert">×</button><div class="alert alert-success"><h4 class="alert-heading">Success!</h4><p>'+ct_register_message+'</p></div></div>');
-
-					setTimeout(function(){
-						jQuery('#ct_preloader').hide();
-						Joomla.submitbutton('plugin.apply');
-					}, 3000);
-				}
+					Joomla.submitbutton('plugin.apply');
+				}, 3000);
 			}
 		});
 	});
@@ -317,19 +321,12 @@ jQuery(document).ready(function(){
 		};
 		jQuery("#connection_reports").empty();
 		jQuery('#ct_preloader_spam_results').show();
-		jQuery.ajax({
-			type: "POST",
-			url: location.href,
-			data: data,
-			// dataType: 'json',
-			success: function(msg){
-				msg=jQuery.parseJSON(msg);
-				var html='<center><h2>'+msg.data+'</h2></center>'
-				jQuery('#connection_reports').append(html);
-				jQuery('#ct_preloader_spam_results').hide();
-				setTimeout(function() { location.reload();}, 2000)
-			}
-
+		ctAdminRequest(data, function (msg) {
+			msg = jQuery.parseJSON(msg);
+			var html = '<center><h2>' + msg.data + '</h2></center>';
+			jQuery('#connection_reports').append(html);
+			jQuery('#ct_preloader_spam_results').hide();
+			setTimeout(function () { location.reload(); }, 2000);
 		});
 	});
 
@@ -337,16 +334,9 @@ jQuery(document).ready(function(){
 		var data ={
 			'dev_insert_spam_users':'yes'
 		};
-		jQuery.ajax({
-			type: "POST",
-			url: location.href,
-			data: data,
-			// dataType: 'json',
-			success: function(msg){
-				msg=jQuery.parseJSON(msg);
-				alert(msg.result);
-			}
-
+		ctAdminRequest(data, function (msg) {
+			msg = jQuery.parseJSON(msg);
+			alert(msg.result);
 		});
 
 	});
@@ -442,19 +432,12 @@ function delete_comment(all=false)
 		{
 			jQuery("#spam_results").empty();
 			jQuery('#ct_preloader_spam_results').show();
-			jQuery.ajax({
-				type: "POST",
-				url: location.href,
-				data: data,
-				// dataType: 'json',
-				success: function(msg){
-					msg=jQuery.parseJSON(msg);
-					var html='<center><h2>'+msg.data+'</h2></center>';
-					jQuery('#spam_results').append(html);
-					jQuery('#ct_preloader_spam_results').hide();
-					setTimeout(function() { jQuery('#check_spam_comments').click();}, 2000)
-				}
-
+			ctAdminRequest(data, function (msg) {
+				msg = jQuery.parseJSON(msg);
+				var html = '<center><h2>' + msg.data + '</h2></center>';
+				jQuery('#spam_results').append(html);
+				jQuery('#ct_preloader_spam_results').hide();
+				setTimeout(function () { jQuery('#check_spam_comments').click(); }, 2000);
 			});
 		}
 
@@ -480,68 +463,55 @@ function list_spam_results(type,offset,amount)
 	if (off==0)
 		jQuery("#spam_results").empty();
 	jQuery('#ct_preloader_spam_results').show();
-	jQuery.ajax({
-		type: "POST",
-		url: location.href,
-		data: data,
-		// dataType: 'json',
-		success: function(msg){
-			msg=jQuery.parseJSON(msg);
-			var html='';
-			if (msg.result == 'success')
-			{
-				var spam_content = (msg.data.spam_users)?msg.data.spam_users:msg.data.spam_comments;
-				if (spam_content.length>0)
-				{
-					if (off == 0)
-					{
-						if (type == 'comments')
-						{
-							html+="<button id='delete_all_spam_comments' class='btn btn-danger' onclick='delete_comment(true)' type='button'>"+ct_spamcheck_delall+"</button>";
-							html+="<button id='delete_sel_spam_comments' class='btn btn-danger' onclick='delete_comment()' type='button'>"+ct_spamcheck_delsel+"</button>";
-							html+='<center><table id = "spamcomments_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>'+ct_spamcheck_table_username+'</th><th>'+ct_spamcheck_table_email+'</th><th>'+ct_spamcheck_table_text+'</th><th>'+ct_spamcheck_table_date+'</th></tr></thead><tbody>';
-							spam_content.forEach(function(item,i,arr){
-								html+="<tr>";
-								html+="<td><input type='checkbox' name=ct_del_comment["+item["id"]+"] value='1' /></td>";
-								html+="<td>"+item["username"]+"</td>";
-								html+="<td><a target='_blank' href = 'https://cleantalk.org/blacklists/"+item["email"]+"'>"+item["email"]+"</a></td>";
-								html+="<td>"+item["comment"]+"</td>";
-								html+="<td>"+item["date"]+"</td>";
-								html+="</tr>";
-							});
-							html+="</tbody></table></center>";
-						}
-						if (spam_content.length>=on_page)
-							html+="<center><button id='load_more_results' class='btn btn-default' onclick='load_more()' type='button'>"+ct_spamcheck_load_more_results+"</button></center>";
-						jQuery('#spam_results').append(html);
+	ctAdminRequest(data, function (msg) {
+		msg = jQuery.parseJSON(msg);
+		var html = '';
+		if (msg.result == 'success') {
+			var spam_content = (msg.data.spam_users) ? msg.data.spam_users : msg.data.spam_comments;
+			if (spam_content.length > 0) {
+				if (off == 0) {
+					if (type == 'comments') {
+						html += "<button id='delete_all_spam_comments' class='btn btn-danger' onclick='delete_comment(true)' type='button'>" + ct_spamcheck_delall + "</button>";
+						html += "<button id='delete_sel_spam_comments' class='btn btn-danger' onclick='delete_comment()' type='button'>" + ct_spamcheck_delsel + "</button>";
+						html += '<center><table id = "spamcomments_table" class="table table-bordered table-hover table-striped" cellspacing=0 cellpadding=3><thead><tr><th></th><th>' + ct_spamcheck_table_username + '</th><th>' + ct_spamcheck_table_email + '</th><th>' + ct_spamcheck_table_text + '</th><th>' + ct_spamcheck_table_date + '</th></tr></thead><tbody>';
+						spam_content.forEach(function (item, i, arr) {
+							html += "<tr>";
+							html += "<td><input type='checkbox' name=ct_del_comment[" + item["id"] + "] value='1' /></td>";
+							html += "<td>" + item["username"] + "</td>";
+							html += "<td><a target='_blank' href = 'https://cleantalk.org/blacklists/" + item["email"] + "'>" + item["email"] + "</a></td>";
+							html += "<td>" + item["comment"] + "</td>";
+							html += "<td>" + item["date"] + "</td>";
+							html += "</tr>";
+						});
+						html += "</tbody></table></center>";
 					}
-					else
-					{
-						if (type == 'comments')
-						{
-							spam_content.forEach(function(item,i,arr){
-								html+="<tr>";
-								html+="<td><input type='checkbox' name=ct_del_comment["+item["id"]+"] value='1' /></td>";
-								html+="<td>"+item["username"]+"</td>";
-								html+="<td><a target='_blank' href = 'https://cleantalk.org/blacklists/"+item["email"]+"'>"+item["email"]+"</a></td>";
-								html+="<td>"+item["comment"]+"</td>";
-								html+="<td>"+item["date"]+"</td>";
-								html+="</tr>";
-							});
-							jQuery('#spamcomments_table').append(html);
-						}
-						jQuery('html, body').animate({scrollTop:jQuery(document).height()}, 'slow');
+					if (spam_content.length >= on_page) {
+						html += "<center><button id='load_more_results' class='btn btn-default' onclick='load_more()' type='button'>" + ct_spamcheck_load_more_results + "</button></center>";
 					}
-					off=spam_content[spam_content.length-1]["id"];
+					jQuery('#spam_results').append(html);
+				} else {
+					if (type == 'comments') {
+						spam_content.forEach(function (item, i, arr) {
+							html += "<tr>";
+							html += "<td><input type='checkbox' name=ct_del_comment[" + item["id"] + "] value='1' /></td>";
+							html += "<td>" + item["username"] + "</td>";
+							html += "<td><a target='_blank' href = 'https://cleantalk.org/blacklists/" + item["email"] + "'>" + item["email"] + "</a></td>";
+							html += "<td>" + item["comment"] + "</td>";
+							html += "<td>" + item["date"] + "</td>";
+							html += "</tr>";
+						});
+						jQuery('#spamcomments_table').append(html);
+					}
+					jQuery('html, body').animate({ scrollTop: jQuery(document).height() }, 'slow');
 				}
+				off = spam_content[spam_content.length - 1]["id"];
 			}
-			if (msg.result == 'error' && (!document.getElementById('spamusers_table' || !document.getElementById('spamcomments_table')))){
-				html+='<center><h2>'+msg.data+'</h2></center>';
-				jQuery('#spam_results').append(html);
-			}
-			jQuery('#ct_preloader_spam_results').hide();
-
 		}
+		if (msg.result == 'error' && (!document.getElementById('spamusers_table' || !document.getElementById('spamcomments_table')))) {
+			html += '<center><h2>' + msg.data + '</h2></center>';
+			jQuery('#spam_results').append(html);
+		}
+		jQuery('#ct_preloader_spam_results').hide();
 	});
 }
 
@@ -557,13 +527,8 @@ function ct_serve_buttons() {
 		var data = {
 			'ct_serve_run_cron_sfw_send_logs': 'yes'
 		};
-		jQuery.ajax({
-			type: "POST",
-			url: location.href,
-			data: data,
-			success: function(msg){
-				alert('OK')
-			}
+		ctAdminRequest(data, function () {
+			alert('OK');
 		});
 	});
 
@@ -571,13 +536,8 @@ function ct_serve_buttons() {
 		var data = {
 			'ct_serve_run_cron_sfw_update': 'yes'
 		};
-		jQuery.ajax({
-			type: "POST",
-			url: location.href,
-			data: data,
-			success: function(msg){
-				alert('OK')
-			}
+		ctAdminRequest(data, function () {
+			alert('OK');
 		});
 	});
 }
