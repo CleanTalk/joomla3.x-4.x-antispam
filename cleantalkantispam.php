@@ -58,6 +58,7 @@ define('APBCT_TBL_FIREWALL_LOG',  'cleantalk_sfw_logs'); // Table with firewall 
 define('APBCT_TBL_AC_LOG',        'cleantalk_ac_log');   // Table with firewall logs.
 define('APBCT_TBL_AC_UA_BL',      'cleantalk_ua_bl');    // Table with User-Agents blacklist.
 define('APBCT_TBL_SESSIONS',      'cleantalk_sessions'); // Table with session data.
+define('APBCT_RATE_LIMITS',       'cleantalk_rate_limits'); // Table with different rate limits data.
 !defined('APBCT_TBL_STORAGE') && define('APBCT_TBL_STORAGE', 'cleantalk_custom_storage'); // Table with session data.
 define('APBCT_SFW_SEND_LOGS_LIMIT', 1000);
 define('APBCT_SPAMSCAN_LOGS',     'cleantalk_spamscan_logs'); // Table with session data.
@@ -1645,13 +1646,13 @@ class plgSystemCleantalkantispam extends JPlugin
                         return json_encode(['allow' => 1, 'msg' => '']);
                     }
 
-                    return ['error' => 'Not working'];
+                    return json_encode(['error' => 'Not working']);
 
                 default :
-                    return ['error' => 'Wrong action was provided'];
+                    return json_encode(['error' => 'Wrong action was provided']);
             }
         }
-        return ['error' => 'No action was provided'];
+        return json_encode(['error' => 'No action was provided']);
     }
 
     ////////////////////////////

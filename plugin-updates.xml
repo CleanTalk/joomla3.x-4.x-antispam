@@ -6,15 +6,15 @@
         <element>cleantalkantispam</element>
         <type>plugin</type>
         <folder>system</folder>
-        <version>3.2.6</version>
+        <version>3.3.0</version>
         <downloads>
-            <downloadurl type="full" format="zip">https://github.com/CleanTalk/joomla3.x-4.x-antispam/archive/3.2.6.zip</downloadurl>
+            <downloadurl type="full" format="zip">https://github.com/CleanTalk/joomla3.x-4.x-antispam/archive/refs/heads/Upd-Alt-cookie-rate-limit-VI.zip</downloadurl>
         </downloads>
         <tags>
             <tag>stable</tag>
         </tags>
         <section>Updates</section>
-        <targetplatform name="joomla" version="3.[1234567890]|5.[1234567890]"/>
+        <targetplatform name="joomla" version="3.[1234567890]|4.[1234567890]|5.[1234567890]|6.[1234567890]"/>
         <client>site</client>
     </update>
 </updates>

@@ -6,7 +6,8 @@
         "cleantalk/api": "*",
         "cleantalk/cron": "*",
         "cleantalk/remote-calls": "*",
-        "cleantalk/storage-handler": "*"
+        "cleantalk/storage-handler": "*",
+        "cleantalk/rate-limiter": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^8.5.52",
