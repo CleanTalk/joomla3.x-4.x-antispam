@@ -401,8 +401,6 @@ class plgSystemCleantalkantispam extends JPlugin
             if (isset($output['account_exists']) && $output['account_exists'] == 1) {
                 $output['error_message'] = 'Please, get the Access Key from the CleanTalk Control Panel (https://cleantalk.org/my/?cp_mode=antispam) and insert it in the Access Key field.';
             }
-            }
-
             // Checks if the user token is empty, then get user token by notice_paid_till()
             if (empty($output['user_token']) && ! empty($output['auth_key'])) {
                 $result_tmp = $api_class::methodNoticePaidTill($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
