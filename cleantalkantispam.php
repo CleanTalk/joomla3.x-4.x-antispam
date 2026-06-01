@@ -414,8 +414,8 @@ class plgSystemCleantalkantispam extends JPlugin
             return $output;
 
         } catch ( \Exception $exception ) {
-            error_log(var_export('Exception: ' . $exception->getMessage(),1));
-            return array('error' => $exception->getMessage());
+            error_log(var_export('Exception: ' . $exception->getMessage(), 1));
+            return array('error_message' => $exception->getMessage());
         }
     }
 
