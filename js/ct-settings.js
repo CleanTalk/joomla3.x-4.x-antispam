@@ -604,7 +604,7 @@ function list_spam_results(type,offset,amount)
 				off = spam_content[spam_content.length - 1]["id"];
 			}
 		}
-		if (msg.result == 'error' && (!document.getElementById('spamusers_table' || !document.getElementById('spamcomments_table')))) {
+		if (msg.result == 'error' && (!document.getElementById('spamusers_table') && !document.getElementById('spamcomments_table'))) {
 			ctAppendPlainMessage('#spam_results', msg.data);
 		}
 		jQuery('#ct_preloader_spam_results').hide();
