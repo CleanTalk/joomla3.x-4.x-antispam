@@ -423,12 +423,11 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function checkSpamComments()
     {
-        $improved_check = ($_POST['improved_check'] === 'true') ? true : false;
-        $offset         = isset($_POST['offset']) ? $_POST['offset'] : 0;
-        $on_page        = isset($_POST['amount']) ? $_POST['amount'] : 2;
-        $output         = $this->get_spam_comments($offset, $on_page, $improved_check);
+        $improved_check = isset($_POST['improved_check']) && $_POST['improved_check'] === 'true';
+        $offset         = isset($_POST['offset']) ? (int) $_POST['offset'] : 0;
+        $on_page        = isset($_POST['amount']) ? (int) $_POST['amount'] : 2;
 
-        return $output;
+        return $this->get_spam_comments($offset, $on_page, $improved_check);
     }
 
     /**
