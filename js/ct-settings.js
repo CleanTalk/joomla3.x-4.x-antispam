@@ -577,7 +577,7 @@ function list_spam_results(type, offset, amount)
 		'check_type': type,
 		'offset': offset,
 		'amount': amount,
-		'improved_check': jQuery("#ct_impspamcheck_checkbox").is(":checked")
+'improved_check': jQuery("input[name='ct_impspamcheck_checkbox']").is(":checked")
 	};
 	if (off == 0) {
 		jQuery("#spam_results").empty();
