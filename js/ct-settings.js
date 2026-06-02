@@ -401,7 +401,7 @@ jQuery(document).ready(function(){
 				var $errorAlert = jQuery('<div class="alert alert-error"><h4 class="alert-heading">Error</h4><p></p></div>');
 				$errorAlert.prepend(jQuery('<button type="button" class="close" data-dismiss="alert">×</button>'));
 				$errorAlert.find('p').text(msg.error_message);
-				if (!msg.account_exists) {
+				if (Object.prototype.hasOwnProperty.call(msg, 'account_exists') && Number(msg.account_exists) === 0) {
 					$errorAlert.find('p').append('<br />').append(document.createTextNode(ct_register_error));
 				}
 				jQuery('#system-message-container').prepend($errorAlert);
