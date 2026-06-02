@@ -45,7 +45,6 @@ function ctAdminRequest(data, onSuccess, onError) {
 		}
 	});
 }
-}
 
 function ctEscapeHtml(text) {
 	return jQuery('<div>').text(text == null ? '' : String(text)).html();
