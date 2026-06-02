@@ -559,54 +559,63 @@ function delete_comment(all=false)
 
 function load_more()
 {
-	var get_table_type = document.getElementById('spamusers_table')?'users':document.getElementById('spamcomments_table')?'comments':'';
-	if (get_table_type)
-		list_spam_results(get_table_type,off,on_page);
+	if (document.getElementById('spamcomments_table')) {
+		list_spam_results('comments', off, on_page);
+	}
 }
 
-function list_spam_results(type,offset,amount)
+function list_spam_results(type, offset, amount)
 {
+	if (type !== 'comments') {
+		return;
+	}
+
 	var data = {
 		'check_type': type,
-		'offset':offset,
-		'amount':amount,
-		'improved_check':jQuery("#ct_impspamcheck_checkbox").is(":checked")
+		'offset': offset,
+		'amount': amount,
+		'improved_check': jQuery("#ct_impspamcheck_checkbox").is(":checked")
 	};
-	if (off==0)
+	if (off == 0) {
 		jQuery("#spam_results").empty();
+	}
 	jQuery('#ct_preloader_spam_results').show();
 	ctAdminRequest(data, function (msg) {
-		msg = jQuery.parseJSON(msg);
+		try {
+			msg = JSON.parse(msg);
+		} catch (e) {
+			console.error('CleanTalk spam check: invalid JSON response', e);
+			jQuery('#ct_preloader_spam_results').hide();
+			return;
+		}
 		if (msg.result == 'success') {
-			var spam_content = (msg.data.spam_users) ? msg.data.spam_users : msg.data.spam_comments;
-			if (spam_content.length > 0) {
+			var spam_content = msg.data && msg.data.spam_comments;
+			if (spam_content && spam_content.length > 0) {
 				if (off == 0) {
-					if (type == 'comments') {
-						var html = ctRenderBlock('spam_comments_toolbar', {});
-						html += ctRenderBlock('spam_comments_table_open', {});
-						spam_content.forEach(function (item) {
-							html += ctRenderBlock('spam_comment_row', item);
-						});
-						html += ctRenderBlock('spam_comments_table_close', {});
-						if (spam_content.length >= on_page) {
-							html += ctRenderBlock('spam_load_more', {});
-						}
-						jQuery('#spam_results').append(html);
+					var html = ctRenderBlock('spam_comments_toolbar', {});
+					html += ctRenderBlock('spam_comments_table_open', {});
+					spam_content.forEach(function (item) {
+						html += ctRenderBlock('spam_comment_row', item);
+					});
+					html += ctRenderBlock('spam_comments_table_close', {});
+					if (spam_content.length >= on_page) {
+						html += ctRenderBlock('spam_load_more', {});
 					}
+					jQuery('#spam_results').append(html);
 				} else {
-					if (type == 'comments') {
-						spam_content.forEach(function (item) {
-							ctAppendBlock('#spamcomments_table tbody', 'spam_comment_row', item);
-						});
-					}
+					spam_content.forEach(function (item) {
+						ctAppendBlock('#spamcomments_table tbody', 'spam_comment_row', item);
+					});
 					jQuery('html, body').animate({ scrollTop: jQuery(document).height() }, 'slow');
 				}
 				off = spam_content[spam_content.length - 1]["id"];
 			}
 		}
-		if (msg.result == 'error' && (!document.getElementById('spamusers_table') && !document.getElementById('spamcomments_table'))) {
+		if (msg.result == 'error' && !document.getElementById('spamcomments_table')) {
 			ctAppendPlainMessage('#spam_results', msg.data);
 		}
+		jQuery('#ct_preloader_spam_results').hide();
+	}, function () {
 		jQuery('#ct_preloader_spam_results').hide();
 	});
 }
