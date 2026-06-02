@@ -38,9 +38,9 @@ function ctAdminRequest(data, onSuccess, onError) {
 		headers: {
 			'Cache-Control': 'no-cache'
 		},
-		onSuccess: onSuccess,
 		onError: onError || function (xhr) {
-			console.error('CleanTalk admin request failed:', xhr.status);
+			jQuery('#ct_preloader, #ct_preloader_spam_results').hide();
+			console.error('CleanTalk admin request failed:', (xhr && xhr.status) ? xhr.status : xhr);
 		}
 	});
 }
