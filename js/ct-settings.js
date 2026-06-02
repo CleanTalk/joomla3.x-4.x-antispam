@@ -38,6 +38,7 @@ function ctAdminRequest(data, onSuccess, onError) {
 		headers: {
 			'Cache-Control': 'no-cache'
 		},
+		onSuccess: onSuccess || function () {},
 		onError: onError || function (xhr) {
 			jQuery('#ct_preloader, #ct_preloader_spam_results').hide();
 			console.error('CleanTalk admin request failed:', (xhr && xhr.status) ? xhr.status : xhr);
@@ -413,8 +414,10 @@ jQuery(document).ready(function(){
 				jQuery('.cleantalk_auth_key').val(msg.auth_key);
 				jQuery('#jform_params_user_token').val(msg.user_token);
 
-				//Showing the banner
-				jQuery('#system-message-container').prepend('<button type="button" class="close" data-dismiss="alert">×</button><div class="alert alert-success"><h4 class="alert-heading">Success!</h4><p>' + ct_register_message + '</p></div></div>');
+				var $successAlert = jQuery('<div class="alert alert-success"><h4 class="alert-heading">Success!</h4><p></p></div>');
+				$successAlert.prepend(jQuery('<button type="button" class="close" data-dismiss="alert">×</button>'));
+				$successAlert.find('p').text(ct_register_message);
+				jQuery('#system-message-container').prepend($successAlert);
 
 				setTimeout(function () {
 					jQuery('#ct_preloader').hide();
