@@ -436,13 +436,14 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function deleteSpamComments()
     {
-        $spam_comments    = implode(',', $_POST['ct_del_comment_ids']);
+        $ids = array_map('intval', (array) ($_POST['ct_del_comment_ids'] ?? array()));
+        $spam_comments = implode(',', $ids);
         $output = array('result' => null, 'data' => null);
 
         try {
             $this->delete_comments($spam_comments);
             $output['result'] = 'success';
-            $output['data']   = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($_POST['ct_del_comment_ids']));
+            $output['data']   = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($ids));
         } catch (Exception $e) {
             $output['result'] = 'error';
             $output['data']   = $e->getMessage();
