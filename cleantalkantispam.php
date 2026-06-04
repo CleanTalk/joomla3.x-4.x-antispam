@@ -1230,8 +1230,15 @@ class plgSystemCleantalkantispam extends JPlugin
                             {
                                 if ($app->input->get('option') == 'com_baforms')
                                 {
-                                    echo '<input id="form-sys-mesage" type="hidden" value="' . htmlspecialchars($ctResponse['comment'], ENT_QUOTES) . '">';
-                                    print "<script>var obj = { type : 'baform', msg : document.getElementById('form-sys-mesage').value }; window.parent.postMessage(obj, '*');</script>";
+                                    if (!headers_sent()) {
+                                        header('Content-Type: application/json; charset=UTF-8');
+                                    }
+                                    echo json_encode(array(
+                                        'status'        => false,
+                                        'message'       => strip_tags($ctResponse['comment']),
+                                        'isClosed'      => false,
+                                        'closedMessage' => '',
+                                    ));
                                     die();
                                 }
                                 elseif (JFactory::getApplication()->input->get('option') == 'com_igallery' && JFactory::getApplication()->input->get('task') == 'imagefront.addComment')
