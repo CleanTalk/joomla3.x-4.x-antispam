@@ -536,10 +536,13 @@ class FirewallUpdater
             ? $db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp'
             : $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp';
 
+        $include_source = $direction === 'common';
+
         $result = \Cleantalk\Common\Firewall\Modules\Sfw::updateWriteToDb(
             $db_obj,
             $table_name,
-            $file_path
+            $file_path,
+            $include_source
         );
 
         if ( !empty($result['error']) ) {

@@ -603,10 +603,11 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
      * @param $db
      * @param $db__table__data
      * @param null|string $file_url File URL with SFW data.
+     * @param bool $include_source Whether to include the 'source' column in the INSERT (false for personal table).
      *
      * @return array|int array('error' => STRING)
      */
-    public static function updateWriteToDb($db, $db__table__data, $file_url = null)
+    public static function updateWriteToDb($db, $db__table__data, $file_url = null, $include_source = true)
     {
         $file_content = file_get_contents($file_url);
 
@@ -622,7 +623,10 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                     reset($data);
 
                     for ( $count_result = 0; current($data) !== false; ) {
-                        $query = "INSERT INTO " . $db__table__data . " (network, mask, status, source) VALUES ";
+                        $columns = $include_source
+                            ? '(network, mask, status, source)'
+                            : '(network, mask, status)';
+                        $query = "INSERT INTO " . $db__table__data . " $columns VALUES ";
 
                         for (
                             $i = 0, $values = array();
@@ -639,9 +643,13 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                             $ip = preg_replace('/[^\d]*/', '', $entry[0]);
                             $mask = preg_replace('/[^\d]*/', '', $entry[1]);
                             $status = isset($entry[2]) ? $entry[2] : 0;
-                            $source = isset($entry[3]) ? (int)$entry[3] : 'NULL';
 
-                            $values[] = "($ip, $mask, $status, $source)";
+                            if ( $include_source ) {
+                                $source = isset($entry[3]) ? (int)$entry[3] : 'NULL';
+                                $values[] = "($ip, $mask, $status, $source)";
+                            } else {
+                                $values[] = "($ip, $mask, $status)";
+                            }
                         }
 
                         if ( !empty($values) ) {
