@@ -31,6 +31,11 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
     /**
      * @var string|null
      */
+    private $db__table__data_personal;
+
+    /**
+     * @var string|null
+     */
     private $db__table__logs;
 
     /**
@@ -52,6 +57,13 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 
         $this->db__table__data = $db->prefix . $data_table ?: null;
         $this->db__table__logs = $db->prefix . $log_table ?: null;
+
+        // Set personal table name from params or default
+        if ( !empty($params['data_table_personal']) ) {
+            $this->db__table__data_personal = $db->prefix . $params['data_table_personal'];
+        } elseif ( defined('APBCT_TBL_FIREWALL_DATA_PERSONAL') ) {
+            $this->db__table__data_personal = $db->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL;
+        }
 
         foreach ( $params as $param_name => $param ) {
             $this->$param_name = isset($this->$param_name) ? $param : false;
@@ -158,8 +170,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             }
             $needles = array_unique($needles);
 
-            $query = $this->db->sfwGetFromBlacklist($this->db__table__data, $needles, $current_ip_v4);
-
+            $query = $this->db->sfwGetFromBlacklist($this->db__table__data, $this->db__table__data_personal, $needles, $current_ip_v4);
             $db_results = $this->db->fetchAll($query);
 
             $test_status = 1;
@@ -170,7 +181,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                         'network' => $helper_class::ipLong2ip($db_result['network'])
                             . '/'
                             . $helper_class::ipMaskLongToNumber((int)$db_result['mask']),
-                        'is_personal' => $db_result['source'],
+                        'is_personal' => !empty($db_result['is_personal']),
                     );
 
                     if ( (int)$db_result['status'] === 1 ) {
@@ -187,7 +198,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             } else {
                 $result_entry = array(
                     'ip' => $current_ip,
-                    'is_personal' => null,
+                    'is_personal' => false,
                     'status' => 'PASS_SFW',
                 );
             }
@@ -860,5 +871,111 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         return true;
+    }
+
+    /**
+     * Add records to the personal SFW table.
+     *
+     * @param \Cleantalk\Common\Db\Db $db
+     * @param string $db__table__data Personal table name
+     * @param array $metadata Array of records with 'network', 'mask', 'status' keys
+     *
+     * @return array Result with 'total', 'added', 'updated', 'ignored' counts
+     * @throws \RuntimeException
+     */
+    public static function privateRecordsAdd($db, $db__table__data, $metadata)
+    {
+        $added_count = 0;
+        $updated_count = 0;
+        $ignored_count = 0;
+
+        foreach ( $metadata as $_key => $row ) {
+            // Find duplicate to use it on updating
+            $has_duplicate = false;
+            $query = "SELECT id, status FROM " . $db__table__data . " WHERE "
+                . "network = '" . (int)$row['network'] . "' AND "
+                . "mask = '" . (int)$row['mask'] . "'";
+
+            $db_result = $db->fetch($query);
+            if ( $db_result === false ) {
+                throw new \RuntimeException($db->getLastError());
+            }
+
+            // If the record is same - pass
+            if ( isset($db_result['status']) && (int)$db_result['status'] === (int)$row['status'] ) {
+                $ignored_count++;
+                continue;
+            }
+
+            // If duplicate found create a chunk
+            if ( isset($db_result['id']) ) {
+                $id_chunk = "id = '" . (int)$db_result['id'] . "',";
+                $has_duplicate = true;
+            } else {
+                $id_chunk = '';
+            }
+
+            // Insertion
+            $query = "INSERT INTO " . $db__table__data . " SET "
+                . $id_chunk
+                . "network = '" . (int)$row['network'] . "',"
+                . "mask = '" . (int)$row['mask'] . "',"
+                . "status = '" . (int)$row['status'] . "' "
+                . "ON DUPLICATE KEY UPDATE "
+                . "id = id,"
+                . "network = network,"
+                . "mask = mask,"
+                . "status = '" . (int)$row['status'] . "';";
+
+            $db_result = $db->execute($query);
+            if ( $db_result === false ) {
+                throw new \RuntimeException($db->getLastError());
+            }
+
+            $added_count = $has_duplicate ? $added_count : $added_count + 1;
+            $updated_count = $has_duplicate ? $updated_count + 1 : $updated_count;
+        }
+
+        return array(
+            'total' => $added_count + $updated_count + $ignored_count,
+            'added' => $added_count,
+            'updated' => $updated_count,
+            'ignored' => $ignored_count,
+        );
+    }
+
+    /**
+     * Delete records from the personal SFW table.
+     *
+     * @param \Cleantalk\Common\Db\Db $db
+     * @param string $db__table__data Personal table name
+     * @param array $metadata Array of records with 'network', 'mask' keys
+     *
+     * @return array Result with 'total', 'deleted', 'ignored' counts
+     * @throws \Exception
+     */
+    public static function privateRecordsDelete($db, $db__table__data, $metadata)
+    {
+        $success_count = 0;
+        $ignored_count = 0;
+
+        foreach ( $metadata as $_key => $row ) {
+            $query = "DELETE FROM " . $db__table__data . " WHERE "
+                . "network = '" . (int)$row['network'] . "' AND "
+                . "mask = '" . (int)$row['mask'] . "';";
+            $db_result = $db->execute($query);
+            if ( $db_result === false ) {
+                throw new \Exception($db->getLastError());
+            }
+
+            $success_count = $db_result === 1 ? $success_count + 1 : $success_count;
+            $ignored_count = $db_result === 0 ? $ignored_count + 1 : $ignored_count;
+        }
+
+        return array(
+            'total' => $success_count + $ignored_count,
+            'deleted' => $success_count,
+            'ignored' => $ignored_count,
+        );
     }
 }

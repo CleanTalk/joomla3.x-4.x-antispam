@@ -54,6 +54,7 @@ use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 
 define('APBCT_TBL_FIREWALL_DATA', 'cleantalk_sfw');      // Table with firewall data.
+define('APBCT_TBL_FIREWALL_DATA_PERSONAL', 'cleantalk_sfw_personal'); // Table with personal firewall data.
 define('APBCT_TBL_FIREWALL_LOG',  'cleantalk_sfw_logs'); // Table with firewall logs.
 define('APBCT_TBL_AC_LOG',        'cleantalk_ac_log');   // Table with firewall logs.
 define('APBCT_TBL_AC_UA_BL',      'cleantalk_ua_bl');    // Table with User-Agents blacklist.

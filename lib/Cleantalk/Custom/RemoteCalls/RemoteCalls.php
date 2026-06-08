@@ -16,6 +16,14 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
 		'sfw_send_logs' => array(
 			'last_call' => 0,
 			'cooldown' => self::COOLDOWN
+		),
+		'private_record_add' => array(
+			'last_call' => 0,
+			'cooldown' => 0
+		),
+		'private_record_delete' => array(
+			'last_call' => 0,
+			'cooldown' => 0
 		)
 	);
 
@@ -37,6 +45,56 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
     public function action__sfw_send_logs()
     {
         return \plgSystemCleantalkantispam::apbct_sfw_send_logs( $this->api_key );
+    }
+
+    /**
+     * Add private record to personal SFW table
+     *
+     * @return array
+     */
+    public function action__private_record_add()
+    {
+        $records = \Cleantalk\Common\Variables\Request::get('records');
+        if ( empty($records) ) {
+            return array('error' => 'PRIVATE_RECORD_ADD: No records provided');
+        }
+
+        $records = is_string($records) ? json_decode($records, true) : $records;
+        if ( !is_array($records) ) {
+            return array('error' => 'PRIVATE_RECORD_ADD: Records must be a valid JSON array');
+        }
+
+        /** @var \Cleantalk\Common\Db\Db $db_class */
+        $db_class = \Cleantalk\Common\Mloader\Mloader::get('Db');
+        $db_obj = $db_class::getInstance();
+        $table = $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL;
+
+        return \Cleantalk\Common\Firewall\Modules\Sfw::privateRecordsAdd($db_obj, $table, $records);
+    }
+
+    /**
+     * Delete private record from personal SFW table
+     *
+     * @return array
+     */
+    public function action__private_record_delete()
+    {
+        $records = \Cleantalk\Common\Variables\Request::get('records');
+        if ( empty($records) ) {
+            return array('error' => 'PRIVATE_RECORD_DELETE: No records provided');
+        }
+
+        $records = is_string($records) ? json_decode($records, true) : $records;
+        if ( !is_array($records) ) {
+            return array('error' => 'PRIVATE_RECORD_DELETE: Records must be a valid JSON array');
+        }
+
+        /** @var \Cleantalk\Common\Db\Db $db_class */
+        $db_class = \Cleantalk\Common\Mloader\Mloader::get('Db');
+        $db_obj = $db_class::getInstance();
+        $table = $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL;
+
+        return \Cleantalk\Common\Firewall\Modules\Sfw::privateRecordsDelete($db_obj, $table, $records);
     }
 
     /**

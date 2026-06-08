@@ -235,7 +235,7 @@ class Firewall
                         $result['ip'],
                         $result['status'],
                         isset($result['network']) ? $result['network'] : null,
-                        isset($result['is_personal']) ? $result['is_personal'] : 'NULL'
+                        !empty($result['is_personal']) ? 1 : 'NULL'
                     );
                 }
             }
