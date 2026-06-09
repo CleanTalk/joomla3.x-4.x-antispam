@@ -558,6 +558,70 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
         return $result;
     }
 
+    public static function directUpdateGetBlackListsPersonal($api_key)
+    {
+        /** @var \Cleantalk\Common\Api\Api $api_class */
+        $api_class = Mloader::get('Api');
+        /** @var \Cleantalk\Common\Helper\Helper $helper_class */
+        $helper_class = Mloader::get('Helper');
+
+        // Getting personal blacklists file URL (common_lists=0 means personal only)
+        $result = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_2', 0);
+
+        if ( !empty($result['error']) ) {
+            return $result;
+        }
+
+        if ( empty($result['file_url']) ) {
+            return array('error' => 'PERSONAL_LISTS_FILE_URL_IS_EMPTY');
+        }
+
+        // Get the index of file URLs from the multifiles response
+        $file_urls = $helper_class::httpGetDataFromRemoteGzAndParseCsv($result['file_url']);
+        if ( !empty($file_urls['error']) ) {
+            return array('error' => 'PERSONAL_LISTS_GET_INDEX: ' . $file_urls['error']);
+        }
+
+        // Download and parse each personal list file
+        $all_entries = array();
+        foreach ( $file_urls as $file_url_entry ) {
+            if ( empty($file_url_entry[0]) ) {
+                continue;
+            }
+
+            $url = $file_url_entry[0];
+
+            // Skip non-blacklist files (ua_list, ck_list)
+            if ( strpos($url, 'bl_list') === false ) {
+                continue;
+            }
+
+            $file_data = $helper_class::httpGetDataFromRemoteGz($url);
+            if ( !empty($file_data['error']) || !is_string($file_data) ) {
+                continue;
+            }
+
+            $parsed = $helper_class::bufferParseCsv($file_data);
+            if ( !empty($parsed['error']) ) {
+                continue;
+            }
+
+            foreach ( $parsed as $entry ) {
+                if ( !empty($entry[0]) && !empty($entry[1]) ) {
+                    $all_entries[] = $entry;
+                }
+            }
+        }
+
+        if ( empty($all_entries) ) {
+            return array('error' => 'PERSONAL_LISTS_NO_ENTRIES');
+        }
+
+        return array(
+            'blacklist' => $all_entries,
+        );
+    }
+
     public static function directUpdate($db, $db__table__data, $blacklists)
     {
         if ( !is_array($blacklists) ) {

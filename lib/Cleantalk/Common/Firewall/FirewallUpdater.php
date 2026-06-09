@@ -286,12 +286,17 @@ class FirewallUpdater
         $urls = array();
 
         // Getting common lists
-        $result = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_1', 1);
+        $result = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_2', 1);
 
         if ( empty($result['error']) ) {
             if ( !empty($result['file_url']) ) {
                 $file_urls = $helper_class::httpGetDataFromRemoteGzAndParseCsv($result['file_url']);
                 if ( empty($file_urls['error']) ) {
+                    // Extract common_lists_url_id from the file URL
+                    preg_match('/bl_list_(.+)\.multifiles/m', $result['file_url'], $url_id_common);
+                    if ( isset($url_id_common[1]) ) {
+                        $fw_stats->common_lists_url_id = $url_id_common[1];
+                    }
                     if ( !empty($result['file_ua_url']) ) {
                         $file_urls[][0] = $result['file_ua_url'];
                     }
@@ -310,7 +315,7 @@ class FirewallUpdater
         }
 
         // Getting personal lists
-        $result_personal = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_1', 0);
+        $result_personal = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_2', 0);
 
         if ( empty($result_personal['error']) ) {
             if ( !empty($result_personal['file_url']) ) {
@@ -482,12 +487,18 @@ class FirewallUpdater
 
             if ( strpos($concrete_file, 'bl_list') !== false ) {
                 // Determine direction: personal or common
-                $direction = 'common';
                 if (
                     !empty($fw_stats->personal_lists_url_id)
                     && strpos($concrete_file, $fw_stats->personal_lists_url_id) !== false
                 ) {
                     $direction = 'personal';
+                } elseif (
+                    !empty($fw_stats->common_lists_url_id)
+                    && strpos($concrete_file, $fw_stats->common_lists_url_id) !== false
+                ) {
+                    $direction = 'common';
+                } else {
+                    $direction = 'common';
                 }
                 $result = self::processFile($concrete_file, $direction);
             }
@@ -819,6 +830,7 @@ class FirewallUpdater
         $fw_stats->expected_networks_count_personal = false;
         $fw_stats->expected_ua_count = false;
         $fw_stats->personal_lists_url_id = null;
+        $fw_stats->common_lists_url_id = null;
         Firewall::saveFwStats($fw_stats);
 
         return true;
@@ -982,6 +994,30 @@ class FirewallUpdater
 
             if ( !is_int($upd_result) ) {
                 return array('error' => 'DIRECT UPDATING BLACK LIST: WRONG RESPONSE FROM SFW::directUpdate');
+            }
+
+            /**
+             * UPDATING PERSONAL BLACK LIST
+             */
+            $result_personal = \Cleantalk\Common\Firewall\Modules\Sfw::directUpdateGetBlackListsPersonal($this->api_key);
+            if ( empty($result_personal['error']) && !empty($result_personal['blacklist']) ) {
+                $personal_blacklists = $result_personal['blacklist'];
+
+                $upd_result_personal = \Cleantalk\Common\Firewall\Modules\SFW::directUpdate(
+                    $db_obj,
+                    $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp',
+                    $personal_blacklists
+                );
+
+                if ( !empty($upd_result_personal['error']) ) {
+                    // Personal lists errors are not critical, continue update
+                }
+
+                if ( is_int($upd_result_personal) ) {
+                    $fw_stats = Firewall::getFwStats();
+                    $fw_stats->expected_networks_count_personal = $upd_result_personal;
+                    Firewall::saveFwStats($fw_stats);
+                }
             }
 
             /**

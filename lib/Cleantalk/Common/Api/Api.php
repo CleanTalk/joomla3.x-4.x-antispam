@@ -899,6 +899,10 @@ class Api
                     : array('error' => 'COULDNT_ADD_WL_IP');
 
             case '2s_blacklists_db':
+                // Multifiles response contains file_url at top level
+                if ( isset($result['file_url']) ) {
+                    return $result;
+                }
                 return isset($result['data']) && isset($result['data_user_agents'])
                     ? $result
                     : $result['data'];

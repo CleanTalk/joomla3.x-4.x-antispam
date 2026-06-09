@@ -13,6 +13,7 @@ class FwStats
     public $expected_networks_count_personal = 0;
     public $expected_ua_count = 0;
     public $personal_lists_url_id;
+    public $common_lists_url_id;
     public $calls = 0;
     public $update_mode;
     public $last_update_time;
