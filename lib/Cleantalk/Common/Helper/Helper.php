@@ -412,7 +412,7 @@ class Helper
         // Standartizing. Getting current octets/hextets. Adding leading zeros.
         $net_xtet = str_pad(
             decbin(
-                ($ip_type === 'v4' && (int)$net_ip_xtets[$xtet_count]) ? $net_ip_xtets[$xtet_count] : @hexdec(
+                ($ip_type === 'v4' && (int)$net_ip_xtets[$xtet_count]) ? (int)$net_ip_xtets[$xtet_count] : @hexdec(
                     $net_ip_xtets[$xtet_count]
                 )
             ),
@@ -422,7 +422,7 @@ class Helper
         );
         $ip_xtet = str_pad(
             decbin(
-                ($ip_type === 'v4' && (int)$ip_xtets[$xtet_count]) ? $ip_xtets[$xtet_count] : @hexdec(
+                ($ip_type === 'v4' && (int)$ip_xtets[$xtet_count]) ? (int)$ip_xtets[$xtet_count] : @hexdec(
                     $ip_xtets[$xtet_count]
                 )
             ),
