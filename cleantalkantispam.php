@@ -399,14 +399,16 @@ class plgSystemCleantalkantispam extends JPlugin
         try {
             $output = $api_class::methodGetApiKey('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
 
-            if (isset($output['account_exists']) && $output['account_exists'] == 1) {
-                $output['error_message'] = 'Please, get the Access Key from the CleanTalk Control Panel (https://cleantalk.org/my/?cp_mode=antispam) and insert it in the Access Key field.';
-            }
-            // Checks if the user token is empty, then get user token by notice_paid_till()
-            if (empty($output['user_token']) && ! empty($output['auth_key'])) {
-                $result_tmp = $api_class::methodNoticePaidTill($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
-                if (empty($result_tmp['error'])) {
-                    $output['user_token'] = $result_tmp['user_token'];
+            if (empty($output['auth_key'])) {
+                if (isset($output['account_exists']) && $output['account_exists'] == 1) {
+                    $output['error_message'] = 'Please, get the Access Key from the CleanTalk Control Panel (https://cleantalk.org/my/?cp_mode=antispam) and insert it in the Access Key field.';
+                }
+            } else {
+                if (empty($output['user_token'])) {
+                    $result_tmp = $api_class::methodNoticePaidTill($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
+                    if (empty($result_tmp['error'])) {
+                        $output['user_token'] = $result_tmp['user_token'];
+                    }
                 }
             }
 
