@@ -67,7 +67,8 @@ class Db extends \Cleantalk\Common\Db\Db
      */
     public function isTableExists($table_name)
     {
-        return (bool)$this->execute('SHOW TABLES LIKE "' . $table_name . '"');
+        $result = $this->fetchAll("SHOW TABLES LIKE '" . $table_name . "'");
+        return !empty($result);
     }
 
 	public function getAffectedRows()
