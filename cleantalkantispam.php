@@ -370,7 +370,9 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function serveRemoteCalls($apikey)
     {
-        if (!$this->isAdmin()) {
+        $post_form = \Cleantalk\Common\Variables\Post::get('jform');
+        $is_form_save = is_array($post_form) && isset($post_form['element']) && $post_form['element'] === 'cleantalkantispam';
+        if (!$this->isAdmin() || $is_form_save) {
             /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $remote_calls_class */
             $remote_calls_class = Mloader::get('RemoteCalls');
 
