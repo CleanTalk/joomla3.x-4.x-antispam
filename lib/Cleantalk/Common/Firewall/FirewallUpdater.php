@@ -695,7 +695,6 @@ class FirewallUpdater
 
         // ATOMIC REMOVE AND RENAME
         $result = \Cleantalk\Common\Firewall\Modules\Sfw::replaceDataTablesAtomically(
-
             $db_obj,
             $db_obj->prefix . APBCT_TBL_FIREWALL_DATA
         );

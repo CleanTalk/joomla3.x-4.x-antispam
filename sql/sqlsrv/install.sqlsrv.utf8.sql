@@ -57,3 +57,13 @@ CREATE TABLE IF NOT EXISTS `#__cleantalk_custom_storage` (
     `value` MEDIUMTEXT NULL DEFAULT NULL,
     PRIMARY KEY (`name`)
 );
+CREATE TABLE IF NOT EXISTS `#__cleantalk_rate_limits` (
+    uid VARCHAR(32) NOT NULL,
+    type VARCHAR(32) NOT NULL,
+    ip VARCHAR(45) NOT NULL,
+    ua VARCHAR(200) NOT NULL,
+    counter INT NOT NULL DEFAULT 1,
+    last_call INT NOT NULL,
+    created_at INT NOT NULL,
+    PRIMARY KEY (uid)
+);
