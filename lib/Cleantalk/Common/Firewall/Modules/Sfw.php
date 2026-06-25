@@ -175,25 +175,43 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 
             $test_status = 1;
             if ( !empty($db_results) ) {
+                // Personal lists have priority over common lists
+                // Sort: personal entries first
+                usort($db_results, function($a, $b) {
+                    return (int)$b['is_personal'] - (int)$a['is_personal'];
+                });
+
+                $result_entry = null;
                 foreach ( $db_results as $db_result ) {
-                    $result_entry = array(
+                    $is_personal = !empty($db_result['is_personal']);
+                    $entry = array(
                         'ip' => $current_ip,
                         'network' => $helper_class::ipLong2ip($db_result['network'])
                             . '/'
                             . $helper_class::ipMaskLongToNumber((int)$db_result['mask']),
-                        'is_personal' => !empty($db_result['is_personal']),
+                        'is_personal' => $is_personal,
                     );
 
                     if ( (int)$db_result['status'] === 1 ) {
-                        $result_entry['status'] = 'PASS_SFW__BY_WHITELIST';
-                        break;
+                        $entry['status'] = 'PASS_SFW__BY_WHITELIST';
                     }
                     if ( (int)$db_result['status'] === 0 ) {
                         $this->blocked_ips[] = $helper_class::ipLong2ip($db_result['network']);
-                        $result_entry['status'] = 'DENY_SFW';
+                        $entry['status'] = 'DENY_SFW';
                     }
 
-                    $test_status = (int)$db_result['status'];
+                    // Personal entry is decisive - use it and stop
+                    if ( $is_personal ) {
+                        $result_entry = $entry;
+                        $test_status = (int)$db_result['status'];
+                        break;
+                    }
+
+                    // Common entry - use as fallback if no personal found
+                    if ( $result_entry === null ) {
+                        $result_entry = $entry;
+                        $test_status = (int)$db_result['status'];
+                    }
                 }
             } else {
                 $result_entry = array(
@@ -422,7 +440,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 
         $replaces = array(
             '{JQUERY_SCRIPT_URL}' => '',
-            '{LOCALIZE_SCRIPT}' => 'var ctPublicFunctions = ' . json_encode($localize_js) . ';' .
+            '{LOCALIZE_SCRIPT}' => 'var ct_setcookie = 1; var ctPublicFunctions = ' . json_encode($localize_js) . ';' .
                 'var ctPublic = ' . json_encode($localize_js_public) . ';',
         );
 

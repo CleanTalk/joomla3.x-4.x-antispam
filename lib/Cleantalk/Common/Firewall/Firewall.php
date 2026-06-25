@@ -308,6 +308,7 @@ class Firewall
                             $result['passed_ip'] = isset($fw_result['ip']) ? $fw_result['ip'] : $fw_result['passed_ip'];
                             $result['blocked_ip'] = isset($fw_result['ip']) ? $fw_result['ip'] : $fw_result['blocked_ip'];
                             $result['pattern'] = isset($fw_result['pattern']) ? $fw_result['pattern'] : array();
+                            $result['is_personal'] = !empty($fw_result['is_personal']) ? 1 : 0;
                         }
                     }
                 }
