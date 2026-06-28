@@ -125,13 +125,16 @@ class FirewallUpdater
             ['test' => 'test']
         );
 
+        // Clear errors here
+        $this->fwStats->errors = [];
+
         // Set a new update ID and an update time start
         $this->fwStats->calls = 0;
         $this->fwStats->updating_id = md5((string)rand(0, 100000));
         $this->fwStats->updating_last_start = time();
         $fw_class::saveFwStats($this->fwStats);
 
-        if ( (defined('APBCT_SFW_DIRECT_UPDATE') && APBCT_SFW_DIRECT_UPDATE) || !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
+        if ( !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
             return $this->directUpdate();
         }
 
@@ -219,7 +222,7 @@ class FirewallUpdater
             }
         }
 
-        if ( ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) ) {
+        if ( isset($result['error'], $result['status']) && $result['status'] === 'FINISHED' ) {
             $this->updateFallback();
 
             $direct_upd_res = $this->directUpdate();
@@ -610,10 +613,6 @@ class FirewallUpdater
         $db_class = Mloader::get('Db');
         $db_obj = $db_class::getInstance();
 
-        if ( !$db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA) ) {
-            throw new SfwUpdateException('endOfUpdateRenamingTables: SFW main table does not exist');
-        }
-
         if ( !$db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp') ) {
             throw new SfwUpdateException('endOfUpdateRenamingTables: SFW temp table does not exist');
         }
@@ -622,17 +621,11 @@ class FirewallUpdater
         Firewall::saveFwStats($fw_stats);
         usleep(10000);
 
-        // REMOVE AND RENAME
-        $result = \Cleantalk\Common\Firewall\Modules\Sfw::dataTablesDelete(
+        // ATOMIC REMOVE AND RENAME
+        $result = \Cleantalk\Common\Firewall\Modules\Sfw::replaceDataTablesAtomically(
             $db_obj,
             $db_obj->prefix . APBCT_TBL_FIREWALL_DATA
         );
-        if ( empty($result['error']) ) {
-            $result = \Cleantalk\Common\Firewall\Modules\Sfw::renameDataTablesFromTempToMain(
-                $db_obj,
-                $db_obj->prefix . APBCT_TBL_FIREWALL_DATA
-            );
-        }
 
         $fw_stats->update_mode = 0;
         Firewall::saveFwStats($fw_stats);
@@ -730,7 +723,6 @@ class FirewallUpdater
         ) ? APBCT_CRON_HANDLER__SFW_UPDATE : 'apbct_sfw_update__init';
         $cron->updateTask('sfw_update', $sfw_update_handler, $fw_stats->update_period);
         $cron->removeTask('sfw_update_checker');
-
 
         self::removeUpdDir($fw_stats->updating_folder);
 
@@ -999,9 +991,11 @@ class FirewallUpdater
     private function saveSfwUpdateError(SfwUpdateException $e)
     {
         $fw_stats = Firewall::getFwStats();
-        $fw_stats->errors[] = $e->getMessage();
+        $fw_stats->errors[time()] = $e->getMessage();
         Firewall::saveFwStats($fw_stats);
-        error_log($e->getMessage());
+        if ( $this->debug ) {
+            error_log($e->getMessage());
+        }
     }
 
     /**

@@ -55,6 +55,7 @@ class DbTablesCreator
         $db_schema = Schema::getStructureSchemas();
         $schema_prefix = Schema::getSchemaTablePrefix();
         $table_key = explode($schema_prefix, $table_name)[1];
+        $table_key = str_replace('_temp', '', $table_key);
 
         $sql = 'CREATE TABLE IF NOT EXISTS `' . $table_name . '` (';
         foreach ($db_schema[$table_key] as $column_name => $column_params) {

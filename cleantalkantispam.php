@@ -3,7 +3,7 @@
 /**
  * CleanTalk joomla plugin
  *
- * @version       3.2.6
+ * @version       3.3.0
  * @package       Cleantalk
  * @subpackage    Joomla
  * @author        CleanTalk (welcome@cleantalk.org)
@@ -34,10 +34,6 @@ jimport('joomla.application.application');
 jimport('joomla.application.web');
 jimport('joomla.application.component.helper');
 
-// Sessions
-define('APBCT_SESSION__LIVE_TIME', 86400*2);
-define('APBCT_SESSION__CHANCE_TO_CLEAN', 100);
-
 // Autoload
 require_once(dirname(__FILE__) . '/lib/autoload.php');
 
@@ -50,6 +46,7 @@ use Cleantalk\Common\Mloader\Mloader;
 
 use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Server;
+use Cleantalk\Custom\AltCookies;
 use Cleantalk\Custom\ConnectionReports;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
@@ -61,6 +58,7 @@ define('APBCT_TBL_FIREWALL_LOG',  'cleantalk_sfw_logs'); // Table with firewall 
 define('APBCT_TBL_AC_LOG',        'cleantalk_ac_log');   // Table with firewall logs.
 define('APBCT_TBL_AC_UA_BL',      'cleantalk_ua_bl');    // Table with User-Agents blacklist.
 define('APBCT_TBL_SESSIONS',      'cleantalk_sessions'); // Table with session data.
+define('APBCT_RATE_LIMITS',       'cleantalk_rate_limits'); // Table with different rate limits data.
 !defined('APBCT_TBL_STORAGE') && define('APBCT_TBL_STORAGE', 'cleantalk_custom_storage'); // Table with session data.
 define('APBCT_SFW_SEND_LOGS_LIMIT', 1000);
 define('APBCT_SPAMSCAN_LOGS',     'cleantalk_spamscan_logs'); // Table with session data.
@@ -76,7 +74,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * Plugin version string for server
      * @since         1.0
      */
-    const ENGINE = 'joomla34-326';
+    const ENGINE = 'joomla34-330';
 
     /**
      * Flag marked JComments form initialization.
@@ -295,19 +293,86 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         $app = JFactory::getApplication();
 
-
-        //cutting trims on early save
-        //php 8.1 trim deprecated on null fixed
-        if ( is_null($this->params->get('apikey')) ) {
-            $apikey = '';
-        } else {
-            $apikey = trim($this->params->get('apikey'));
-        }
+        $apikey = is_null($this->params->get('apikey')) ? '' : trim($this->params->get('apikey'));
         $save_params['apikey'] = $apikey;
 
-        if (!$this->isAdmin())
-        {
-            // Remote calls
+        $this->serveRemoteCalls($apikey);
+
+        // Handle admin panel actions
+        if ($this->isAdmin() && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id) {
+            if (!empty($_POST) && !Session::checkToken('post')) {
+                http_response_code(403);
+                die(Text::_('JINVALID_TOKEN'));
+            }
+
+            $user = method_exists($app, 'getIdentity') ? $app->getIdentity() : JFactory::getUser();
+            if ($user->guest || !$user->authorise('core.admin')) {
+                http_response_code(403);
+                die(Text::_('JERROR_ALERTNOAUTHOR'));
+            }
+
+            $this->serveCronActions();
+
+            // Close review banner
+            if (isset($_POST['ct_delete_notice']) && $_POST['ct_delete_notice'] === 'yes') {
+                $save_params['show_review_done'] = 1;
+            }
+
+            $output = null;
+
+            // Handle connection reports
+            $connection_reports = $this->params->get('connection_reports')
+                ? json_decode(json_encode($this->params->get('connection_reports')), true)
+                : ConnectionReports::getClearReports();
+            $connection_reports = ConnectionReports::validate($connection_reports);
+            $connection_reports = ConnectionReports::filter($connection_reports);
+            if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes') {
+                $sending_result = ConnectionReports::sendMail($connection_reports, JFactory::getConfig()->get('mailfrom'));
+                $output['result']                  = $sending_result ? 'success' : 'error';
+                $output['data']                    = $sending_result ? 'Success.' : 'Something went wrong.';
+                if ($sending_result) {
+                    $connection_reports = ConnectionReports::getClearReports();
+                }
+            }
+            $save_params['connection_reports'] = $connection_reports;
+
+            $this->saveCTConfig($save_params);
+
+            /** @var \Cleantalk\Common\Api\Api $api_class */
+            $api_class = Mloader::get('Api');
+
+            // Getting key automatically
+            if (isset($_POST['get_auto_key']) && $_POST['get_auto_key'] === 'yes') {
+                $output = $this->gettingKeyAutomatically($api_class);
+            }
+
+            // Check spam comments
+            if (isset($_POST['check_type']) && $_POST['check_type'] === 'comments') {
+                $output = $this->checkSpamComments();
+            }
+
+            // Delete spam comments
+            if (isset($_POST['ct_del_comment_ids'])) {
+                $output = $this->deleteSpamComments();
+            }
+
+            if ($output !== null) {
+                print json_encode($output);
+                $mainframe = JFactory::getApplication();
+                $mainframe->close();
+                die();
+            }
+        }
+    }
+
+    /**
+     * Serve remote calls
+     */
+    private function serveRemoteCalls($apikey)
+    {
+        $post_form = \Cleantalk\Common\Variables\Post::get('jform');
+        $is_form_save = is_array($post_form) && isset($post_form['element']) && $post_form['element'] === 'cleantalkantispam';
+        if (!$this->isAdmin() || $is_form_save) {
             /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $remote_calls_class */
             $remote_calls_class = Mloader::get('RemoteCalls');
 
@@ -324,107 +389,96 @@ class plgSystemCleantalkantispam extends JPlugin
                 }
             }
         }
+    }
 
-        if ($this->isAdmin() && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id)
-        {
-            $output      = null;
-            /** @var \Cleantalk\Common\Api\Api $api_class */
-            $api_class = Mloader::get('Api');
+    /**
+     * Getting key automatically
+     * @param \Cleantalk\Common\Api\Api $api_class
+     * @return array|string
+     */
+    private function gettingKeyAutomatically($api_class)
+    {
+        try {
+            $output = $api_class::methodGetApiKey('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
 
-            // Close review banner
-            if (isset($_POST['ct_delete_notice']) && $_POST['ct_delete_notice'] === 'yes')
-                $save_params['show_review_done'] = 1;
-
-            // Getting key automatically
-            if (isset($_POST['get_auto_key']) && $_POST['get_auto_key'] === 'yes')
-            {
-                $output = $api_class::methodGetApiKey('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
-
-	            if ( isset($output['account_exists']) && $output['account_exists'] == 1) {
-		            $output['error_message'] = sprintf(
-			            'Please, get the Access Key from %s CleanTalk Control Panel %s and insert it in the Access Key field',
-			            '<a href="https://cleantalk.org/my/?cp_mode=antispam" target="_blank">',
-			            '</a>'
-		            );
-	            }
-
-                // Checks if the user token is empty, then get user token by notice_paid_till()
-                if( empty( $output['user_token'] ) && ! empty( $output['auth_key'] ) ){
-
+            if (empty($output['auth_key'])) {
+                if (isset($output['account_exists']) && $output['account_exists'] == 1) {
+                    $output['error_message'] = 'Please, get the Access Key from the CleanTalk Control Panel (https://cleantalk.org/my/?cp_mode=antispam) and insert it in the Access Key field.';
+                }
+            } else {
+                if (empty($output['user_token'])) {
                     $result_tmp = $api_class::methodNoticePaidTill($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
-
-                    if( empty( $result_tmp['error'] ) )
+                    if (empty($result_tmp['error'])) {
                         $output['user_token'] = $result_tmp['user_token'];
-
+                    }
                 }
             }
 
-            // Check spam comments
-            if (isset($_POST['check_type']) && $_POST['check_type'] === 'comments')
-            {
-                $improved_check = ($_POST['improved_check'] === 'true') ? true : false;
-                $offset         = isset($_POST['offset']) ? $_POST['offset'] : 0;
-                $on_page        = isset($_POST['amount']) ? $_POST['amount'] : 2;
-                $output         = $this->get_spam_comments($offset, $on_page, $improved_check);
-            }
-            if (isset($_POST['ct_del_comment_ids']))
-            {
-                $spam_comments    = implode(',', $_POST['ct_del_comment_ids']);
-                $output['result'] = null;
-                $output['data']   = null;
-                try
-                {
-                    $this->delete_comments($spam_comments);
-                    $output['result'] = 'success';
-                    $output['data']   = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($_POST['ct_del_comment_ids']));
-                }
-                catch (Exception $e)
-                {
-                    $output['result'] = 'error';
-                    $output['data']   = $e->getMessage();
-                }
-            }
+            return $output;
 
-            // handle connection reports
-            $connection_reports = $this->params->get('connection_reports')
-                ? json_decode(json_encode($this->params->get('connection_reports')), true)
-                : ConnectionReports::getClearReports();
-            $connection_reports = ConnectionReports::validate($connection_reports);
-            $connection_reports = ConnectionReports::filter($connection_reports);
-            if (isset($_POST['send_connection_report']) && $_POST['send_connection_report'] === 'yes') {
-                $sending_result = ConnectionReports::sendMail($connection_reports, JFactory::getConfig()->get('mailfrom'));
+        } catch ( \Exception $exception ) {
+            error_log(var_export('Exception: ' . $exception->getMessage(), 1));
+            return array('error_message' => $exception->getMessage());
+        }
+    }
 
-                $output['result']                  = $sending_result ? 'success' : 'error';
-                $output['data']                    = $sending_result ? 'Success.' : 'Something went wrong.';
-                if ($sending_result) {
-                    $connection_reports = ConnectionReports::getClearReports();
-                }
-            }
-            $save_params['connection_reports'] = $connection_reports;
+    /**
+     * Check spam comments
+     * @return array|string
+     */
+    private function checkSpamComments()
+    {
+        $improved_check = isset($_POST['improved_check']) && $_POST['improved_check'] === 'true';
+        $offset  = isset($_POST['offset']) ? (int) $_POST['offset'] : 0;
+        $on_page = isset($_POST['amount']) ? (int) $_POST['amount'] : 2;
 
-            // Serve buttons
-            if (isset($_POST['ct_serve_run_cron_sfw_send_logs']) && $_POST['ct_serve_run_cron_sfw_send_logs'] === 'yes') {
-                /** @var \Cleantalk\Common\Cron\Cron $cron_class */
-                $cron_class = Mloader::get('Cron');
-                $cron_class = new $cron_class;
-                $cron_class->serveCronActions('sfw_send_logs', time() + 120);
-            }
-            if (isset($_POST['ct_serve_run_cron_sfw_update']) && $_POST['ct_serve_run_cron_sfw_update'] === 'yes') {
-                /** @var \Cleantalk\Common\Cron\Cron $cron_class */
-                $cron_class = Mloader::get('Cron');
-                $cron_class = new $cron_class;
-                $cron_class->serveCronActions('sfw_update', time() + 120);
-            }
+        return $this->get_spam_comments($offset, $on_page, $improved_check);
+    }
 
-            $this->saveCTConfig($save_params);
+    /**
+     * Delete spam comments
+     * @return array|string
+     */
+    private function deleteSpamComments()
+    {
+        $ids = array_values(array_filter(array_map('intval', (array) ($_POST['ct_del_comment_ids'] ?? array()))));
+        if (empty($ids)) {
+            return array(
+                'result' => 'error',
+                'data'   => Text::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR'),
+            );
+        }
+        $spam_comments = implode(',', $ids);
+        $output = array('result' => null, 'data' => null);
 
-            if ($output !== null)
-            {
-                print json_encode($output);
-                $mainframe = JFactory::getApplication();
-                $mainframe->close();
-                die();
-            }
+        try {
+            $this->delete_comments($spam_comments);
+            $output['result'] = 'success';
+            $output['data']   = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELDONE', count($ids));
+        } catch (Exception $e) {
+            $output['result'] = 'error';
+            $output['data']   = $e->getMessage();
+        }
+
+        return $output;
+    }
+
+    /**
+     * Serve cron actions by button in admin panel
+     */
+    private function serveCronActions()
+    {
+        if (isset($_POST['ct_serve_run_cron_sfw_send_logs']) && $_POST['ct_serve_run_cron_sfw_send_logs'] === 'yes') {
+            /** @var \Cleantalk\Common\Cron\Cron $cron_class */
+            $cron_class = Mloader::get('Cron');
+            $cron_class = new $cron_class;
+            $cron_class->serveCronActions('sfw_send_logs', time() + 120);
+        }
+        if (isset($_POST['ct_serve_run_cron_sfw_update']) && $_POST['ct_serve_run_cron_sfw_update'] === 'yes') {
+            /** @var \Cleantalk\Common\Cron\Cron $cron_class */
+            $cron_class = Mloader::get('Cron');
+            $cron_class = new $cron_class;
+            $cron_class->serveCronActions('sfw_update', time() + 120);
         }
     }
 
@@ -998,14 +1052,33 @@ class plgSystemCleantalkantispam extends JPlugin
             // SP Builder Forms integration
             elseif ( $app->input->get('option') === 'com_sppagebuilder' )
             {
+                //excluded fields
+                $excluded_fields = [
+                    'addon_id',
+                    'email_subject',
+                    'email_template',
+                    'form_id',
+                    'success_message',
+                    'failed_message',
+                    'g-recaptcha-response',
+                    'captcha_type',
+                    'view_type',
+                    'from_name',
+                    'from_email',
+                ];
                 $post_processed = array();
                 if (isset($_POST['data'])) {
                     foreach( $_POST['data'] as $item => $value ) {
-                        if( $value['name'] === 'from_name' || $value['name'] === 'from_email' ) {
-                            // These are the service fields
-                            continue;
+                        // These are the service fields
+                        if (isset($value['name']) && isset($value['value'])) {
+                            if( in_array( $value['name'], $excluded_fields ) ) {
+                                continue;
+                            }
+                            if (strpos($value['name'], 'dsgvo') !== false) {
+                                continue;
+                            }
+                            $post_processed[$value['name']] = $value['value'];
                         }
-                        $post_processed[$value['name']] = $value['value'];
                     }
                 } else {
                     $post_processed = $_POST;
@@ -1162,8 +1235,15 @@ class plgSystemCleantalkantispam extends JPlugin
                             {
                                 if ($app->input->get('option') == 'com_baforms')
                                 {
-                                    echo '<input id="form-sys-mesage" type="hidden" value="' . htmlspecialchars($ctResponse['comment'], ENT_QUOTES) . '">';
-                                    print "<script>var obj = { type : 'baform', msg : document.getElementById('form-sys-mesage').value }; window.parent.postMessage(obj, '*');</script>";
+                                    if (!headers_sent()) {
+                                        header('Content-Type: application/json; charset=UTF-8');
+                                    }
+                                    echo json_encode(array(
+                                        'status'        => false,
+                                        'message'       => strip_tags($ctResponse['comment']),
+                                        'isClosed'      => false,
+                                        'closedMessage' => '',
+                                    ));
                                     die();
                                 }
                                 elseif (JFactory::getApplication()->input->get('option') == 'com_igallery' && JFactory::getApplication()->input->get('task') == 'imagefront.addComment')
@@ -1203,7 +1283,10 @@ class plgSystemCleantalkantispam extends JPlugin
                                 } elseif (
                                     $app->input->get('option') === 'com_sppagebuilder' &&
                                     !isset($app->input->get('form')['formId']) &&
-                                    JFactory::getApplication()->input->get('option') === 'com_ajax'
+                                    (
+                                        JFactory::getApplication()->input->get('option') === 'com_ajax' ||
+                                        JFactory::getApplication()->input->get('option') === 'com_sppagebuilder' //https://app.doboard.com/1/task/48828
+                                    )
                                 ) {
                                     $output['status'] = false;
                                     $output['content'] = '<span class="sppb-text-danger">' . $ctResponse['comment'] . '</span>';
@@ -1577,14 +1660,16 @@ class plgSystemCleantalkantispam extends JPlugin
     /**
      * The spot to handle all ajax request for the plugin
      *
-     * @return string[]|void
+     * @return string
      *
      * @throws Exception
      * @since version
      */
     public function onAjaxCleantalkantispam() {
         Session::checkToken('get') or die(Text::_('JINVALID_TOKEN'));
+
         $data = Factory::getApplication()->input->json->getArray();
+
         if ( isset($data['action']) ) {
             switch ($data['action']) {
                 case 'dismiss_notice' :
@@ -1612,37 +1697,9 @@ class plgSystemCleantalkantispam extends JPlugin
 					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
 					return $users_checker->getResponse();
 	            case 'set_alt_cookies' :
-		            self::_apbct_alt_sessions__remove_old();
-
-		            // To database
-		            $db = JFactory::getDbo();
-		            $columns = array(
-			            'id',
-			            'name',
-			            'value',
-			            'last_update'
-		            );
-					$values = array();
-		            $query = $db->getQuery(true);
-		            $query->insert($db->quoteName('#__cleantalk_sessions'));
-		            $query->columns($db->quoteName($columns));
-					unset($data['action']);
-
-					foreach ($data as $cookie_name => $cookie_value) {
-						$values[] = implode(',', array(
-							$db->quote(self::_apbct_alt_session__id__get()),
-							$db->quote($cookie_name),
-							$db->quote($cookie_value),
-							$db->quote(date('Y-m-d H:i:s'))
-						));
-					}
-
-		            $query->values($values);
-
-		            $db->setQuery($query . '  ON DUPLICATE KEY UPDATE value=VALUES(value), last_update=VALUES(last_update);');
-		            $db->execute();
-
-		            return ('XHR OK');
+		            unset($data['action']);
+		            AltCookies::removeOld();
+					return AltCookies::setFromRemote($data);
 	            case 'check_ajax':
                     $ctResponse = $this->ctSendRequest('check_newuser', array());
 
@@ -1654,13 +1711,13 @@ class plgSystemCleantalkantispam extends JPlugin
                         return json_encode(['allow' => 1, 'msg' => '']);
                     }
 
-                    return ['error' => 'Not working'];
+                    return json_encode(['error' => 'Not working']);
 
                 default :
-                    return ['error' => 'Wrong action was provided'];
+                    return json_encode(['error' => 'Wrong action was provided']);
             }
         }
-        return ['error' => 'No action was provided'];
+        return json_encode(['error' => 'No action was provided']);
     }
 
     ////////////////////////////
@@ -2027,8 +2084,14 @@ class plgSystemCleantalkantispam extends JPlugin
 		        return;
 	        }
 
-            if ($this->params->get('ct_skip_registered_users') && !JFactory::getUser()->guest)
+            if ($this->params->get('ct_skip_registered_users') && !JFactory::getUser()->guest) {
                 return;
+            }
+
+            //com_gdpr return https://app.doboard.com/1/task/48834
+            if (JFactory::getApplication()->input->get('option') === 'com_gdpr') {
+                return;
+            }
 
             $ct_request = new CleantalkRequest;
 
@@ -2325,96 +2388,27 @@ class plgSystemCleantalkantispam extends JPlugin
         }
     }
 
-    private function ct_setcookie( $name, $value )
+    private function ct_setcookie($name, $value)
     {
         if( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
-
-            self::_apbct_alt_sessions__remove_old();
-
+			AltCookies::removeOld();
             // To database
-            $db = JFactory::getDbo();
-            $query = $db->getQuery(true);
-
-            $columns = array('id', 'name', 'value', 'last_update');
-            $values = array($db->quote(self::_apbct_alt_session__id__get()), $db->quote($name), $db->quote($value), $db->quote(date('Y-m-d H:i:s')));
-            $query
-                ->insert($db->quoteName('#__cleantalk_sessions'))
-                ->columns($db->quoteName($columns))
-                ->values(implode(',', $values));$db->setQuery($query . '  ON DUPLICATE KEY UPDATE ' . $db->quoteName('value') . ' = '.$db->quote($value).', ' . $db->quoteName('last_update') . ' = ' . $db->quote(date('Y-m-d H:i:s')));
-            $db->execute();
-
-        } else {
+	        AltCookies::set($name, $value);
+		} else {
             // To cookies
             Cookie::set($name, $value);
         }
     }
 
-    private function ct_getcookie( $name )
+    private function ct_getcookie($name)
     {
         if ( $this->params->get('ct_use_alternative_cookies') || $this->params->get('ct_set_cookies') == 2 ) {
-
-            // From database
-            $db = JFactory::getDbo();
-            $query = $db->getQuery(true);
-
-            $query->select($db->quoteName(array('value')));
-            $query->from($db->quoteName('#__cleantalk_sessions'));
-            $query->where($db->quoteName('id') . ' = '. $db->quote(self::_apbct_alt_session__id__get()));
-            $query->where($db->quoteName('name') . ' = '. $db->quote($name));
-            $db->setQuery($query);
-            $value = $db->loadResult();
-
-            if ( ! is_null($value) ) {
-                return $value;
-            } else {
-                return null;
-            }
-
-        } else {
-
-            // From cookies
-            if (isset($_COOKIE[$name])) {
-                return $_COOKIE[$name];
-            } else {
-                return null;
-            }
-
+			// From database
+			return AltCookies::get($name);
         }
-    }
 
-    /**
-     * Clean 'cleantalk_sessions' table
-     */
-    static private function _apbct_alt_sessions__remove_old()
-    {
-        if (rand(0, 1000) < APBCT_SESSION__CHANCE_TO_CLEAN) {
-
-            $db = JFactory::getDbo();
-            $query = $db->getQuery(true);
-
-            $query->delete($db->quoteName('#__cleantalk_sessions'));
-            $query->where($db->quoteName('last_update') . ' < NOW() - INTERVAL '. APBCT_SESSION__LIVE_TIME .' SECOND');
-
-            $db->setQuery($query);
-            $db->execute();
-
-        }
-    }
-
-    /**
-     * Get hash session ID
-     *
-     * @return string
-     */
-    static private function _apbct_alt_session__id__get()
-    {
-        /** @var \Cleantalk\Common\Helper\Helper $helper_class */
-        $helper_class = Mloader::get('Helper');
-
-        $id = $helper_class::ipGet('real')
-            . filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')
-            . filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE');
-        return hash('sha256', $id);
+		// From cookies
+	    return $_COOKIE[$name] ?? null;
     }
 
     private function get_spam_comments($offset = 0, $on_page = 20, $improved_check = false)

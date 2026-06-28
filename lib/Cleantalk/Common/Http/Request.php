@@ -217,7 +217,7 @@ class Request
         $curl_info      = curl_getinfo($ch); // Gather HTTP response information
 
         // Do not catch timeout error for async requests.
-        if( in_array('async', $this->presets, true) ){
+        if ( in_array('async', $this->presets, true) ) {
             $request_result = true;
         }
 
@@ -225,7 +225,9 @@ class Request
             $request_result = array('error' => curl_error($ch));
         }
 
-        curl_close($ch);
+        if ( version_compare(PHP_VERSION, '8.0.0', '<') ) {
+            curl_close($ch);
+        }
 
 
         return new Response($request_result, $curl_info);
@@ -262,7 +264,7 @@ class Request
             $received_data = curl_multi_getcontent($curl_arr[$i]);
 
             // Do not catch timeout error for async requests.
-            if( in_array('async', $this->presets, true) ){
+            if ( in_array('async', $this->presets, true) ) {
                 $received_data = true;
             }
 
@@ -417,10 +419,10 @@ class Request
         $this->options = array_replace(
             array(
                 CURLOPT_URL            => ! is_array($this->url) ? $this->url : null,
-                CURLOPT_TIMEOUT        => 75,
-                CURLOPT_LOW_SPEED_TIME => 25,
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_LOW_SPEED_TIME => 7,
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_CONNECTTIMEOUT => 10000,
+                CURLOPT_CONNECTTIMEOUT => 5000,
                 CURLOPT_FORBID_REUSE   => true,
                 CURLOPT_USERAGENT      => self::AGENT,
                 CURLOPT_POST           => true,

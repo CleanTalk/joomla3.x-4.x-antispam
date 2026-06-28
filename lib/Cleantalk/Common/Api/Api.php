@@ -2,7 +2,7 @@
 
 namespace Cleantalk\Common\Api;
 
-use Cleantalk\Common\Http\Request;
+use Cleantalk\Common\Mloader\Mloader;
 
 /**
  * CleanTalk API class.
@@ -795,7 +795,9 @@ class Api
         // Possibility to switch API url
         $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $_url;
 
-        $http = new Request();
+        /** @var \Cleantalk\Common\Http\Request $request_class */
+        $request_class = Mloader::get('Http\Request');
+        $http = new $request_class();
 
         return $http->setUrl($url)
                     ->setData($data)
