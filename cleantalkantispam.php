@@ -305,7 +305,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 die(Text::_('JINVALID_TOKEN'));
             }
 
-            $user = method_exists($app, 'getIdentity') ? $app->getIdentity() : JFactory::getUser();
+            $user = JFactory::getUser();
             if ($user->guest || !$user->authorise('core.admin')) {
                 http_response_code(403);
                 die(Text::_('JERROR_ALERTNOAUTHOR'));
