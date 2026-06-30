@@ -36,7 +36,7 @@ class Db extends \Cleantalk\Common\Db\Db
      * @return array|object|void|null
      */
     public function fetch( $query = '', $response_type = false ) {
-		$query = $this->getQuery() ?: $query;
+		$query = $query ?: $this->getQuery();
         $this->result = \JFactory::getDBO()->setQuery($query)->loadAssoc();
 
         return $this->result;

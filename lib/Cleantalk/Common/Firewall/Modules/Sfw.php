@@ -429,8 +429,6 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
     {
         parent::diePage($result);
 
-        http_response_code(403);
-
         $localize_js = array(
             'sfw__random_get' => '1',
         );
@@ -560,20 +558,75 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
     {
         /** @var \Cleantalk\Common\Api\Api $api_class */
         $api_class = Mloader::get('Api');
+        /** @var \Cleantalk\Common\Helper\Helper $helper_class */
+        $helper_class = Mloader::get('Helper');
 
-        // Getting remote file name
-        $result = $api_class::methodGet2sBlacklistsDb($api_key, null, '3_1');
+        // Getting common blacklists via multifiles v3_2 (common_lists=1 means ONLY common)
+        $result = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_2', 1);
 
-        if ( empty($result['error']) ) {
-            return array(
-                'blacklist' => isset($result['data']) ? $result['data'] : null,
-                'useragents' => isset($result['data_user_agents']) ? $result['data_user_agents'] : null,
-                'bl_count' => isset($result['networks_count']) ? $result['networks_count'] : null,
-                'ua_count' => isset($result['ua_count']) ? $result['ua_count'] : null,
-            );
+        if ( !empty($result['error']) ) {
+            return $result;
         }
 
-        return $result;
+        if ( empty($result['file_url']) ) {
+            return array('error' => 'COMMON_LISTS_FILE_URL_IS_EMPTY');
+        }
+
+        // Get the index of file URLs from the multifiles response
+        $file_urls = $helper_class::httpGetDataFromRemoteGzAndParseCsv($result['file_url']);
+        if ( !empty($file_urls['error']) ) {
+            return array('error' => 'COMMON_LISTS_GET_INDEX: ' . $file_urls['error']);
+        }
+
+        // Download and parse each common list file from the index
+        $all_entries = array();
+
+        foreach ( $file_urls as $file_url_entry ) {
+            if ( empty($file_url_entry[0]) ) {
+                continue;
+            }
+
+            $url = $file_url_entry[0];
+
+            $file_data = $helper_class::httpGetDataFromRemoteGz($url);
+            if ( !is_string($file_data) ) {
+                continue;
+            }
+
+            $parsed = $helper_class::bufferParseCsv($file_data);
+            if ( !is_array($parsed) ) {
+                continue;
+            }
+
+            foreach ( $parsed as $entry ) {
+                if ( !empty($entry[0]) && !empty($entry[1]) ) {
+                    $all_entries[] = $entry;
+                }
+            }
+        }
+
+        // Get useragents from separate API response field
+        $useragents = null;
+        if ( !empty($result['file_ua_url']) ) {
+            $ua_data = $helper_class::httpGetDataFromRemoteGz($result['file_ua_url']);
+            if ( is_string($ua_data) ) {
+                $useragents = $helper_class::bufferParseCsv($ua_data);
+                if ( !is_array($useragents) ) {
+                    $useragents = null;
+                }
+            }
+        }
+
+        if ( empty($all_entries) ) {
+            return array('error' => 'COMMON_LISTS_NO_ENTRIES');
+        }
+
+        return array(
+            'blacklist' => $all_entries,
+            'useragents' => $useragents,
+            'bl_count' => count($all_entries),
+            'ua_count' => is_array($useragents) ? count($useragents) : 0,
+        );
     }
 
     public static function directUpdateGetBlackListsPersonal($api_key)
@@ -615,12 +668,12 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             }
 
             $file_data = $helper_class::httpGetDataFromRemoteGz($url);
-            if ( !empty($file_data['error']) || !is_string($file_data) ) {
+            if ( !is_string($file_data) ) {
                 continue;
             }
 
             $parsed = $helper_class::bufferParseCsv($file_data);
-            if ( !empty($parsed['error']) ) {
+            if ( !is_array($parsed) ) {
                 continue;
             }
 
