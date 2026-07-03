@@ -1111,8 +1111,12 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                 throw new \Exception($db->getLastError());
             }
 
-            $success_count = $db_result === 1 ? $success_count + 1 : $success_count;
-            $ignored_count = $db_result === 0 ? $ignored_count + 1 : $ignored_count;
+            $affected = (int)$db->getAffectedRows();
+            if ( $affected === 0 ) {
+                $ignored_count++;
+            } else {
+                $success_count += $affected;
+            }
         }
 
         return array(
