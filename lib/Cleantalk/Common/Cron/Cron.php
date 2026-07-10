@@ -237,7 +237,7 @@ class Cron
         $storage_handler_class = new $storage_handler_class();
 
         // No tasks to run
-        if ( empty($this->tasks) || $storage_handler_class->getSetting('cleantalk_cron_pid') !== $this->id ) {
+        if ( empty($this->tasks) || (string)$storage_handler_class->getSetting('cleantalk_cron_pid') !== (string)$this->id ) {
             return false;
         }
 
