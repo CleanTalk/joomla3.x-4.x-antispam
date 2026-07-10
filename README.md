@@ -1,6 +1,6 @@
-Anti-spam plugin for Joomla 3.X.-4.x-5.x-6.x
+Anti-spam plugin for Joomla 3.x-4.x-5.x-6.x
 ============
-Version 3.3.0
+Version 3.4.0
 =======
 
 ## Simple antispam test
