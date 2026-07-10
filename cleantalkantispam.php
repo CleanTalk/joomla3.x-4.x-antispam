@@ -54,6 +54,7 @@ use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
 
 define('APBCT_TBL_FIREWALL_DATA', 'cleantalk_sfw');      // Table with firewall data.
+define('APBCT_TBL_FIREWALL_DATA_PERSONAL', 'cleantalk_sfw_personal'); // Table with personal firewall data.
 define('APBCT_TBL_FIREWALL_LOG',  'cleantalk_sfw_logs'); // Table with firewall logs.
 define('APBCT_TBL_AC_LOG',        'cleantalk_ac_log');   // Table with firewall logs.
 define('APBCT_TBL_AC_UA_BL',      'cleantalk_ua_bl');    // Table with User-Agents blacklist.
@@ -370,23 +371,20 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function serveRemoteCalls($apikey)
     {
-        $post_form = \Cleantalk\Common\Variables\Post::get('jform');
-        $is_form_save = is_array($post_form) && isset($post_form['element']) && $post_form['element'] === 'cleantalkantispam';
-        if (!$this->isAdmin() || $is_form_save) {
-            /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $remote_calls_class */
-            $remote_calls_class = Mloader::get('RemoteCalls');
+        /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $remote_calls_class */
+        $remote_calls_class = Mloader::get('RemoteCalls');
 
+        // Check for RC parameters first - RC must be processed regardless of admin area
+        if ( $remote_calls_class::check() ) {
             /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler */
             $storage_handler = Mloader::get('StorageHandler');
 
-            if( $remote_calls_class::check() ) {
-                $remote_calls = new $remote_calls_class( $apikey, new $storage_handler() );
-                try {
-                    die ($remote_calls->process());
-                } catch ( \Cleantalk\Common\RemoteCalls\Exceptions\RemoteCallsException $exception ) {
-                    error_log(var_export('RC error: ' . $exception->getMessage(),1));
-                    die ('FAIL ' . json_encode(array('error' => $exception->getMessage())));
-                }
+            $remote_calls = new $remote_calls_class( $apikey, new $storage_handler() );
+            try {
+                die ($remote_calls->process());
+            } catch ( \Cleantalk\Common\RemoteCalls\Exceptions\RemoteCallsException $exception ) {
+                error_log(var_export('RC error: ' . $exception->getMessage(),1));
+                die ('FAIL ' . json_encode(array('error' => $exception->getMessage())));
             }
         }
     }

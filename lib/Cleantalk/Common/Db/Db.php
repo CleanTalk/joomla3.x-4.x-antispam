@@ -165,15 +165,27 @@ abstract class Db
         return 'Not implemented';
     }
 
-  public function sfwGetFromBlacklist($table_name, $needles, $current_ip_v4)
+  public function sfwGetFromBlacklist($table_name, $personal_table_name, $needles, $current_ip_v4)
   {
-    return "SELECT
-				network, mask, status, source
+     $query = "(SELECT
+				network, mask, status, source, 0 as is_personal
 				FROM " . $table_name . "
 				WHERE network IN (" . implode(',', $needles) . ")
-				AND	network = " . $current_ip_v4 . " & mask
-				AND " . rand(1, 100000) . "
-				ORDER BY status DESC LIMIT 1";
+				AND	network = " . $current_ip_v4 . " & mask 
+				AND " . rand(1, 100000) . "  
+				ORDER BY status DESC LIMIT 1)";
+
+      // Add personal table UNION if available
+      if ( $personal_table_name && $this->isTableExists($personal_table_name) ) {
+          $query .= " UNION (SELECT
+              network, mask, status, NULL as source, 1 as is_personal
+              FROM " . $personal_table_name . "
+              WHERE network IN (" . implode(',', $needles) . ")
+              AND	network = " . $current_ip_v4 . " & mask 
+              AND " . rand(1, 100000) . "  
+              ORDER BY status DESC LIMIT 1)";
+      };
+      return $query;
   }
 
   public function acGetFromBlacklist($table, $ip, $sign)

@@ -15,6 +15,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
     public $module_name = 'SFW';
 
     private $test_status;
+    private $test_entry;
     private $blocked_ips = array();
 
     /**
@@ -26,6 +27,11 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
      * @var string|null
      */
     private $db__table__data;
+
+    /**
+     * @var string|null
+     */
+    private $db__table__data_personal;
 
     /**
      * @var string|null
@@ -51,6 +57,13 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 
         $this->db__table__data = $db->prefix . $data_table ?: null;
         $this->db__table__logs = $db->prefix . $log_table ?: null;
+
+        // Set personal table name from params or default
+        if ( !empty($params['data_table_personal']) ) {
+            $this->db__table__data_personal = $db->prefix . $params['data_table_personal'];
+        } elseif ( defined('APBCT_TBL_FIREWALL_DATA_PERSONAL') ) {
+            $this->db__table__data_personal = $db->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL;
+        }
 
         foreach ( $params as $param_name => $param ) {
             $this->$param_name = isset($this->$param_name) ? $param : false;
@@ -157,36 +170,53 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             }
             $needles = array_unique($needles);
 
-            $query = $this->db->sfwGetFromBlacklist($this->db__table__data, $needles, $current_ip_v4);
-
+            $query = $this->db->sfwGetFromBlacklist($this->db__table__data, $this->db__table__data_personal, $needles, $current_ip_v4);
             $db_results = $this->db->fetchAll($query);
 
             $test_status = 1;
             if ( !empty($db_results) ) {
+                // Personal lists have priority over common lists
+                // Sort: personal entries first
+                usort($db_results, function($a, $b) {
+                    return (int)$b['is_personal'] - (int)$a['is_personal'];
+                });
+
+                $result_entry = null;
                 foreach ( $db_results as $db_result ) {
-                    $result_entry = array(
+                    $is_personal = !empty($db_result['is_personal']);
+                    $entry = array(
                         'ip' => $current_ip,
                         'network' => $helper_class::ipLong2ip($db_result['network'])
                             . '/'
                             . $helper_class::ipMaskLongToNumber((int)$db_result['mask']),
-                        'is_personal' => $db_result['source'],
+                        'is_personal' => $is_personal,
                     );
 
                     if ( (int)$db_result['status'] === 1 ) {
-                        $result_entry['status'] = 'PASS_SFW__BY_WHITELIST';
-                        break;
+                        $entry['status'] = 'PASS_SFW__BY_WHITELIST';
                     }
                     if ( (int)$db_result['status'] === 0 ) {
                         $this->blocked_ips[] = $helper_class::ipLong2ip($db_result['network']);
-                        $result_entry['status'] = 'DENY_SFW';
+                        $entry['status'] = 'DENY_SFW';
                     }
 
-                    $test_status = (int)$db_result['status'];
+                    // Personal entry is decisive - use it and stop
+                    if ( $is_personal ) {
+                        $result_entry = $entry;
+                        $test_status = (int)$db_result['status'];
+                        break;
+                    }
+
+                    // Common entry - use as fallback if no personal found
+                    if ( $result_entry === null ) {
+                        $result_entry = $entry;
+                        $test_status = (int)$db_result['status'];
+                    }
                 }
             } else {
                 $result_entry = array(
                     'ip' => $current_ip,
-                    'is_personal' => null,
+                    'is_personal' => false,
                     'status' => 'PASS_SFW',
                 );
             }
@@ -195,6 +225,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 
             if ( $this->test && $_origin === 'sfw_test' ) {
                 $this->test_status = $test_status;
+                $this->test_entry = $result_entry;
             }
         }
 
@@ -332,15 +363,32 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             /**
              * Message about IP status
              */
-            if ( $this->test ) {
-                $message_ip_status = $this->localize->translate('IP in the common blacklist');
+            $message_ip_status = '';
+            $message_ip_status_color = 'green';
+
+            // Determine entry to use: test_entry for test mode, $result for live mode
+            $status_entry = $this->test ? $this->test_entry : $result;
+            $entry_status = isset($status_entry['status']) ? $status_entry['status'] : null;
+            $is_personal = isset($status_entry['is_personal']) && (int)$status_entry['is_personal'] === 1;
+
+            $common_text_passed = $this->localize->translate('This IP is passed');
+            $common_text_blocked = $this->localize->translate('This IP is blocked');
+            $global_text = $this->localize->translate('(in global lists)');
+            $personal_text = $this->localize->translate('(in personal lists)');
+            $lists_text = $is_personal ? $personal_text : $global_text;
+
+            if ( $entry_status === 'PASS_SFW__BY_WHITELIST' ) {
+                $message_ip_status = $common_text_passed . ' ' . $lists_text;
+                $message_ip_status_color = 'green';
+            } elseif ( $entry_status === 'DENY_SFW' ) {
+                $message_ip_status = $common_text_blocked . ' ' . $lists_text;
                 $message_ip_status_color = 'red';
+            } elseif ( $entry_status === 'PASS_SFW' || $entry_status === 'PASS_SFW__BY_COOKIE' ) {
+                $message_ip_status = $this->localize->translate('This IP is passed (not in any lists)');
+                $message_ip_status_color = 'green';
+            }
 
-                if ( $this->test_status === 1 ) {
-                    $message_ip_status = $this->localize->translate('IP in the whitelist');
-                    $message_ip_status_color = 'green';
-                }
-
+            if ( !empty($message_ip_status) ) {
                 $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:$message_ip_status_color;'>$message_ip_status</h3>";
             }
 
@@ -381,8 +429,6 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
     {
         parent::diePage($result);
 
-        http_response_code(403);
-
         $localize_js = array(
             'sfw__random_get' => '1',
         );
@@ -392,7 +438,7 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
 
         $replaces = array(
             '{JQUERY_SCRIPT_URL}' => '',
-            '{LOCALIZE_SCRIPT}' => 'var ctPublicFunctions = ' . json_encode($localize_js) . ';' .
+            '{LOCALIZE_SCRIPT}' => 'var ct_setcookie = 1; var ctPublicFunctions = ' . json_encode($localize_js) . ';' .
                 'var ctPublic = ' . json_encode($localize_js_public) . ';',
         );
 
@@ -512,20 +558,139 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
     {
         /** @var \Cleantalk\Common\Api\Api $api_class */
         $api_class = Mloader::get('Api');
+        /** @var \Cleantalk\Common\Helper\Helper $helper_class */
+        $helper_class = Mloader::get('Helper');
 
-        // Getting remote file name
-        $result = $api_class::methodGet2sBlacklistsDb($api_key, null, '3_1');
+        // Getting common blacklists via multifiles v3_2 (common_lists=1 means ONLY common)
+        $result = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_2', 1);
 
-        if ( empty($result['error']) ) {
-            return array(
-                'blacklist' => isset($result['data']) ? $result['data'] : null,
-                'useragents' => isset($result['data_user_agents']) ? $result['data_user_agents'] : null,
-                'bl_count' => isset($result['networks_count']) ? $result['networks_count'] : null,
-                'ua_count' => isset($result['ua_count']) ? $result['ua_count'] : null,
-            );
+        if ( !empty($result['error']) ) {
+            return $result;
         }
 
-        return $result;
+        if ( empty($result['file_url']) ) {
+            return array('error' => 'COMMON_LISTS_FILE_URL_IS_EMPTY');
+        }
+
+        // Get the index of file URLs from the multifiles response
+        $file_urls = $helper_class::httpGetDataFromRemoteGzAndParseCsv($result['file_url']);
+        if ( !empty($file_urls['error']) ) {
+            return array('error' => 'COMMON_LISTS_GET_INDEX: ' . $file_urls['error']);
+        }
+
+        // Download and parse each common list file from the index
+        $all_entries = array();
+
+        foreach ( $file_urls as $file_url_entry ) {
+            if ( empty($file_url_entry[0]) ) {
+                continue;
+            }
+
+            $url = $file_url_entry[0];
+
+            $file_data = $helper_class::httpGetDataFromRemoteGz($url);
+            if ( !is_string($file_data) ) {
+                continue;
+            }
+
+            $parsed = $helper_class::bufferParseCsv($file_data);
+            if ( !is_array($parsed) ) {
+                continue;
+            }
+
+            foreach ( $parsed as $entry ) {
+                if ( !empty($entry[0]) && !empty($entry[1]) ) {
+                    $all_entries[] = $entry;
+                }
+            }
+        }
+
+        // Get useragents from separate API response field
+        $useragents = null;
+        if ( !empty($result['file_ua_url']) ) {
+            $ua_data = $helper_class::httpGetDataFromRemoteGz($result['file_ua_url']);
+            if ( is_string($ua_data) ) {
+                $useragents = $helper_class::bufferParseCsv($ua_data);
+                if ( !is_array($useragents) ) {
+                    $useragents = null;
+                }
+            }
+        }
+
+        if ( empty($all_entries) ) {
+            return array('error' => 'COMMON_LISTS_NO_ENTRIES');
+        }
+
+        return array(
+            'blacklist' => $all_entries,
+            'useragents' => $useragents,
+            'bl_count' => count($all_entries),
+            'ua_count' => is_array($useragents) ? count($useragents) : 0,
+        );
+    }
+
+    public static function directUpdateGetBlackListsPersonal($api_key)
+    {
+        /** @var \Cleantalk\Common\Api\Api $api_class */
+        $api_class = Mloader::get('Api');
+        /** @var \Cleantalk\Common\Helper\Helper $helper_class */
+        $helper_class = Mloader::get('Helper');
+
+        // Getting personal blacklists file URL (common_lists=0 means personal only)
+        $result = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_2', 0);
+
+        if ( !empty($result['error']) ) {
+            return $result;
+        }
+
+        if ( empty($result['file_url']) ) {
+            return array('error' => 'PERSONAL_LISTS_FILE_URL_IS_EMPTY');
+        }
+
+        // Get the index of file URLs from the multifiles response
+        $file_urls = $helper_class::httpGetDataFromRemoteGzAndParseCsv($result['file_url']);
+        if ( !empty($file_urls['error']) ) {
+            return array('error' => 'PERSONAL_LISTS_GET_INDEX: ' . $file_urls['error']);
+        }
+
+        // Download and parse each personal list file
+        $all_entries = array();
+        foreach ( $file_urls as $file_url_entry ) {
+            if ( empty($file_url_entry[0]) ) {
+                continue;
+            }
+
+            $url = $file_url_entry[0];
+
+            // Skip non-blacklist files (ua_list, ck_list)
+            if ( strpos($url, 'bl_list') === false ) {
+                continue;
+            }
+
+            $file_data = $helper_class::httpGetDataFromRemoteGz($url);
+            if ( !is_string($file_data) ) {
+                continue;
+            }
+
+            $parsed = $helper_class::bufferParseCsv($file_data);
+            if ( !is_array($parsed) ) {
+                continue;
+            }
+
+            foreach ( $parsed as $entry ) {
+                if ( !empty($entry[0]) && !empty($entry[1]) ) {
+                    $all_entries[] = $entry;
+                }
+            }
+        }
+
+        if ( empty($all_entries) ) {
+            return array('error' => 'PERSONAL_LISTS_NO_ENTRIES');
+        }
+
+        return array(
+            'blacklist' => $all_entries,
+        );
     }
 
     public static function directUpdate($db, $db__table__data, $blacklists)
@@ -573,10 +738,11 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
      * @param $db
      * @param $db__table__data
      * @param null|string $file_url File URL with SFW data.
+     * @param bool $include_source Whether to include the 'source' column in the INSERT (false for personal table).
      *
      * @return array|int array('error' => STRING)
      */
-    public static function updateWriteToDb($db, $db__table__data, $file_url = null)
+    public static function updateWriteToDb($db, $db__table__data, $file_url = null, $include_source = true)
     {
         $file_content = file_get_contents($file_url);
 
@@ -592,7 +758,10 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                     reset($data);
 
                     for ( $count_result = 0; current($data) !== false; ) {
-                        $query = "INSERT INTO " . $db__table__data . " (network, mask, status, source) VALUES ";
+                        $columns = $include_source
+                            ? '(network, mask, status, source)'
+                            : '(network, mask, status)';
+                        $query = "INSERT INTO " . $db__table__data . " $columns VALUES ";
 
                         for (
                             $i = 0, $values = array();
@@ -609,9 +778,13 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                             $ip = preg_replace('/[^\d]*/', '', $entry[0]);
                             $mask = preg_replace('/[^\d]*/', '', $entry[1]);
                             $status = isset($entry[2]) ? $entry[2] : 0;
-                            $source = isset($entry[3]) ? (int)$entry[3] : 'NULL';
 
-                            $values[] = "($ip, $mask, $status, $source)";
+                            if ( $include_source ) {
+                                $source = isset($entry[3]) ? (int)$entry[3] : 'NULL';
+                                $values[] = "($ip, $mask, $status, $source)";
+                            } else {
+                                $values[] = "($ip, $mask, $status)";
+                            }
                         }
 
                         if ( !empty($values) ) {
@@ -841,5 +1014,115 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         return true;
+    }
+
+    /**
+     * Add records to the personal SFW table.
+     *
+     * @param \Cleantalk\Common\Db\Db $db
+     * @param string $db__table__data Personal table name
+     * @param array $metadata Array of records with 'network', 'mask', 'status' keys
+     *
+     * @return array Result with 'total', 'added', 'updated', 'ignored' counts
+     * @throws \RuntimeException
+     */
+    public static function privateRecordsAdd($db, $db__table__data, $metadata)
+    {
+        $added_count = 0;
+        $updated_count = 0;
+        $ignored_count = 0;
+
+        foreach ( $metadata as $_key => $row ) {
+            // Find duplicate to use it on updating
+            $has_duplicate = false;
+            $query = "SELECT id, status FROM " . $db__table__data . " WHERE "
+                . "network = '" . (int)$row['network'] . "' AND "
+                . "mask = '" . (int)$row['mask'] . "'";
+
+            $db_result = $db->fetch($query);
+            if ( $db_result === false ) {
+                throw new \RuntimeException($db->getLastError());
+            }
+
+            // If the record is same - pass
+            if ( isset($db_result['status']) && (int)$db_result['status'] === (int)$row['status'] ) {
+                $ignored_count++;
+                continue;
+            }
+
+            // If duplicate found create a chunk
+            if ( isset($db_result['id']) ) {
+                $id_chunk = "id = '" . (int)$db_result['id'] . "',";
+                $has_duplicate = true;
+            } else {
+                $id_chunk = '';
+            }
+
+            // Insertion
+            $query = "INSERT INTO " . $db__table__data . " SET "
+                . $id_chunk
+                . "network = '" . (int)$row['network'] . "',"
+                . "mask = '" . (int)$row['mask'] . "',"
+                . "status = '" . (int)$row['status'] . "' "
+                . "ON DUPLICATE KEY UPDATE "
+                . "id = id,"
+                . "network = network,"
+                . "mask = mask,"
+                . "status = '" . (int)$row['status'] . "';";
+
+            $db_result = $db->execute($query);
+            if ( $db_result === false ) {
+                throw new \RuntimeException($db->getLastError());
+            }
+
+            $added_count = $has_duplicate ? $added_count : $added_count + 1;
+            $updated_count = $has_duplicate ? $updated_count + 1 : $updated_count;
+        }
+
+        return array(
+            'total' => $added_count + $updated_count + $ignored_count,
+            'added' => $added_count,
+            'updated' => $updated_count,
+            'ignored' => $ignored_count,
+        );
+    }
+
+    /**
+     * Delete records from the personal SFW table.
+     *
+     * @param \Cleantalk\Common\Db\Db $db
+     * @param string $db__table__data Personal table name
+     * @param array $metadata Array of records with 'network', 'mask' keys
+     *
+     * @return array Result with 'total', 'deleted', 'ignored' counts
+     * @throws \Exception
+     */
+    public static function privateRecordsDelete($db, $db__table__data, $metadata)
+    {
+        $success_count = 0;
+        $ignored_count = 0;
+
+        foreach ( $metadata as $_key => $row ) {
+            $query = "DELETE FROM " . $db__table__data . " WHERE "
+                . "network = '" . (int)$row['network'] . "' AND "
+                . "mask = '" . (int)$row['mask'] . "';";
+            $db_result = $db->execute($query);
+            if ( $db_result === false ) {
+                throw new \Exception($db->getLastError());
+            }
+
+            $affected = (int)$db->getAffectedRows();
+            if ( $affected === 0 ) {
+                $ignored_count++;
+            } else {
+                $success_count += $affected;
+            }
+        }
+
+        return array(
+            'total' => $success_count + $ignored_count,
+            'deleted' => $success_count,
+            'ignored' => $ignored_count,
+        );
     }
 }
