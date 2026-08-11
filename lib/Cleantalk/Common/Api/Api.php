@@ -36,10 +36,10 @@ class Api
     public static function methodGet2sBlacklistsDb($api_key, $out = null, $version = '1_0', $common_lists = null)
     {
         $request = array(
-            'method_name'  => '2s_blacklists_db',
-            'auth_key'     => $api_key,
-            'out'          => $out,
-            'version'      => $version,
+            'method_name' => '2s_blacklists_db',
+            'auth_key'    => $api_key,
+            'out'         => $out,
+            'version'     => $version,
             'common_lists' => $common_lists,
         );
 

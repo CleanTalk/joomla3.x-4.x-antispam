@@ -21,4 +21,6 @@ class FwStats
     public $entries;
     public $entries_personal;
     public $errors;
+    public $firewall_update_percent;
+    public $firewall_updating_id;
 }

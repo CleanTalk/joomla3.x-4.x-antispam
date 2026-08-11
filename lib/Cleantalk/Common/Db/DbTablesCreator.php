@@ -11,9 +11,9 @@ class DbTablesCreator
      */
     public function createAllTables($prefix = '')
     {
-	    /** @var \Cleantalk\Common\Db\Db $db_class */
-	    $db_class = Mloader::get('Db');
-	    $db_obj = $db_class::getInstance();
+        /** @var \Cleantalk\Common\Db\Db $db_class */
+        $db_class = Mloader::get('Db');
+        $db_obj = $db_class::getInstance();
 
         $db_schema = Schema::getStructureSchemas();
         $schema_prefix = Schema::getSchemaTablePrefix();
@@ -48,9 +48,9 @@ class DbTablesCreator
      */
     public function createTable($table_name)
     {
-	    /** @var \Cleantalk\Common\Db\Db $db_class */
-	    $db_class = Mloader::get('Db');
-	    $db_obj = $db_class::getInstance();
+        /** @var \Cleantalk\Common\Db\Db $db_class */
+        $db_class = Mloader::get('Db');
+        $db_obj = $db_class::getInstance();
 
         $db_schema = Schema::getStructureSchemas();
         $schema_prefix = Schema::getSchemaTablePrefix();
@@ -74,7 +74,7 @@ class DbTablesCreator
 
         // Logging errors
         if (!empty($errors)) {
-	        //@ToDo implement errors handling
+            //@ToDo implement errors handling
         }
     }
 }

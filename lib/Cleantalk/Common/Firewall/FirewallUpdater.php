@@ -134,7 +134,7 @@ class FirewallUpdater
         $this->fwStats->updating_last_start = time();
         $fw_class::saveFwStats($this->fwStats);
 
-        if ( !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
+        if ( (is_array($prepare_dir__result) && !empty($prepare_dir__result['error'])) || !empty($test_rc_result['error']) ) {
             return $this->directUpdate();
         }
 
@@ -333,10 +333,8 @@ class FirewallUpdater
                         $urls[] = $value[0];
                     }
                 }
-                // Personal lists errors are not critical - just skip them
             }
         }
-        // Personal lists API errors are not critical - just skip them
 
         if ( empty($urls) ) {
             throw new SfwUpdateException('getMultifiles: No URLs to download');
@@ -615,8 +613,10 @@ class FirewallUpdater
         $expected_ua_count = 0;
 
         // Determine if this is a personal ck_list
-        $is_personal_ck = !empty($fw_stats->personal_lists_url_id)
-            && strpos($file_path, $fw_stats->personal_lists_url_id) !== false;
+        $is_personal_ck =
+        !empty($fw_stats->personal_lists_url_id) &&
+        strpos($file_path, $fw_stats->personal_lists_url_id) !==
+        false;
 
         foreach ( $file_ck_url__data as $value ) {
             if ( trim($value[0], '"') === 'networks_count' ) {
@@ -757,7 +757,6 @@ class FirewallUpdater
         }
 
         $fw_stats->entries = $entries;
-
         // Check personal table entries if exists
         if ( $db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL) ) {
             $entries_personal = $db_obj->setQuery('')->getVar(
@@ -765,7 +764,6 @@ class FirewallUpdater
             );
             $fw_stats->entries_personal = $entries_personal;
         }
-
         Firewall::saveFwStats($fw_stats);
 
         return array(
@@ -996,7 +994,7 @@ class FirewallUpdater
             }
 
             /**
-             * UPDATING PERSONAL LISTS
+             * UPDATING PERSONAL LIST
              */
             $result_personal = \Cleantalk\Common\Firewall\Modules\Sfw::directUpdateGetBlackListsPersonal($this->api_key);
             if ( empty($result_personal['error']) && !empty($result_personal['blacklist']) ) {

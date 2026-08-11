@@ -23,12 +23,12 @@ class Server extends ServerVariables
      */
     protected function getVariable($name)
     {
+        $name = strtoupper($name);
+
         // Return from memory. From $this->server
         if (isset(static::$instance->variables[$name])) {
             return static::$instance->variables[$name];
         }
-
-        $name = strtoupper($name);
 
         if ( isset($_SERVER[$name]) ) {
             $value = $this->getAndSanitize($_SERVER[$name]);
@@ -41,8 +41,8 @@ class Server extends ServerVariables
             $value = strtoupper($value);
         }
 
-        // Convert HTML chars for HTTP_USER_AGENT, HTTP_USER_AGENT, SERVER_NAME
-        if (in_array($name, array('HTTP_USER_AGENT', 'HTTP_USER_AGENT', 'SERVER_NAME'))) {
+        // Convert HTML chars for HTTP_USER_AGENT, SERVER_NAME
+        if (in_array($name, array('HTTP_USER_AGENT', 'SERVER_NAME'))) {
             $value = htmlspecialchars($value);
         }
 
