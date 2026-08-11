@@ -371,6 +371,11 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function serveRemoteCalls($apikey)
     {
+        // Do not process remote calls without a configured API key (empty key → predictable token).
+        if ($apikey === null || $apikey === '') {
+            return;
+        }
+
         /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $remote_calls_class */
         $remote_calls_class = Mloader::get('RemoteCalls');
 
