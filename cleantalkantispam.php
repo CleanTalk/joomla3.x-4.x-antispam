@@ -26,6 +26,7 @@ if (defined('JVERSION')) {
         JLoader::registerAlias('JHtml', '\\Joomla\\CMS\\HTML\\HTMLHelper');
         JLoader::registerAlias('JURI', '\\Joomla\\CMS\\Uri\\Uri');
         JLoader::registerAlias('JTable', '\\Joomla\\CMS\\Table\\Table');
+        JLoader::registerAlias('JSession', '\\Joomla\\CMS\\Session\\Session');
     }
 }
 
@@ -301,15 +302,15 @@ class plgSystemCleantalkantispam extends JPlugin
 
         // Handle admin panel actions
         if ($this->isAdmin() && $app->input->get('layout') == 'edit' && $app->input->get('extension_id') == $this->_id) {
-            if (!empty($_POST) && !Session::checkToken('post')) {
+            if (!empty($_POST) && !JSession::checkToken('post')) {
                 http_response_code(403);
-                die(Text::_('JINVALID_TOKEN'));
+                die(JText::_('JINVALID_TOKEN'));
             }
 
             $user = JFactory::getUser();
             if ($user->guest || !$user->authorise('core.admin')) {
                 http_response_code(403);
-                die(Text::_('JERROR_ALERTNOAUTHOR'));
+                die(JText::_('JERROR_ALERTNOAUTHOR'));
             }
 
             $this->serveCronActions();
@@ -439,11 +440,11 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function deleteSpamComments()
     {
-        $ids = array_values(array_filter(array_map('intval', (array) ($_POST['ct_del_comment_ids'] ?? array()))));
+        $ids = array_values(array_filter(array_map('intval', (array) (isset($_POST['ct_del_comment_ids']) ? $_POST['ct_del_comment_ids'] : array()))));
         if (empty($ids)) {
             return array(
                 'result' => 'error',
-                'data'   => Text::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR'),
+                'data'   => JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_COMMENTS_DELCONFIRM_ERROR'),
             );
         }
         $spam_comments = implode(',', $ids);
@@ -1664,9 +1665,9 @@ class plgSystemCleantalkantispam extends JPlugin
      * @since version
      */
     public function onAjaxCleantalkantispam() {
-        Session::checkToken('get') or die(Text::_('JINVALID_TOKEN'));
+        JSession::checkToken('get') or die(JText::_('JINVALID_TOKEN'));
 
-        $data = Factory::getApplication()->input->json->getArray();
+        $data = JFactory::getApplication()->input->json->getArray();
 
         if ( isset($data['action']) ) {
             switch ($data['action']) {
@@ -1676,10 +1677,10 @@ class plgSystemCleantalkantispam extends JPlugin
                     return ['success' => 'The notice dismissing was remembered'];
 	            case 'usersChecker' :
 		            // Security check: Only allow administrators to use usersChecker
-		            $user = Factory::getUser();
+		            $user = JFactory::getUser();
 		            if ($user->guest || !$user->authorise('core.admin')) {
 		                http_response_code(403);
-		                die(json_encode(['result' => 'error', 'data' => Text::_('JERROR_ALERTNOAUTHOR')]));
+		                die(json_encode(['result' => 'error', 'data' => JText::_('JERROR_ALERTNOAUTHOR')]));
 		            }
 
 		            // Additional security check for delete operations
@@ -1687,7 +1688,7 @@ class plgSystemCleantalkantispam extends JPlugin
 		                // Check if user has permission to delete users
 		                if (!$user->authorise('core.delete', 'com_users')) {
 		                    http_response_code(403);
-		                    die(json_encode(['result' => 'error', 'data' => Text::_('JERROR_ALERTNOAUTHOR')]));
+		                    die(json_encode(['result' => 'error', 'data' => JText::_('JERROR_ALERTNOAUTHOR')]));
 		                }
 		            }
 
@@ -1734,7 +1735,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
         $filter = JFilterInput::getInstance();
 
-        $user = Factory::getUser();
+        $user = JFactory::getUser();
         $notice       = $filter->clean($notice_info['notice_type']);
         $uid          = $user->id;
         $notice_uid   = $notice . '_' . $uid;
@@ -1864,7 +1865,7 @@ class plgSystemCleantalkantispam extends JPlugin
 			JFactory::getApplication()->input->get('option') === 'com_ajax' &&
 			JFactory::getApplication()->input->get('plugin') === 'registration'
 		) {
-			$app = Factory::getApplication();
+			$app = JFactory::getApplication();
 			$input = $app->input;
 			$post_username = $input->get('name', '', "STRING");
 			$post_email = $input->get('email', '', "filter");
@@ -2406,7 +2407,7 @@ class plgSystemCleantalkantispam extends JPlugin
         }
 
 		// From cookies
-	    return $_COOKIE[$name] ?? null;
+	    return isset($_COOKIE[$name]) ? $_COOKIE[$name] : null;
     }
 
     private function get_spam_comments($offset = 0, $on_page = 20, $improved_check = false)
@@ -2771,7 +2772,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * @since version
      */
     private function isPluginSettingsPage() {
-        $uri = Uri::getInstance();
+        $uri = JUri::getInstance();
         $layout = $uri->getVar('layout');
         $ext_id = $uri->getVar('extension_id');
         if ( isset($layout, $ext_id) && $layout === 'edit' && $ext_id == $this->_id ) {
