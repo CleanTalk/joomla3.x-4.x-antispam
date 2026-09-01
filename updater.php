@@ -23,7 +23,6 @@ if (defined('JVERSION')) {
 }
 
 use Cleantalk\Common\Mloader\Mloader;
-use Joomla\CMS\Factory;
 
 class plgsystemcleantalkantispamInstallerScript
 {
@@ -157,7 +156,7 @@ class plgsystemcleantalkantispamInstallerScript
      */
     private function createStorageTable()
     {
-        $db = Factory::getDbo();
+        $db = JFactory::getDbo();
 
         $table = '#__' . APBCT_TBL_STORAGE;
         $existingTables = in_array($table, $db->getTableList($table));
