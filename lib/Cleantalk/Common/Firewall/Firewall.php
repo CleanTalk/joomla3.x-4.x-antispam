@@ -235,7 +235,7 @@ class Firewall
                         $result['ip'],
                         $result['status'],
                         isset($result['network']) ? $result['network'] : null,
-                        isset($result['is_personal']) ? $result['is_personal'] : 'NULL'
+                        !empty($result['is_personal']) ? 1 : 'NULL'
                     );
                 }
             }
@@ -256,6 +256,9 @@ class Firewall
                     $this->fw_modules[$module_name]->actionsForPassed($result);
                     $this->fw_modules[$module_name]->diePage($result);
                 } else {
+                    if ( Get::get('sfw_test_ip') ) {
+                        $this->fw_modules[$module_name]->diePage($result);
+                    }
                     $this->fw_modules[$module_name]->actionsForPassed($result);
                 }
             }
@@ -305,6 +308,7 @@ class Firewall
                             $result['passed_ip'] = isset($fw_result['ip']) ? $fw_result['ip'] : $fw_result['passed_ip'];
                             $result['blocked_ip'] = isset($fw_result['ip']) ? $fw_result['ip'] : $fw_result['blocked_ip'];
                             $result['pattern'] = isset($fw_result['pattern']) ? $fw_result['pattern'] : array();
+                            $result['is_personal'] = !empty($fw_result['is_personal']) ? 1 : 0;
                         }
                     }
                 }

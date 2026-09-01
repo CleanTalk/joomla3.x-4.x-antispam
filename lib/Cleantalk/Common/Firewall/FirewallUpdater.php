@@ -134,7 +134,7 @@ class FirewallUpdater
         $this->fwStats->updating_last_start = time();
         $fw_class::saveFwStats($this->fwStats);
 
-        if ( !empty($prepare_dir__result['error']) || !empty($test_rc_result['error']) ) {
+        if ( (is_array($prepare_dir__result) && !empty($prepare_dir__result['error'])) || !empty($test_rc_result['error']) ) {
             return $this->directUpdate();
         }
 
@@ -283,44 +283,74 @@ class FirewallUpdater
         /** @var \Cleantalk\Common\Helper\Helper $helper_class */
         $helper_class = Mloader::get('Helper');
 
-        // Getting remote file name
+        $urls = array();
 
-        $result = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_1');
+        // Getting common lists
+        $result = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_2', 1);
 
         if ( empty($result['error']) ) {
             if ( !empty($result['file_url']) ) {
                 $file_urls = $helper_class::httpGetDataFromRemoteGzAndParseCsv($result['file_url']);
                 if ( empty($file_urls['error']) ) {
+                    // Extract common_lists_url_id from the file URL
+                    preg_match('/bl_list_(.+)\.multifiles/m', $result['file_url'], $url_id_common);
+                    if ( isset($url_id_common[1]) ) {
+                        $fw_stats->common_lists_url_id = $url_id_common[1];
+                    }
                     if ( !empty($result['file_ua_url']) ) {
                         $file_urls[][0] = $result['file_ua_url'];
                     }
                     if ( !empty($result['file_ck_url']) ) {
                         $file_urls[][0] = $result['file_ck_url'];
                     }
-                    $urls = array();
                     foreach ( $file_urls as $value ) {
                         $urls[] = $value[0];
                     }
-
-                    $tries_for_download_again = 3 + (int)(count($urls) / 20);
-                    $fw_stats->update_percent = round(100 / count($urls), 2);
-                    Firewall::saveFwStats($fw_stats);
-
-                    return array(
-                        'next_stage' => array(
-                            'name' => [self::class, 'downloadFiles'],
-                            'args' => $urls,
-                            'accepted_tries' => $tries_for_download_again
-                        )
-                    );
+                } else {
+                    throw new SfwUpdateException('getMultifiles: common: ' . $file_urls['error']);
                 }
-
-                throw new SfwUpdateException('getMultifiles: ' . $file_urls['error']);
             }
         } else {
             return $result;
         }
-        return null;
+
+        // Getting personal lists
+        $result_personal = $api_class::methodGet2sBlacklistsDb($api_key, 'multifiles', '3_2', 0);
+
+        if ( empty($result_personal['error']) ) {
+            if ( !empty($result_personal['file_url']) ) {
+                $file_urls_personal = $helper_class::httpGetDataFromRemoteGzAndParseCsv($result_personal['file_url']);
+                if ( empty($file_urls_personal['error']) ) {
+                    // Extract personal_lists_url_id from the file URL
+                    preg_match('/bl_list_(.+)\.multifiles/m', $result_personal['file_url'], $url_id);
+                    if ( isset($url_id[1]) ) {
+                        $fw_stats->personal_lists_url_id = $url_id[1];
+                    }
+                    if ( !empty($result_personal['file_ck_url']) ) {
+                        $file_urls_personal[][0] = $result_personal['file_ck_url'];
+                    }
+                    foreach ( $file_urls_personal as $value ) {
+                        $urls[] = $value[0];
+                    }
+                }
+            }
+        }
+
+        if ( empty($urls) ) {
+            throw new SfwUpdateException('getMultifiles: No URLs to download');
+        }
+
+        $tries_for_download_again = 3 + (int)(count($urls) / 20);
+        $fw_stats->update_percent = round(100 / count($urls), 2);
+        Firewall::saveFwStats($fw_stats);
+
+        return array(
+            'next_stage' => array(
+                'name' => [self::class, 'downloadFiles'],
+                'args' => $urls,
+                'accepted_tries' => $tries_for_download_again
+            )
+        );
     }
 
     public static function downloadFiles($api_key, $urls)
@@ -398,6 +428,8 @@ class FirewallUpdater
         $db_tables_creator = new DbTablesCreator();
         $table_name_sfw = $db_obj->prefix . Schema::getSchemaTablePrefix() . 'sfw';
         $db_tables_creator->createTable($table_name_sfw);
+        $table_name_sfw_personal = $db_obj->prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
+        $db_tables_creator->createTable($table_name_sfw_personal);
         $table_name_ua = $db_obj->prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
         $db_tables_creator->createTable($table_name_ua);
 
@@ -414,13 +446,22 @@ class FirewallUpdater
         $db_class = Mloader::get('Db');
         $db_obj = $db_class::getInstance();
 
-        // Preparing temporary tables
+        // Preparing temporary tables for common SFW
         $result = \Cleantalk\Common\Firewall\Modules\Sfw::createTempTables(
             $db_obj,
             $db_obj->prefix . APBCT_TBL_FIREWALL_DATA
         );
         if ( !empty($result['error']) ) {
             throw new SfwUpdateException('createTempTables: ' . $result['error']);
+        }
+
+        // Preparing temporary tables for personal SFW
+        $result = \Cleantalk\Common\Firewall\Modules\Sfw::createTempTables(
+            $db_obj,
+            $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL
+        );
+        if ( !empty($result['error']) ) {
+            throw new SfwUpdateException('createTempTables personal: ' . $result['error']);
         }
 
         return array(
@@ -443,7 +484,21 @@ class FirewallUpdater
             $concrete_file = current($files);
 
             if ( strpos($concrete_file, 'bl_list') !== false ) {
-                $result = self::processFile($concrete_file);
+                // Determine direction: personal or common
+                if (
+                    !empty($fw_stats->personal_lists_url_id)
+                    && strpos($concrete_file, $fw_stats->personal_lists_url_id) !== false
+                ) {
+                    $direction = 'personal';
+                } elseif (
+                    !empty($fw_stats->common_lists_url_id)
+                    && strpos($concrete_file, $fw_stats->common_lists_url_id) !== false
+                ) {
+                    $direction = 'common';
+                } else {
+                    $direction = 'common';
+                }
+                $result = self::processFile($concrete_file, $direction);
             }
 
             if ( strpos($concrete_file, 'ua_list') !== false ) {
@@ -476,7 +531,7 @@ class FirewallUpdater
         );
     }
 
-    public static function processFile($file_path)
+    public static function processFile($file_path, $direction = 'common')
     {
         if ( !file_exists($file_path) ) {
             return array('error' => 'PROCESS FILE: ' . $file_path . ' is not exists.');
@@ -486,10 +541,17 @@ class FirewallUpdater
         $db_class = Mloader::get('Db');
         $db_obj = $db_class::getInstance();
 
+        $table_name = $direction === 'common'
+            ? $db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp'
+            : $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp';
+
+        $include_source = $direction === 'common';
+
         $result = \Cleantalk\Common\Firewall\Modules\Sfw::updateWriteToDb(
             $db_obj,
-            $db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp',
-            $file_path
+            $table_name,
+            $file_path,
+            $include_source
         );
 
         if ( !empty($result['error']) ) {
@@ -550,6 +612,12 @@ class FirewallUpdater
         $expected_networks_count = 0;
         $expected_ua_count = 0;
 
+        // Determine if this is a personal ck_list
+        $is_personal_ck =
+        !empty($fw_stats->personal_lists_url_id) &&
+        strpos($file_path, $fw_stats->personal_lists_url_id) !==
+        false;
+
         foreach ( $file_ck_url__data as $value ) {
             if ( trim($value[0], '"') === 'networks_count' ) {
                 $expected_networks_count = $value[1];
@@ -559,8 +627,12 @@ class FirewallUpdater
             }
         }
 
-        $fw_stats->expected_networks_count = $expected_networks_count;
-        $fw_stats->expected_ua_count = $expected_ua_count;
+        if ( $is_personal_ck ) {
+            $fw_stats->expected_networks_count_personal = $expected_networks_count;
+        } else {
+            $fw_stats->expected_networks_count = $expected_networks_count;
+            $fw_stats->expected_ua_count = $expected_ua_count;
+        }
         Firewall::saveFwStats($fw_stats);
 
         if ( file_exists($file_path) ) {
@@ -613,10 +685,6 @@ class FirewallUpdater
         $db_class = Mloader::get('Db');
         $db_obj = $db_class::getInstance();
 
-        if ( !$db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA) ) {
-            throw new SfwUpdateException('endOfUpdateRenamingTables: SFW main table does not exist');
-        }
-
         if ( !$db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp') ) {
             throw new SfwUpdateException('endOfUpdateRenamingTables: SFW temp table does not exist');
         }
@@ -625,24 +693,33 @@ class FirewallUpdater
         Firewall::saveFwStats($fw_stats);
         usleep(10000);
 
-        // REMOVE AND RENAME
-        $result = \Cleantalk\Common\Firewall\Modules\Sfw::dataTablesDelete(
+        // ATOMIC REMOVE AND RENAME
+        $result = \Cleantalk\Common\Firewall\Modules\Sfw::replaceDataTablesAtomically(
             $db_obj,
             $db_obj->prefix . APBCT_TBL_FIREWALL_DATA
         );
-        if ( empty($result['error']) ) {
-            $result = \Cleantalk\Common\Firewall\Modules\Sfw::renameDataTablesFromTempToMain(
+
+        if ( !empty($result['error']) ) {
+            $fw_stats->update_mode = 0;
+            Firewall::saveFwStats($fw_stats);
+            throw new SfwUpdateException('endOfUpdateRenamingTables: ' . $result['error']);
+        }
+
+        // ATOMIC REMOVE AND RENAME personal table
+        if ( $db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp') ) {
+            $result = \Cleantalk\Common\Firewall\Modules\Sfw::replaceDataTablesAtomically(
                 $db_obj,
-                $db_obj->prefix . APBCT_TBL_FIREWALL_DATA
+                $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL
             );
+            if ( !empty($result['error']) ) {
+                $fw_stats->update_mode = 0;
+                Firewall::saveFwStats($fw_stats);
+                throw new SfwUpdateException('endOfUpdateRenamingTables personal: ' . $result['error']);
+            }
         }
 
         $fw_stats->update_mode = 0;
         Firewall::saveFwStats($fw_stats);
-
-        if ( !empty($result['error']) ) {
-            throw new SfwUpdateException('endOfUpdateRenamingTables: ' . $result['error']);
-        }
 
         return array(
             'next_stage' => array(
@@ -680,6 +757,13 @@ class FirewallUpdater
         }
 
         $fw_stats->entries = $entries;
+        // Check personal table entries if exists
+        if ( $db_obj->isTableExists($db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL) ) {
+            $entries_personal = $db_obj->setQuery('')->getVar(
+                'SELECT COUNT(*) FROM ' . $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL
+            );
+            $fw_stats->entries_personal = $entries_personal;
+        }
         Firewall::saveFwStats($fw_stats);
 
         return array(
@@ -740,7 +824,10 @@ class FirewallUpdater
         $fw_stats->update_percent = 0;
         $fw_stats->updating_id = null;
         $fw_stats->expected_networks_count = false;
+        $fw_stats->expected_networks_count_personal = false;
         $fw_stats->expected_ua_count = false;
+        $fw_stats->personal_lists_url_id = null;
+        $fw_stats->common_lists_url_id = null;
         Firewall::saveFwStats($fw_stats);
 
         return true;
@@ -851,10 +938,11 @@ class FirewallUpdater
             }
 
             // Preparing database infrastructure
-            // @ToDo need to implement returning result of the Activator::createTables work.
             $db_tables_creator = new DbTablesCreator();
             $table_name = $db_obj->prefix . Schema::getSchemaTablePrefix() . 'sfw';
             $db_tables_creator->createTable($table_name);
+            $table_name_personal = $db_obj->prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
+            $db_tables_creator->createTable($table_name_personal);
 
             $result__creating_tmp_table = \Cleantalk\Common\Firewall\Modules\SFW::createTempTables(
                 $db_obj,
@@ -862,6 +950,15 @@ class FirewallUpdater
             );
             if ( !empty($result__creating_tmp_table['error']) ) {
                 return array('error' => 'DIRECT UPDATING CREATE TMP TABLE: ' . $result__creating_tmp_table['error']);
+            }
+
+            // Create personal temp table
+            $result__creating_tmp_table_personal = \Cleantalk\Common\Firewall\Modules\SFW::createTempTables(
+                $db_obj,
+                $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL
+            );
+            if ( !empty($result__creating_tmp_table_personal['error']) ) {
+                return array('error' => 'DIRECT UPDATING CREATE PERSONAL TMP TABLE: ' . $result__creating_tmp_table_personal['error']);
             }
 
             /**
@@ -894,6 +991,30 @@ class FirewallUpdater
 
             if ( !is_int($upd_result) ) {
                 return array('error' => 'DIRECT UPDATING BLACK LIST: WRONG RESPONSE FROM SFW::directUpdate');
+            }
+
+            /**
+             * UPDATING PERSONAL LIST
+             */
+            $result_personal = \Cleantalk\Common\Firewall\Modules\Sfw::directUpdateGetBlackListsPersonal($this->api_key);
+            if ( empty($result_personal['error']) && !empty($result_personal['blacklist']) ) {
+                $personal_blacklists = $result_personal['blacklist'];
+
+                $upd_result_personal = \Cleantalk\Common\Firewall\Modules\SFW::directUpdate(
+                    $db_obj,
+                    $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp',
+                    $personal_blacklists
+                );
+
+                if ( !empty($upd_result_personal['error']) ) {
+                    // Personal lists errors are not critical, continue update
+                }
+
+                if ( is_int($upd_result_personal) ) {
+                    $fw_stats = Firewall::getFwStats();
+                    $fw_stats->expected_networks_count_personal = $upd_result_personal;
+                    Firewall::saveFwStats($fw_stats);
+                }
             }
 
             /**
@@ -949,6 +1070,11 @@ class FirewallUpdater
         \Cleantalk\Common\Firewall\Modules\SFW::dataTablesDelete(
             $db_obj,
             $db_obj->prefix . APBCT_TBL_FIREWALL_DATA . '_temp'
+        );
+
+        \Cleantalk\Common\Firewall\Modules\SFW::dataTablesDelete(
+            $db_obj,
+            $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp'
         );
 
         $fw_stats->firewall_update_percent = 0;

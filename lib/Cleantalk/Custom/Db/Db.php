@@ -36,7 +36,7 @@ class Db extends \Cleantalk\Common\Db\Db
      * @return array|object|void|null
      */
     public function fetch( $query = '', $response_type = false ) {
-		$query = $this->getQuery() ?: $query;
+		$query = $query ?: $this->getQuery();
         $this->result = \JFactory::getDBO()->setQuery($query)->loadAssoc();
 
         return $this->result;
@@ -67,11 +67,28 @@ class Db extends \Cleantalk\Common\Db\Db
      */
     public function isTableExists($table_name)
     {
-        return (bool)$this->execute('SHOW TABLES LIKE "' . $table_name . '"');
+        $db = \JFactory::getDBO();
+        $result = $db->setQuery('SHOW TABLES LIKE ' . $db->quote($table_name))->loadResult();
+        return !empty($result);
     }
 
 	public function getAffectedRows()
 	{
 		return \JFactory::getDBO()->getAffectedRows();
+	}
+
+	/**
+	 * Get the last database error message
+	 *
+	 * @return string
+	 */
+	public function getLastError()
+	{
+		$db = \JFactory::getDBO();
+		$errorMsg = '';
+		if (method_exists($db, 'getErrorMsg')) {
+			$errorMsg = $db->getErrorMsg();
+		}
+		return $errorMsg ?: 'Unknown database error';
 	}
 }

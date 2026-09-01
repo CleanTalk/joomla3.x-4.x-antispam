@@ -27,18 +27,20 @@ class Api
      * @param string $api_key
      * @param null|string $out Data output type (JSON or file URL)
      * @param string $version API method version
+     * @param int|null $common_lists 1 for common lists, 0 for personal lists, null for all
      *
      * @return array|bool|mixed
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public static function methodGet2sBlacklistsDb($api_key, $out = null, $version = '1_0')
+    public static function methodGet2sBlacklistsDb($api_key, $out = null, $version = '1_0', $common_lists = null)
     {
         $request = array(
             'method_name' => '2s_blacklists_db',
             'auth_key'    => $api_key,
             'out'         => $out,
             'version'     => $version,
+            'common_lists' => $common_lists,
         );
 
         return static::sendRequest($request);
@@ -897,6 +899,10 @@ class Api
                     : array('error' => 'COULDNT_ADD_WL_IP');
 
             case '2s_blacklists_db':
+                // Multifiles response contains file_url at top level
+                if ( isset($result['file_url']) ) {
+                    return $result;
+                }
                 return isset($result['data']) && isset($result['data_user_agents'])
                     ? $result
                     : $result['data'];
