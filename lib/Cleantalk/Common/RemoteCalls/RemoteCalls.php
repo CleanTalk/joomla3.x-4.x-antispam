@@ -79,9 +79,14 @@ class RemoteCalls
      */
     public function process()
     {
-        $token = strtolower(static::getVariable('spbc_remote_call_token'));
+        if ( $this->api_key === null || $this->api_key === '' ) {
+            throw new RemoteCallsException('WRONG_TOKEN');
+        }
 
-        if ( $token !== strtolower(md5($this->api_key)) ) {
+        $token = strtolower((string) static::getVariable('spbc_remote_call_token'));
+        $expected = strtolower(md5($this->api_key));
+
+        if ( ! hash_equals($expected, $token) ) {
             throw new RemoteCallsException('WRONG_TOKEN');
         }
 

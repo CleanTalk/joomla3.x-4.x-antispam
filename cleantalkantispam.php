@@ -372,6 +372,10 @@ class plgSystemCleantalkantispam extends JPlugin
      */
     private function serveRemoteCalls($apikey)
     {
+        if ($apikey === null || $apikey === '') {
+            return;
+        }
+
         /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $remote_calls_class */
         $remote_calls_class = Mloader::get('RemoteCalls');
 
