@@ -49,6 +49,7 @@ use Cleantalk\Common\Variables\Cookie;
 use Cleantalk\Common\Variables\Server;
 use Cleantalk\Custom\AltCookies;
 use Cleantalk\Custom\ConnectionReports;
+use Cleantalk\Custom\Helper\Helper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Session\Session;
@@ -1715,7 +1716,21 @@ class plgSystemCleantalkantispam extends JPlugin
                     }
 
                     return json_encode(['error' => 'Not working']);
+                case 'cleantalk_force_ajax_check' :
+                    if ( isset($data['form_data']) ) {
+                        $request_data = Helper::get_fields_any($data['form_data']);
+                        $request_data['comment_type'] = 'contact_form_joomla_cleantalk_force_ajax_check';
+                        $ctResponse = $this->ctSendRequest('check_message', $request_data);
 
+                        if ($ctResponse['allow'] == 0) {
+                            return json_encode(['allow' => 0, 'msg' => $ctResponse['comment']]);
+                        }
+
+                        if ($ctResponse['allow'] == 1) {
+                            return json_encode(['allow' => 1, 'msg' => '']);
+                        }
+                    }
+                    break;
                 default :
                     return json_encode(['error' => 'Wrong action was provided']);
             }

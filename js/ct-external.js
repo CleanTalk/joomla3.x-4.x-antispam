@@ -1,5 +1,5 @@
 function ct_check_external(){
-    
+
     for(var i = 0, host = '', action = ''; i < document.forms.length; i++){
         var form = document.forms[i];
 
@@ -43,6 +43,54 @@ function ct_check_external(){
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    const nativeSubmit = HTMLFormElement.prototype.submit;
+    HTMLFormElement.prototype.submit = function (...args) {
+        if ( ! apbctIsHubSpotForm(this) ) {
+            return Reflect.apply(nativeSubmit, this, args);
+        }
+        let data = {};
+        let elems = this.elements;
+        const originalFormObject = this;
+        const originalFormArgs = args;
+        elems = Array.prototype.slice.call(elems);
+
+        elems.forEach(
+            function ( elem, y ) {
+                if(elem.name === '' ) {
+                    data['input_' + y] = elem.value;
+                } else {
+                    data[elem.name] = elem.value;
+                }
+            }
+        );
+        Joomla.request({
+            url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=json',
+            method: 'POST',
+            data: JSON.stringify({
+                'action' : 'cleantalk_force_ajax_check',
+                'form_data': data
+            }),
+            headers: {
+                'Cache-Control' : 'no-cache'
+            },
+            onSuccess: function (response, xhr){
+                try {
+                    let responseData = JSON.parse(response);
+                    responseData = responseData.data[0];
+                    if ( responseData.allow !== 0 ) {
+                        return Reflect.apply(nativeSubmit, originalFormObject, originalFormArgs);
+                    } else {
+                        alert(result.ct_result_comment);
+                    }
+                } catch (e) {
+                    console.log(e.toString());
+                    console.log(e.fileName);
+                    console.log(e.lineNumber);
+                    return Reflect.apply(nativeSubmit, originalFormObject, originalFormArgs);
+                }
+            }
+        });
+    };
     setTimeout(function () {
         ct_check_external();
     }, 1500);
@@ -91,5 +139,25 @@ function formIsExclusion(currentForm)
         console.table('APBCT ERROR: formIsExclusion() - ',e)
     }
 
+    if ( apbctIsHubSpotForm(currentForm) ) {
+        result = true
+    }
+
     return result
+}
+
+/**
+ * Complex check for HubSpot forms.
+ *
+ * @param form
+ * @return {boolean}
+ */
+function apbctIsHubSpotForm(form) {
+    if (!(form instanceof HTMLFormElement)) return false;
+
+    return (
+        form.matches('form[data-hsfc-id="Form"]') &&
+        form.matches('form.hsfc-Form') &&
+        form.matches('form[data-form-id]')
+    );
 }
