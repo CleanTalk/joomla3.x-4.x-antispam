@@ -1,0 +1,39 @@
+name: PHPUnit, PHPCS
+
+on:
+  push:
+    branches:
+      - dev
+      - fix
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PHPUnit, PHPCS (PHP 7.2)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.2'
+          extensions: curl, dom, mbstring, tokenizer, xml, xmlwriter
+          coverage: none
+          tools: composer:v2
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Restore checked-out plugin libraries
+        # The CleanTalk installer writes dependencies into the tracked lib/ directory.
+        run: git restore --source=HEAD --worktree -- lib/
+
+      - name: Running tests
+        run: composer test
