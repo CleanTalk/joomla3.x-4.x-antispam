@@ -9,9 +9,8 @@
         beStrictAboutOutputDuringTests="true"
 >
     <testsuites>
-        <testsuite name="CleanTalk Unit Tests">
-            <directory suffix=".php">./</directory>
-            <exclude>./bootstrap.php</exclude>
+        <testsuite name="CleanTalk">
+            <directory suffix="Test.php">./Cleantalk</directory>
         </testsuite>
     </testsuites>
 </phpunit>

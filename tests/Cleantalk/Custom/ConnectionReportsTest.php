@@ -1,9 +1,11 @@
 <?php
 
+namespace Cleantalk\Tests\Custom;
+
 use PHPUnit\Framework\TestCase;
 use Cleantalk\Custom\ConnectionReports;
 
-class TestConnectionReports extends TestCase
+class ConnectionReportsTest extends TestCase
 {
     protected function setUp(): void
     {
@@ -197,11 +199,13 @@ class TestConnectionReports extends TestCase
         $data = ConnectionReports::getClearReports();
         $data = ConnectionReports::add($data, false, '<b>bad</b>');
 
-        ob_start();
-        ConnectionReports::sendMail($data, 'test@example.com');
-        $output = ob_get_clean();
+        $mail = function ($arguments) {
+            $this->assertStringContainsString('&lt;script&gt;', $arguments[2]);
+            $this->assertStringContainsString('&lt;b&gt;bad&lt;/b&gt;', $arguments[2]);
+            return true;
+        };
 
-        $this->assertTrue(true); // важно: просто покрытие htmlspecialchars
+        $this->assertTrue(ConnectionReports::sendMail($data, 'test@example.com', $mail));
     }
 
     public function testPrepareEmailBodyBasic()

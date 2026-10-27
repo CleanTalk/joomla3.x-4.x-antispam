@@ -24,6 +24,7 @@ If you find this project useful, please consider starring ⭐ it on GitHub — i
 
 ## Requirements
 
+* PHP 7.2 or newer
 * CleanTalk account https://cleantalk.org/register?product=anti-spam
 
 ### Websites that trust CleanTalk!
