@@ -133,7 +133,7 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
 	/**
 	 * Retrieves rate limit data for the current UID from database
 	 *
-	 * @return RateLimiterDTO|false Rate limit data object or false if not found
+	 * @return RateLimiterDto|false Rate limit data object or false if not found
 	 */
 	public function selectUIDData()
 	{
@@ -146,6 +146,6 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
 		);
 		$result = $this->db_object->fetch($this->db_object->getQuery());
 
-		return !empty($result) ? new RateLimiterDTO($result) : false;
+		return !empty($result) ? new RateLimiterDto($result) : false;
 	}
 }
