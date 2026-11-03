@@ -24,7 +24,7 @@
         ],
         "test:phpcs": "@php vendor/bin/phpcs --standard=tests/.phpcs.xml --runtime-set installed_paths vendor/phpcompatibility/php-compatibility",
         "test:phpunit": "@php vendor/bin/phpunit --configuration=tests/phpunit.xml",
-        "test:psalm": "@php vendor/bin/psalm --config=psalm.xml --no-cache --no-progress"
+        "test:psalm": "@php vendor/bin/psalm --config=psalm.xml --no-cache"
     },
     "config": {
         "platform": {
