@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset>
-	<description>Sniff code to check different PHP compatibility</description>
+<ruleset name="CleanTalk Joomla coding standards">
+	<description>Check PHP 7.2 compatibility and PSR-12 coding style outside Common.</description>
 
 	<!-- What to scan -->
 	<file>../</file>
@@ -18,10 +18,15 @@
 	<exclude-pattern>fw_files/*</exclude-pattern>
 	<arg name="colors"/>
 	<arg name="extensions" value="php"/>
+	<arg name="exclude" value="PSR12.ControlStructures.ControlStructureSpacing"/>
+	<arg value="n"/>
 
 	<!-- Rules: Check PHP version compatibility -->
 	<!-- https://github.com/PHPCompatibility/PHPCompatibility#sniffing-your-code-for-compatibility-with-specific-php-versions -->
 	<config name="testVersion" value="7.2-"/>
 
 	<rule ref="PHPCompatibility"/>
+	<rule ref="PSR12">
+		<exclude-pattern>*/lib/Cleantalk/Common/*</exclude-pattern>
+	</rule>
 </ruleset>

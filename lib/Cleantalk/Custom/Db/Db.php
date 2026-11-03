@@ -15,7 +15,8 @@ class Db extends \Cleantalk\Common\Db\Db
      * Set tables prefix.
      */
     protected $dbResult;
-    protected function init() {
+    protected function init()
+    {
         $this->prefix = \JFactory::getDBO()->getPrefix();
     }
 
@@ -26,7 +27,8 @@ class Db extends \Cleantalk\Common\Db\Db
      *
      * @return bool|int Raw result
      */
-    public function execute($query, $return_affected = false) {
+    public function execute($query, $return_affected = false)
+    {
         $this->dbResult = \JFactory::getDBO()->setQuery($query)->execute();
         return $this->dbResult;
     }
@@ -40,8 +42,9 @@ class Db extends \Cleantalk\Common\Db\Db
      *
      * @return array|null
      */
-    public function fetch( $query = '', $response_type = false ) {
-		$query = $query ?: $this->getQuery();
+    public function fetch($query = '', $response_type = false)
+    {
+        $query = $query ?: $this->getQuery();
         $result = \JFactory::getDBO()->setQuery($query)->loadAssoc();
         $this->result = $result ?? array();
 
@@ -57,7 +60,8 @@ class Db extends \Cleantalk\Common\Db\Db
      *
      * @return array|object|null
      */
-    public function fetchAll( $query = false, $response_type = false ) {
+    public function fetchAll($query = false, $response_type = false)
+    {
         $query = $query ?: $this->getQuery();
         if (!$query) {
             error_log('CleanTalk: A SQL query must be provided or prepared before fetching rows.');
@@ -85,23 +89,23 @@ class Db extends \Cleantalk\Common\Db\Db
         return !empty($result);
     }
 
-	public function getAffectedRows()
-	{
-		return \JFactory::getDBO()->getAffectedRows();
-	}
+    public function getAffectedRows()
+    {
+        return \JFactory::getDBO()->getAffectedRows();
+    }
 
-	/**
-	 * Get the last database error message
-	 *
-	 * @return string
-	 */
-	public function getLastError()
-	{
-		$db = \JFactory::getDBO();
-		$errorMsg = '';
-		if (method_exists($db, 'getErrorMsg')) {
-			$errorMsg = $db->getErrorMsg();
-		}
-		return $errorMsg ?: 'Unknown database error';
-	}
+    /**
+     * Get the last database error message
+     *
+     * @return string
+     */
+    public function getLastError()
+    {
+        $db = \JFactory::getDBO();
+        $errorMsg = '';
+        if (method_exists($db, 'getErrorMsg')) {
+            $errorMsg = $db->getErrorMsg();
+        }
+        return $errorMsg ?: 'Unknown database error';
+    }
 }

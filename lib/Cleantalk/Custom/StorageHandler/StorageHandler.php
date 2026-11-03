@@ -46,13 +46,13 @@ class StorageHandler implements \Cleantalk\Common\StorageHandler\StorageHandler
         return $this->db_object->execute($this->db_object->getQuery());
     }
 
-	public static function getUpdatingFolder()
-	{
-		return APBCT_DIR_PATH . DIRECTORY_SEPARATOR . 'cleantalk_fw_files' . DIRECTORY_SEPARATOR;
-	}
+    public static function getUpdatingFolder()
+    {
+        return APBCT_DIR_PATH . DIRECTORY_SEPARATOR . 'cleantalk_fw_files' . DIRECTORY_SEPARATOR;
+    }
 
-	public static function getJsLocation()
-	{
-		return \JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js";
-	}
+    public static function getJsLocation()
+    {
+        return \JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js";
+    }
 }

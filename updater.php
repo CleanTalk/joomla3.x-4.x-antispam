@@ -24,6 +24,7 @@ if (defined('JVERSION')) {
 
 use Cleantalk\Common\Mloader\Mloader;
 
+// phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace, Squiz.Classes.ValidClassName.NotCamelCaps -- Preserve the global Joomla legacy installer entry point.
 class plgsystemcleantalkantispamInstallerScript
 {
     public function preflight($type, $parent)
@@ -40,9 +41,9 @@ class plgsystemcleantalkantispamInstallerScript
 
     public function postflight($type, $parent)
     {
-		if ( $type === 'uninstall' ) {
-			return;
-		}
+        if ( $type === 'uninstall' ) {
+            return;
+        }
 
         // Updating roles_exclusion
         $excluded_roles = $this->getParam('roles_exclusions');
@@ -76,7 +77,7 @@ class plgsystemcleantalkantispamInstallerScript
     /**
      * Get all user groups
      */
-    static private function getGroups()
+    private static function getGroups()
     {
         $db = JFactory::getDBO();
 
@@ -90,33 +91,35 @@ class plgsystemcleantalkantispamInstallerScript
     }
 
     /*
-	 * get a variable from the manifest file (actually, from the manifest cache).
-	 */
-    function getParam( $name ) {
+     * get a variable from the manifest file (actually, from the manifest cache).
+     */
+    public function getParam($name)
+    {
         $db = JFactory::getDbo();
         $db->setQuery('SELECT params FROM #__extensions WHERE element = "cleantalkantispam"');
-        $params = json_decode( $db->loadResult(), true );
+        $params = json_decode($db->loadResult(), true);
         return $params[ $name ];
     }
 
     /*
      * sets parameter values in the component's row of the extension table
      */
-    function setParams($param_array) {
+    public function setParams($param_array)
+    {
         if ( count($param_array) > 0 ) {
             // read the existing component value(s)
             $db = JFactory::getDbo();
             $db->setQuery('SELECT params FROM #__extensions WHERE element = "cleantalkantispam"');
-            $params = json_decode( $db->loadResult(), true );
+            $params = json_decode($db->loadResult(), true);
             // add the new variable(s) to the existing one(s)
             foreach ( $param_array as $name => $value ) {
                 $params[ (string) $name ] = (string) $value;
             }
             // store the combined new and existing values back as a JSON string
-            $paramsString = json_encode( $params );
+            $paramsString = json_encode($params);
             $db->setQuery('UPDATE #__extensions SET params = ' .
-                          $db->quote( $paramsString ) .
-                          ' WHERE element = "cleantalkantispam"' );
+                          $db->quote($paramsString) .
+                          ' WHERE element = "cleantalkantispam"');
             $db->query();
         }
     }

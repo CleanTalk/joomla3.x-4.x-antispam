@@ -72,14 +72,16 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
                 last_call = %s,
                 created_at = %s
             WHERE uid = %s
-        ', [
+        ',
+            [
             $uid_data->counter,
             $uid_data->last_call,
             $uid_data->created_at,
             $uid_data->uid
-        ]);
+            ]
+        );
 
-	    $result = $this->db_object->execute($this->db_object->getQuery());
+        $result = $this->db_object->execute($this->db_object->getQuery());
 
         return false !== $result;
     }
@@ -95,15 +97,17 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
                 (uid, type, ip, ua, counter, last_call, created_at)
             VALUES (%s, %s, %s, %s, 1, %s, %s)
             ON DUPLICATE KEY UPDATE last_call = %s, counter = counter + 1;
-            ',[
+            ',
+            [
             $uid_data->uid,
             $uid_data->type,
             $uid_data->ip,
             $uid_data->ua,
-	        $uid_data->last_call,
-	        $uid_data->created_at,
+            $uid_data->last_call,
+            $uid_data->created_at,
             $uid_data->last_call
-        ]);
+            ]
+        );
 
         $result = $this->db_object->execute($this->db_object->getQuery());
 
@@ -130,22 +134,22 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
         return false !== $result;
     }
 
-	/**
-	 * Retrieves rate limit data for the current UID from database
-	 *
-	 * @return RateLimiterDto|false Rate limit data object or false if not found
-	 */
-	public function selectUIDData()
-	{
-		$this->db_object->prepare(
-			'
+    /**
+     * Retrieves rate limit data for the current UID from database
+     *
+     * @return RateLimiterDto|false Rate limit data object or false if not found
+     */
+    public function selectUIDData()
+    {
+        $this->db_object->prepare(
+            '
                 SELECT uid, type, ip, ua, counter, last_call, created_at FROM ' . $this->table_name . '
                 WHERE uid = %s LIMIT 1;
             ',
-			[$this->uid]
-		);
-		$result = $this->db_object->fetch($this->db_object->getQuery());
+            [$this->uid]
+        );
+        $result = $this->db_object->fetch($this->db_object->getQuery());
 
-		return !empty($result) ? new RateLimiterDto($result) : false;
-	}
+        return !empty($result) ? new RateLimiterDto($result) : false;
+    }
 }

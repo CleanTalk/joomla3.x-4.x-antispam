@@ -4,37 +4,38 @@ namespace Cleantalk\Custom\RemoteCalls;
 
 class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
 {
-	protected $available_rc_actions = array(
-		'close_renew_banner' => array(
-			'last_call' => 0,
-			'cooldown' => self::COOLDOWN
-		),
-		'sfw_update' => array(
-			'last_call' => 0,
-			'cooldown' => 0
-		),
-		'sfw_send_logs' => array(
-			'last_call' => 0,
-			'cooldown' => self::COOLDOWN
-		),
-		'private_record_add' => array(
-			'last_call' => 0,
-			'cooldown' => 0
-		),
-		'private_record_delete' => array(
-			'last_call' => 0,
-			'cooldown' => 0
-		)
-	);
+    protected $available_rc_actions = array(
+        'close_renew_banner' => array(
+            'last_call' => 0,
+            'cooldown' => self::COOLDOWN
+        ),
+        'sfw_update' => array(
+            'last_call' => 0,
+            'cooldown' => 0
+        ),
+        'sfw_send_logs' => array(
+            'last_call' => 0,
+            'cooldown' => self::COOLDOWN
+        ),
+        'private_record_add' => array(
+            'last_call' => 0,
+            'cooldown' => 0
+        ),
+        'private_record_delete' => array(
+            'last_call' => 0,
+            'cooldown' => 0
+        )
+    );
 
     /**
      * SFW update
      *
      * @return string
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Preserve the existing method name.
     public function action__sfw_update()
     {
-        return \plgSystemCleantalkantispam::apbct_sfw_update( $this->api_key );
+        return \plgSystemCleantalkantispam::apbct_sfw_update($this->api_key);
     }
 
     /**
@@ -42,9 +43,10 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
      *
      * @return string
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Preserve the existing method name.
     public function action__sfw_send_logs()
     {
-        return \plgSystemCleantalkantispam::apbct_sfw_send_logs( $this->api_key );
+        return \plgSystemCleantalkantispam::apbct_sfw_send_logs($this->api_key);
     }
 
     /**
@@ -52,6 +54,7 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
      *
      * @return array
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Preserve the existing method name.
     public function action__private_record_add()
     {
         $records = \Cleantalk\Common\Variables\Request::get('records');
@@ -77,6 +80,7 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
      *
      * @return array
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Preserve the existing method name.
     public function action__private_record_delete()
     {
         $records = \Cleantalk\Common\Variables\Request::get('records');
@@ -151,7 +155,7 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
             $table = \JTable::getInstance('extension');
             $table->load((int) $plg->extension_id);
             $jparams = new \JRegistry($table->params);
-            $jparams->set('remote_calls', $remote_calls);          
+            $jparams->set('remote_calls', $remote_calls);
             $table->params = $jparams->toString();
             $table->store();
         }
