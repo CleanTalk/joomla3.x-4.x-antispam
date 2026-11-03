@@ -1,0 +1,37 @@
+<?php
+
+// Only aliases registered by cleantalkantispam.php/updater.php are provided.
+// These are analysis declarations, not additional runtime compatibility aliases.
+
+define('_JEXEC', true);
+define('JVERSION', '6.2.0');
+
+abstract class JPlugin extends \Joomla\CMS\Plugin\CMSPlugin {}
+abstract class JPluginHelper extends \Joomla\CMS\Plugin\PluginHelper {}
+class JRegistry extends \Joomla\Registry\Registry {}
+abstract class JFactory extends \Joomla\CMS\Factory {}
+class JText extends \Joomla\CMS\Language\Text {}
+abstract class JHtml extends \Joomla\CMS\HTML\HTMLHelper {}
+class JURI extends \Joomla\CMS\Uri\Uri {}
+abstract class JTable extends \Joomla\CMS\Table\Table {}
+class JSession extends \Joomla\CMS\Session\Session {}
+
+// libraries/loader.php
+abstract class JLoader
+{
+    /**
+     * @param string $alias
+     * @param string $original
+     * @param string|false $version
+     * @return bool
+     */
+    public static function registerAlias($alias, $original, $version = false) {}
+}
+
+/**
+ * libraries/loader.php
+ * @param string $path
+ * @param string|null $base
+ * @return bool
+ */
+function jimport($path, $base = null) {}

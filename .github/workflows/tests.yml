@@ -1,4 +1,4 @@
-name: PHPUnit, PHPCS
+name: PHPUnit, PHPCS, Psalm
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   tests:
-    name: PHPUnit, PHPCS (PHP 7.2)
+    name: PHPUnit, PHPCS, Psalm (PHP 7.2)
     runs-on: ubuntu-22.04
 
     steps:
@@ -24,7 +24,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '7.2'
-          extensions: curl, dom, mbstring, tokenizer, xml, xmlwriter
+          extensions: curl, dom, mbstring, simplexml, tokenizer, xml, xmlwriter
           coverage: none
           tools: composer:v2
 
@@ -48,4 +48,4 @@ jobs:
           message: |
             Hi, <strong>${{ github.actor }}</strong>! Your commit for <strong>${{ github.repository }}</strong>
             contains 💯 the best solution but it have to be fixed!
-            <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">Auto-Tests (PHPUnit, PHPCS)</a> build failed ⛔!
+            <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">Auto-Tests (PHPUnit, PHPCS, Psalm)</a> build failed ⛔!

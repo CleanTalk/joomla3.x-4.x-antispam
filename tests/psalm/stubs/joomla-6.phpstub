@@ -1,0 +1,404 @@
+<?php
+
+// Used API from Joomla 6.2.0, including inherited methods and trait members.
+// Source paths are relative to the official full package for this release.
+// https://github.com/joomla/joomla-cms/releases/tag/6.2.0
+
+namespace Joomla\CMS {
+    // libraries/src/Factory.php
+    abstract class Factory
+    {
+        /**
+         * The plugin runs in the site/administrator web application.
+         * Joomla's general contract also permits other CMSApplicationInterface implementations.
+         * @return \Joomla\CMS\Application\CMSApplication
+         */
+        public static function getApplication() {}
+
+        /**
+         * @param string|null $file
+         * @param string $type
+         * @param string $namespace
+         * @return \Joomla\Registry\Registry
+         */
+        public static function getConfig($file = null, $type = 'PHP', $namespace = '') {}
+
+        /** @return \Joomla\CMS\Session\Session */
+        public static function getSession(array $options = []) {}
+
+        /** @return \Joomla\CMS\Language\Language */
+        public static function getLanguage() {}
+
+        /** @return \Joomla\CMS\Document\Document */
+        public static function getDocument() {}
+
+        /**
+         * @param int|string|null $id
+         * @return \Joomla\CMS\User\User
+         */
+        public static function getUser($id = null) {}
+
+        /** @return \Joomla\Database\DatabaseInterface */
+        public static function getDbo() {}
+
+        /** @return \Joomla\CMS\Mail\Mail */
+        public static function getMailer() {}
+    }
+}
+
+namespace Joomla\CMS\Plugin {
+    // libraries/src/Plugin/CMSPlugin.php
+    abstract class CMSPlugin
+    {
+        /** @var \Joomla\Registry\Registry|null */
+        public $params = null;
+        /** @var string|null */
+        protected $_name = null;
+        /** @var string|null */
+        protected $_type = null;
+
+        /**
+         * Joomla 6.2 still accepts the old dispatcher/config calling convention via func_get_arg().
+         * @param array|\Joomla\Event\DispatcherInterface $config
+         * @param array ...$legacyConfig
+         */
+        public function __construct($config = [], ...$legacyConfig) {}
+
+        /**
+         * @param string $extension
+         * @param string $basePath
+         * @return bool
+         */
+        public function loadLanguage($extension = '', $basePath = JPATH_ADMINISTRATOR) {}
+    }
+
+    // libraries/src/Plugin/PluginHelper.php
+    abstract class PluginHelper
+    {
+        /**
+         * @param string $type
+         * @param string|null $plugin
+         * @return ($plugin is non-empty-string ? \stdClass|array{} : list<\stdClass>)
+         */
+        public static function getPlugin($type, $plugin = null) {}
+
+        /**
+         * @param string $type
+         * @param string|null $plugin
+         * @return bool
+         */
+        public static function isEnabled($type, $plugin = null) {}
+    }
+}
+
+namespace Joomla\CMS\Application {
+    // libraries/src/Application/CMSApplication.php, WebApplication.php,
+    // libraries/vendor/joomla/application/src/AbstractApplication.php, AbstractWebApplication.php
+    /**
+     * @property-read \Joomla\Input\Input $input
+     * @psalm-seal-properties
+     */
+    abstract class CMSApplication
+    {
+        /**
+         * @param string $name
+         * @return \Joomla\Input\Input|null
+         */
+        public function __get($name) {}
+
+        /**
+         * @param string $msg
+         * @param string $type
+         * @return void
+         */
+        public function enqueueMessage($msg, $type = 'info') {}
+
+        /**
+         * @param string $identifier
+         * @return bool
+         */
+        public function isClient($identifier) {}
+
+        /**
+         * @param int $code
+         * @return never
+         */
+        public function close($code = 0) {}
+
+        /** @return \Joomla\CMS\Document\Document */
+        public function getDocument() {}
+
+        /**
+         * @param string $varname
+         * @param mixed $default
+         * @return mixed
+         */
+        public function getCfg($varname, $default = null) {}
+
+        /** @return string */
+        public function getBody() {}
+
+        /**
+         * @param string $content
+         * @return $this
+         */
+        public function setBody($content) {}
+
+        /**
+         * @param string $url
+         * @param int $status
+         * @return void
+         */
+        public function redirect($url, $status = 303) {}
+    }
+}
+
+namespace Joomla\CMS\Document {
+    // libraries/src/Document/Document.php
+    class Document
+    {
+        /**
+         * @param string $url
+         * @param array $options
+         * @param array $attribs
+         * @return $this
+         */
+        public function addScript($url, $options = [], $attribs = []) {}
+
+        /**
+         * @param string $content
+         * @param string $type
+         * @return $this
+         */
+        public function addScriptDeclaration($content, $type = 'text/javascript') {}
+
+        /**
+         * @param string $key
+         * @param mixed $options
+         * @param bool $merge
+         * @return $this
+         */
+        public function addScriptOptions($key, $options, $merge = true) {}
+
+        /**
+         * @param string $url
+         * @param array $options
+         * @param array $attribs
+         * @return $this
+         */
+        public function addStyleSheet($url, $options = [], $attribs = []) {}
+    }
+}
+
+namespace Joomla\CMS\Language {
+    // libraries/src/Language/Text.php
+    class Text
+    {
+        /**
+         * @param string $string
+         * @param bool|array $jsSafe
+         * @param bool $interpretBackSlashes
+         * @param bool $script
+         * @return string
+         */
+        public static function _($string, $jsSafe = false, $interpretBackSlashes = true, $script = false) {}
+
+        /**
+         * The implementation reads formatting arguments using func_get_args().
+         * @param string $string
+         * @param mixed ...$args
+         * @return string
+         */
+        public static function sprintf($string, ...$args) {}
+    }
+
+    // libraries/src/Language/Language.php
+    class Language
+    {
+        /** @return string */
+        public function getTag() {}
+    }
+}
+
+namespace Joomla\CMS\Session {
+    // libraries/src/Session/Session.php
+    class Session
+    {
+        /**
+         * @param string $method
+         * @return bool
+         */
+        public static function checkToken($method = 'post') {}
+
+        /**
+         * @param string $name
+         * @param mixed $default
+         * @return mixed
+         */
+        public function get($name, $default = null) {}
+
+        /**
+         * @param string $name
+         * @param mixed $value
+         * @return mixed
+         */
+        public function set($name, $value = null) {}
+    }
+}
+
+namespace Joomla\CMS\Uri {
+    // libraries/src/Uri/Uri.php and libraries/vendor/joomla/uri/src/AbstractUri.php
+    class Uri
+    {
+        /**
+         * @param string $uri
+         * @return static
+         */
+        public static function getInstance($uri = 'SERVER') {}
+
+        /**
+         * @param bool $pathonly
+         * @param string|null $path
+         * @return string
+         */
+        public static function root($pathonly = false, $path = null) {}
+
+        /**
+         * @param string $name
+         * @param mixed $default
+         * @return mixed
+         */
+        public function getVar($name, $default = null) {}
+
+        /** @return string|null */
+        public function getHost() {}
+
+        /**
+         * @param string[] $parts
+         * @return string
+         */
+        public function toString($parts = ['scheme', 'user', 'pass', 'host', 'port', 'path', 'query', 'fragment']) {}
+    }
+}
+
+namespace Joomla\CMS\User {
+    // libraries/src/User/User.php and libraries/src/Object/LegacyPropertyManagementTrait.php
+    class User
+    {
+        /** @var int|null */
+        public $id = null;
+        /** @var string|null */
+        public $email = null;
+        /** @var string|null */
+        public $username = null;
+        /** @var array<array-key, int> */
+        public $groups = [];
+        /** @var int|null */
+        public $guest = null;
+
+        /**
+         * @param string $property
+         * @param mixed $default
+         * @return mixed
+         */
+        public function get($property, $default = null) {}
+
+        /**
+         * @param string $action
+         * @param string|null $assetname
+         * @return bool
+         */
+        public function authorise($action, $assetname = null) {}
+    }
+}
+
+namespace Joomla\CMS\Table {
+    // libraries/src/Table/Table.php; Extension/Content fields are populated from the database schema.
+    abstract class Table
+    {
+        /**
+         * @param string $type
+         * @param string $prefix
+         * @param array $config
+         * @return ($type is 'extension' ? Extension|false : ($type is 'content' ? Content|false : Table|false))
+         */
+        public static function getInstance($type, $prefix = 'JTable', $config = []) {}
+
+        /**
+         * @param mixed $keys
+         * @param bool $reset
+         * @return bool
+         */
+        public function load($keys = null, $reset = true) {}
+
+        /**
+         * @param bool $updateNulls
+         * @return bool
+         */
+        public function store($updateNulls = false) {}
+    }
+
+    class Extension extends Table
+    {
+        /** @var string */
+        public $params;
+    }
+
+    class Content extends Table
+    {
+        /** @var string */
+        public $introtext;
+        /** @var string */
+        public $fulltext;
+    }
+}
+
+namespace Joomla\CMS\HTML {
+    // libraries/src/HTML/HTMLHelper.php
+    abstract class HTMLHelper
+    {
+        /** @return mixed */
+        final public static function _(string $key, ...$methodArgs) {}
+    }
+}
+
+namespace Joomla\CMS\Mail {
+    // libraries/src/Mail/Mail.php; isHTML() is inherited from PHPMailer.
+    class Mail
+    {
+        /**
+         * @param string|string[] $recipient
+         * @param string|string[] $name
+         * @return $this|false
+         */
+        public function addRecipient($recipient, $name = '') {}
+
+        /**
+         * @param string|array $from
+         * @param string|string[] $name
+         * @return $this|false
+         */
+        public function setSender($from, $name = '') {}
+
+        /**
+         * @param string $subject
+         * @return $this
+         */
+        public function setSubject($subject) {}
+
+        /**
+         * @param string $content
+         * @return $this
+         */
+        public function setBody($content) {}
+
+        /**
+         * @param bool $isHtml
+         * @return void
+         */
+        public function isHTML($isHtml = true) {}
+
+        /** @return bool */
+        public function Send() {}
+    }
+}

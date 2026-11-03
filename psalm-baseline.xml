@@ -1,0 +1,1074 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="4.30.0@d0bc6e25d89f649e4f36a534f330f8bb4643dd69">
+  <file src="cleantalkantispam.php">
+    <ComplexMethod occurrences="1">
+      <code>onAfterRoute</code>
+    </ComplexMethod>
+    <InvalidArgument occurrences="5">
+      <code>$data</code>
+      <code>$values</code>
+      <code>$values</code>
+      <code>'member-registration'</code>
+      <code>'userForm'</code>
+    </InvalidArgument>
+    <InvalidClass occurrences="2">
+      <code>JUri</code>
+      <code>JUri</code>
+    </InvalidClass>
+    <InvalidDocblock occurrences="2">
+      <code>private function ct_cookies_test()</code>
+      <code>public function onValidateContact(&amp;$contact, &amp;$data)</code>
+    </InvalidDocblock>
+    <InvalidNullableReturnType occurrences="1">
+      <code>string</code>
+    </InvalidNullableReturnType>
+    <InvalidReturnStatement occurrences="2">
+      <code>$output</code>
+      <code>['success' =&gt; 'The notice dismissing was remembered']</code>
+    </InvalidReturnStatement>
+    <InvalidScalarArgument occurrences="3">
+      <code>$date</code>
+      <code>1</code>
+      <code>1</code>
+    </InvalidScalarArgument>
+    <NullableReturnStatement occurrences="1">
+      <code>null</code>
+    </NullableReturnStatement>
+    <PossiblyFalsePropertyAssignmentValue occurrences="1">
+      <code>$this-&gt;get_sender_info()</code>
+    </PossiblyFalsePropertyAssignmentValue>
+    <PossiblyFalseReference occurrences="1">
+      <code>load</code>
+    </PossiblyFalseReference>
+    <PossiblyInvalidArgument occurrences="9">
+      <code>$_GET['q']</code>
+      <code>$_GET['searchword']</code>
+      <code>$_POST['ct_action']</code>
+      <code>$_POST['ct_action']</code>
+      <code>$_POST['ct_action']</code>
+      <code>$_POST['return']</code>
+      <code>$_POST['return']</code>
+      <code>$_REQUEST['page-url']</code>
+      <code>$_REQUEST['page-url']</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidArrayOffset occurrences="1">
+      <code>$output['data']['spam_comments']</code>
+    </PossiblyInvalidArrayOffset>
+    <PossiblyInvalidCast occurrences="9">
+      <code>$_POST['ct_action']</code>
+      <code>$_POST['ct_action']</code>
+      <code>$_POST['ct_action']</code>
+      <code>$_POST['return']</code>
+      <code>$_POST['return']</code>
+      <code>$_REQUEST['page-url']</code>
+      <code>$_REQUEST['page-url']</code>
+      <code>$form_action</code>
+      <code>$form_method</code>
+    </PossiblyInvalidCast>
+    <PossiblyInvalidIterator occurrences="3">
+      <code>$_POST['creativecontactform_fields']</code>
+      <code>$_POST['data']</code>
+      <code>$result</code>
+    </PossiblyInvalidIterator>
+    <PossiblyInvalidOperand occurrences="4">
+      <code>$_POST["vcontact_message"]</code>
+      <code>$_POST['rp_message']</code>
+      <code>$message</code>
+      <code>$message</code>
+    </PossiblyInvalidOperand>
+    <PossiblyNullArgument occurrences="3">
+      <code>$values</code>
+      <code>var_export('Exception: ' . $exception-&gt;getMessage(), 1)</code>
+      <code>var_export('RC error: ' . $exception-&gt;getMessage(),1)</code>
+    </PossiblyNullArgument>
+    <PossiblyNullArrayAccess occurrences="17">
+      <code>$ctResponse['allow']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$result['account_name_ob']</code>
+      <code>$result['auto_update_app']</code>
+      <code>$result['ip_license']</code>
+      <code>$result['license_trial']</code>
+      <code>$result['moderate']</code>
+      <code>$result['moderate_ip']</code>
+      <code>$result['renew']</code>
+      <code>$result['service_id']</code>
+      <code>$result['show_auto_update_notice']</code>
+      <code>$result['show_notice']</code>
+      <code>$result['show_review']</code>
+      <code>$result['spam_count']</code>
+      <code>$result['trial']</code>
+      <code>$result['user_token']</code>
+      <code>$result['valid']</code>
+    </PossiblyNullArrayAccess>
+    <PossiblyNullPropertyAssignmentValue occurrences="2">
+      <code>$helper_class::ipGet('real', false)</code>
+      <code>$this-&gt;get_ct_checkjs($_COOKIE)</code>
+    </PossiblyNullPropertyAssignmentValue>
+    <PossiblyUndefinedArrayOffset occurrences="14">
+      <code>$_SERVER["REQUEST_METHOD"]</code>
+      <code>$_SERVER['HTTP_HOST']</code>
+      <code>$_SERVER['HTTP_HOST']</code>
+      <code>$_SERVER['HTTP_HOST']</code>
+      <code>$_SERVER['HTTP_HOST']</code>
+      <code>$_SERVER['REQUEST_METHOD']</code>
+      <code>$_SERVER['REQUEST_METHOD']</code>
+      <code>$_SERVER['REQUEST_METHOD']</code>
+      <code>$_SERVER['REQUEST_URI']</code>
+      <code>$_SERVER['REQUEST_URI']</code>
+      <code>$_SERVER['REQUEST_URI']</code>
+      <code>$_SERVER['REQUEST_URI']</code>
+      <code>$_SERVER['REQUEST_URI']</code>
+      <code>$_SERVER['REQUEST_URI']</code>
+    </PossiblyUndefinedArrayOffset>
+    <PossiblyUndefinedStringArrayOffset occurrences="54">
+      <code>$_GET['option']</code>
+      <code>$_GET['route']</code>
+      <code>$_POST['creativecontactform_fields']</code>
+      <code>$comment['date']</code>
+      <code>$comment['email']</code>
+      <code>$comment['ip']</code>
+      <code>$ctResponse['allow']</code>
+      <code>$ctResponse['allow']</code>
+      <code>$ctResponse['allow']</code>
+      <code>$ctResponse['allow']</code>
+      <code>$ctResponse['allow']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['comment']</code>
+      <code>$ctResponse['errno']</code>
+      <code>$ctResponse['errno']</code>
+      <code>$ctResponse['errno']</code>
+      <code>$ctResponse['errno']</code>
+      <code>$ctResponse['id']</code>
+      <code>$data['data']</code>
+      <code>$out['error']</code>
+      <code>$result['account_name_ob']</code>
+      <code>$result['auto_update_app']</code>
+      <code>$result['ip_license']</code>
+      <code>$result['license_trial']</code>
+      <code>$result['moderate']</code>
+      <code>$result['moderate_ip']</code>
+      <code>$result['renew']</code>
+      <code>$result['service_id']</code>
+      <code>$result['show_auto_update_notice']</code>
+      <code>$result['show_notice']</code>
+      <code>$result['show_review']</code>
+      <code>$result['spam_count']</code>
+      <code>$result['trial']</code>
+      <code>$result['user_token']</code>
+      <code>$result['valid']</code>
+      <code>$result['valid']</code>
+      <code>$result_tmp['user_token']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <PossiblyUndefinedVariable occurrences="14">
+      <code>$out</code>
+      <code>$output</code>
+      <code>$output</code>
+      <code>$output</code>
+      <code>$output</code>
+      <code>$post_info</code>
+      <code>$post_info</code>
+      <code>$renew</code>
+      <code>$result</code>
+      <code>$save_params</code>
+      <code>$save_params</code>
+      <code>$save_params</code>
+      <code>$save_params</code>
+      <code>$trial</code>
+    </PossiblyUndefinedVariable>
+    <PossiblyUnusedMethod occurrences="15">
+      <code>__construct</code>
+      <code>onAfterCompleteOrder</code>
+      <code>onAfterInitialise</code>
+      <code>onAfterRender</code>
+      <code>onAfterRoute</code>
+      <code>onAfterStoreOrder</code>
+      <code>onAjaxCleantalkantispam</code>
+      <code>onBeforeCompileHead</code>
+      <code>onBeforeStoreUser</code>
+      <code>onExtensionAfterSave</code>
+      <code>onExtensionAfterUpdate</code>
+      <code>onJCommentsCommentBeforeAdd</code>
+      <code>onJCommentsFormAfterDisplay</code>
+      <code>onUserBeforeSave</code>
+      <code>onValidateContact</code>
+    </PossiblyUnusedMethod>
+    <RedundantCast occurrences="3">
+      <code>(string) $_SERVER['HTTP_REFERER']</code>
+      <code>(string) $_SERVER['HTTP_REFERER']</code>
+      <code>(string) $_SERVER['HTTP_USER_AGENT']</code>
+    </RedundantCast>
+    <RedundantCondition occurrences="6">
+      <code>$get_cms_tag</code>
+      <code>$get_cms_tag</code>
+      <code>$get_cms_tag &amp;&amp; is_array($get_cms_tag)</code>
+      <code>$get_cms_tag &amp;&amp; is_array($get_cms_tag) &amp;&amp; count($get_cms_tag) &gt; 0</code>
+      <code>$keys &amp;&amp; is_array($keys) &amp;&amp; !empty($keys)</code>
+      <code>is_array($get_cms_tag)</code>
+    </RedundantCondition>
+    <RiskyCast occurrences="2">
+      <code>$_POST['amount']</code>
+      <code>$_POST['offset']</code>
+    </RiskyCast>
+    <TypeDoesNotContainType occurrences="1">
+      <code>count($data) == 0</code>
+    </TypeDoesNotContainType>
+    <UndefinedClass occurrences="7">
+      <code>JFilterInput</code>
+      <code>new $cron_class</code>
+      <code>new $cron_class</code>
+      <code>new $cron_class()</code>
+      <code>new $remote_calls_class( $apikey, new $storage_handler() )</code>
+      <code>new $storage_handler()</code>
+      <code>new $storage_handler_class()</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="6">
+      <code>JCommentsDB</code>
+      <code>JInstaller</code>
+      <code>OrderEshop</code>
+      <code>OrderEshop</code>
+      <code>type</code>
+      <code>type</code>
+    </UndefinedDocblockClass>
+    <UndefinedMethod occurrences="7">
+      <code>$helper_class::get_fields_any($_POST, $this-&gt;params-&gt;get('fields_exclusions'))</code>
+      <code>$helper_class::get_fields_any($_POST, $this-&gt;params-&gt;get('fields_exclusions'))</code>
+      <code>$helper_class::get_fields_any($form_data, $this-&gt;params-&gt;get('fields_exclusions'))</code>
+      <code>$helper_class::get_fields_any($post_processed, $this-&gt;params-&gt;get('fields_exclusions'))</code>
+      <code>$helper_class::print_form($_POST, '')</code>
+      <code>isAdmin</code>
+      <code>isSite</code>
+    </UndefinedMethod>
+    <UndefinedVariable occurrences="1">
+      <code>$cokie_name</code>
+    </UndefinedVariable>
+    <UnevaluatedCode occurrences="1">
+      <code>die();</code>
+    </UnevaluatedCode>
+    <UnusedProperty occurrences="1">
+      <code>$JCReady</code>
+    </UnusedProperty>
+    <UnusedReturnValue occurrences="1">
+      <code>null</code>
+    </UnusedReturnValue>
+    <UnusedVariable occurrences="14">
+      <code>$contact_form</code>
+      <code>$contact_form</code>
+      <code>$cron_res</code>
+      <code>$item</code>
+      <code>$js_post_value</code>
+      <code>$post_name</code>
+      <code>$result</code>
+      <code>$result</code>
+      <code>$sender_email</code>
+      <code>$sent</code>
+      <code>$session</code>
+      <code>$u</code>
+      <code>$u_opc</code>
+      <code>$update_result</code>
+    </UnusedVariable>
+  </file>
+  <file src="lib/Cleantalk/Common/Antispam/Cleantalk.php">
+    <PossiblyInvalidArgument occurrences="3">
+      <code>$request-&gt;example</code>
+      <code>$request-&gt;message</code>
+      <code>$result</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidIterator occurrences="1">
+      <code>$data</code>
+    </PossiblyInvalidIterator>
+    <PossiblyInvalidPropertyFetch occurrences="1">
+      <code>$result-&gt;errno</code>
+    </PossiblyInvalidPropertyFetch>
+    <PossiblyNullPropertyAssignmentValue occurrences="2">
+      <code>$this-&gt;compressData($request-&gt;example)</code>
+      <code>$this-&gt;compressData($request-&gt;message)</code>
+    </PossiblyNullPropertyAssignmentValue>
+    <PossiblyUndefinedStringArrayOffset occurrences="1">
+      <code>$server['ip']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <PossiblyUnusedMethod occurrences="1">
+      <code>checkBot</code>
+    </PossiblyUnusedMethod>
+    <UndefinedClass occurrences="1">
+      <code>new $request_class()</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/Antispam/CleantalkResponse.php">
+    <PossiblyNullPropertyAssignmentValue occurrences="1">
+      <code>isset($obj-&gt;sms_error_text) ? htmlspecialchars($obj-&gt;sms_error_text) : null</code>
+    </PossiblyNullPropertyAssignmentValue>
+  </file>
+  <file src="lib/Cleantalk/Common/Api/Api.php">
+    <PossiblyNullArrayAccess occurrences="1">
+      <code>$last['message']</code>
+    </PossiblyNullArrayAccess>
+    <PossiblyUndefinedIntArrayOffset occurrences="1">
+      <code>$result['data'][0]</code>
+    </PossiblyUndefinedIntArrayOffset>
+    <PossiblyUndefinedStringArrayOffset occurrences="1">
+      <code>$data['method_name']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <PossiblyUnusedMethod occurrences="1">
+      <code>checkResponse</code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam occurrences="3">
+      <code>$ssl</code>
+      <code>$ssl_path</code>
+      <code>$timeout</code>
+    </PossiblyUnusedParam>
+    <UndefinedClass occurrences="1">
+      <code>new $request_class()</code>
+    </UndefinedClass>
+    <UndefinedFunction occurrences="2">
+      <code>current_time('timestamp')</code>
+      <code>current_time('timestamp')</code>
+    </UndefinedFunction>
+  </file>
+  <file src="lib/Cleantalk/Common/Cleaner/Escape.php">
+    <UnusedClass occurrences="1">
+      <code>Escape</code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/Cleaner/Sanitize.php">
+    <PossiblyUnusedMethod occurrences="15">
+      <code>cleanFileName</code>
+      <code>cleanHexColor</code>
+      <code>cleanHexColorNoHash</code>
+      <code>cleanHtmlClass</code>
+      <code>cleanKey</code>
+      <code>cleanMeta</code>
+      <code>cleanMimeType</code>
+      <code>cleanOption</code>
+      <code>cleanSqlOrderBy</code>
+      <code>cleanTextField</code>
+      <code>cleanTextareaField</code>
+      <code>cleanTitle</code>
+      <code>cleanTitleForQuery</code>
+      <code>cleanTitleWithDashes</code>
+      <code>cleanUser</code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Cleantalk/Common/Cleaner/Validate.php">
+    <PossiblyUnusedMethod occurrences="3">
+      <code>isEmail</code>
+      <code>isUrlencoded</code>
+      <code>isValidFilePath</code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Cleantalk/Common/Cron/Cron.php">
+    <PossiblyUnusedMethod occurrences="3">
+      <code>checkTasks</code>
+      <code>runTasks</code>
+      <code>serveCronActions</code>
+    </PossiblyUnusedMethod>
+    <UndefinedClass occurrences="7">
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/Db/Db.php">
+    <PossiblyInvalidArgument occurrences="1">
+      <code>$this-&gt;fetch($query)</code>
+    </PossiblyInvalidArgument>
+    <PossiblyUndefinedIntArrayOffset occurrences="1">
+      <code>array_values($this-&gt;fetch($query))[0]</code>
+    </PossiblyUndefinedIntArrayOffset>
+    <PossiblyUnusedMethod occurrences="7">
+      <code>acGetFromBlacklist</code>
+      <code>afGetFromBlacklist</code>
+      <code>altCookiesClearQuery</code>
+      <code>altCookiesStoreQuery</code>
+      <code>getCLearAcQuery</code>
+      <code>getUpdateAcLogQuery</code>
+      <code>resetAutoIncrement</code>
+    </PossiblyUnusedMethod>
+    <UndefinedConstant occurrences="1">
+      <code>APBCT_SESSION__LIVE_TIME</code>
+    </UndefinedConstant>
+    <UnusedMethod occurrences="1">
+      <code>simplePreparingMethod</code>
+    </UnusedMethod>
+  </file>
+  <file src="lib/Cleantalk/Common/Db/DbTablesCreator.php">
+    <PossiblyUndefinedVariable occurrences="2">
+      <code>$errors</code>
+      <code>$errors</code>
+    </PossiblyUndefinedVariable>
+    <PossiblyUnusedMethod occurrences="1">
+      <code>createAllTables</code>
+    </PossiblyUnusedMethod>
+    <UndefinedPropertyFetch occurrences="4">
+      <code>$db_obj-&gt;last_error</code>
+      <code>$db_obj-&gt;last_error</code>
+      <code>$db_obj-&gt;last_query</code>
+      <code>$db_obj-&gt;last_query</code>
+    </UndefinedPropertyFetch>
+    <UnusedVariable occurrences="1">
+      <code>$errors</code>
+    </UnusedVariable>
+  </file>
+  <file src="lib/Cleantalk/Common/Dns/Dns.php">
+    <PossiblyUndefinedStringArrayOffset occurrences="1">
+      <code>$server['ttl']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <PossiblyUndefinedVariable occurrences="1">
+      <code>$response</code>
+    </PossiblyUndefinedVariable>
+  </file>
+  <file src="lib/Cleantalk/Common/Firewall/Firewall.php">
+    <InvalidOperand occurrences="1">
+      <code>array_search($fw_result['status'], $this-&gt;statuses_priority)</code>
+    </InvalidOperand>
+    <InvalidPropertyAssignmentValue occurrences="2">
+      <code>Mloader::get('Api')</code>
+      <code>Mloader::get('Helper')</code>
+    </InvalidPropertyAssignmentValue>
+    <NullArgument occurrences="1">
+      <code>null</code>
+    </NullArgument>
+    <PossiblyFalseOperand occurrences="1">
+      <code>array_search($fw_result['status'], $this-&gt;statuses_priority)</code>
+    </PossiblyFalseOperand>
+    <PossiblyInvalidArrayAccess occurrences="1">
+      <code>$result['rows']</code>
+    </PossiblyInvalidArrayAccess>
+    <PossiblyUndefinedArrayOffset occurrences="1">
+      <code>$result['blocked_ip']</code>
+    </PossiblyUndefinedArrayOffset>
+    <PossiblyUndefinedStringArrayOffset occurrences="10">
+      <code>$fw_result['blocked_ip']</code>
+      <code>$fw_result['ip']</code>
+      <code>$fw_result['ip']</code>
+      <code>$fw_result['passed_ip']</code>
+      <code>$fw_result['pattern']</code>
+      <code>$fw_result['status']</code>
+      <code>$result['rows']</code>
+      <code>$result['status']</code>
+      <code>$result['status']</code>
+      <code>$result['status']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <PossiblyUnusedMethod occurrences="1">
+      <code>temporarySkip</code>
+    </PossiblyUnusedMethod>
+    <PropertyTypeCoercion occurrences="1">
+      <code>new $localize_class(__DIR__ . '/lang', $locale)</code>
+    </PropertyTypeCoercion>
+    <UndefinedClass occurrences="2">
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/Firewall/FirewallModule.php">
+    <InvalidPropertyAssignmentValue occurrences="1">
+      <code>Mloader::get('Helper')</code>
+    </InvalidPropertyAssignmentValue>
+    <PossiblyUnusedMethod occurrences="3">
+      <code>actionsForDenied</code>
+      <code>actionsForPassed</code>
+      <code>check</code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam occurrences="3">
+      <code>$data_table</code>
+      <code>$log_table</code>
+      <code>$params</code>
+    </PossiblyUnusedParam>
+    <PossiblyUnusedProperty occurrences="1">
+      <code>$db_log_table_name</code>
+    </PossiblyUnusedProperty>
+  </file>
+  <file src="lib/Cleantalk/Common/Firewall/FirewallUpdater.php">
+    <InvalidClass occurrences="6">
+      <code>\Cleantalk\Common\Firewall\Modules\SFW</code>
+      <code>\Cleantalk\Common\Firewall\Modules\SFW</code>
+      <code>\Cleantalk\Common\Firewall\Modules\SFW</code>
+      <code>\Cleantalk\Common\Firewall\Modules\SFW</code>
+      <code>\Cleantalk\Common\Firewall\Modules\SFW</code>
+      <code>\Cleantalk\Common\Firewall\Modules\SFW</code>
+    </InvalidClass>
+    <InvalidPropertyAssignmentValue occurrences="2">
+      <code>Mloader::get('Queue')</code>
+      <code>Mloader::get('RemoteCalls')</code>
+    </InvalidPropertyAssignmentValue>
+    <PossiblyInvalidArgument occurrences="1">
+      <code>Request::get('stage')</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="1">
+      <code>Request::get('stage')</code>
+    </PossiblyInvalidCast>
+    <PossiblyInvalidIterator occurrences="3">
+      <code>$file_urls</code>
+      <code>$file_urls_personal</code>
+      <code>$result</code>
+    </PossiblyInvalidIterator>
+    <PossiblyNullReference occurrences="2">
+      <code>getVar</code>
+      <code>getVar</code>
+    </PossiblyNullReference>
+    <PossiblyUnusedMethod occurrences="5">
+      <code>apbctSfwUpdateChecker</code>
+      <code>createTempTables</code>
+      <code>downloadFiles</code>
+      <code>getMultifiles</code>
+      <code>processFiles</code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam occurrences="1">
+      <code>$is_first_updating</code>
+    </PossiblyUnusedParam>
+    <UndefinedClass occurrences="3">
+      <code>new $cron_class()</code>
+      <code>new $this-&gt;queue($this-&gt;api_key)</code>
+      <code>new $this-&gt;queue($this-&gt;api_key)</code>
+    </UndefinedClass>
+    <UndefinedConstant occurrences="20">
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+    </UndefinedConstant>
+    <UnusedProperty occurrences="1">
+      <code>$cron</code>
+    </UnusedProperty>
+  </file>
+  <file src="lib/Cleantalk/Common/Firewall/FwStats.php">
+    <PossiblyUnusedProperty occurrences="14">
+      <code>$common_lists_url_id</code>
+      <code>$entries</code>
+      <code>$entries_personal</code>
+      <code>$errors</code>
+      <code>$expected_networks_count</code>
+      <code>$expected_networks_count_personal</code>
+      <code>$expected_ua_count</code>
+      <code>$firewall_update_percent</code>
+      <code>$firewall_updating_id</code>
+      <code>$last_update_time</code>
+      <code>$last_update_way</code>
+      <code>$personal_lists_url_id</code>
+      <code>$update_mode</code>
+      <code>$update_percent</code>
+    </PossiblyUnusedProperty>
+  </file>
+  <file src="lib/Cleantalk/Common/Firewall/Modules/AntiCrawler.php">
+    <PossiblyUndefinedStringArrayOffset occurrences="1">
+      <code>$lines['error']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <UndefinedConstant occurrences="4">
+      <code>APBCT_TBL_AC_UA_BL</code>
+      <code>APBCT_TBL_AC_UA_BL</code>
+      <code>APBCT_WRITE_LIMIT</code>
+      <code>APBCT_WRITE_LIMIT</code>
+    </UndefinedConstant>
+  </file>
+  <file src="lib/Cleantalk/Common/Firewall/Modules/Sfw.php">
+    <InvalidClass occurrences="2">
+      <code>$remote_calls_class</code>
+      <code>$remote_calls_class</code>
+    </InvalidClass>
+    <PossiblyFalseArgument occurrences="1">
+      <code>$request_uri</code>
+    </PossiblyFalseArgument>
+    <PossiblyFalseOperand occurrences="8">
+      <code>Server::get('HTTP_HOST')</code>
+      <code>Server::get('HTTP_HOST')</code>
+      <code>Server::get('HTTP_HOST')</code>
+      <code>Server::get('REMOTE_ADDR')</code>
+      <code>Server::get('REMOTE_ADDR')</code>
+      <code>Server::get('REQUEST_URI')</code>
+      <code>Server::get('REQUEST_URI')</code>
+      <code>Server::get('REQUEST_URI')</code>
+    </PossiblyFalseOperand>
+    <PossiblyInvalidArgument occurrences="5">
+      <code>$db_results</code>
+      <code>$request_uri</code>
+      <code>Cookie::get('ct_sfw_pass_key')</code>
+      <code>Cookie::get('ct_sfw_pass_key')</code>
+      <code>Cookie::get('ct_sfw_pass_key')</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidArrayAccess occurrences="1">
+      <code>$result['rows']</code>
+    </PossiblyInvalidArrayAccess>
+    <PossiblyInvalidCast occurrences="2">
+      <code>Cookie::get('ct_sfw_pass_key')</code>
+      <code>Cookie::get('ct_sfw_pass_key')</code>
+    </PossiblyInvalidCast>
+    <PossiblyInvalidIterator occurrences="2">
+      <code>$file_urls</code>
+      <code>$file_urls</code>
+    </PossiblyInvalidIterator>
+    <PossiblyInvalidOperand occurrences="8">
+      <code>Server::get('HTTP_HOST')</code>
+      <code>Server::get('HTTP_HOST')</code>
+      <code>Server::get('HTTP_HOST')</code>
+      <code>Server::get('REMOTE_ADDR')</code>
+      <code>Server::get('REMOTE_ADDR')</code>
+      <code>Server::get('REQUEST_URI')</code>
+      <code>Server::get('REQUEST_URI')</code>
+      <code>Server::get('REQUEST_URI')</code>
+    </PossiblyInvalidOperand>
+    <PossiblyNullArgument occurrences="3">
+      <code>$file_url</code>
+      <code>$file_url</code>
+      <code>$file_url</code>
+    </PossiblyNullArgument>
+    <PossiblyUndefinedStringArrayOffset occurrences="4">
+      <code>$result['ip']</code>
+      <code>$result['rows']</code>
+      <code>$result['status']</code>
+      <code>$status_entry['status']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <PossiblyUnusedMethod occurrences="5">
+      <code>actionsForDenied</code>
+      <code>actionsForPassed</code>
+      <code>check</code>
+      <code>renameDataTablesFromTempToMain</code>
+      <code>sendLog</code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedReturnValue occurrences="1">
+      <code>bool|array</code>
+    </PossiblyUnusedReturnValue>
+    <RedundantCondition occurrences="1">
+      <code>$replace</code>
+    </RedundantCondition>
+    <TypeDoesNotContainNull occurrences="1">
+      <code>is_null($replace)</code>
+    </TypeDoesNotContainNull>
+    <UndefinedConstant occurrences="3">
+      <code>APBCT_SFW_SEND_LOGS_LIMIT</code>
+      <code>APBCT_WRITE_LIMIT</code>
+      <code>APBCT_WRITE_LIMIT</code>
+    </UndefinedConstant>
+    <UnusedProperty occurrences="1">
+      <code>$test_status</code>
+    </UnusedProperty>
+    <UnusedVariable occurrences="1">
+      <code>$fw_stats</code>
+    </UnusedVariable>
+  </file>
+  <file src="lib/Cleantalk/Common/Firewall/tests/Modules/SFW/SfwXssProtectionTest.php">
+    <UnusedClass occurrences="1">
+      <code>SfwXssProtectionTest</code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/Helper/Helper.php">
+    <PossiblyFalseArgument occurrences="3">
+      <code>$line</code>
+      <code>$pos</code>
+      <code>static::bufferCsvPopLine($csv)</code>
+    </PossiblyFalseArgument>
+    <PossiblyFalseOperand occurrences="2">
+      <code>$pos</code>
+      <code>Server::get('SERVER_ADDR')</code>
+    </PossiblyFalseOperand>
+    <PossiblyInvalidArgument occurrences="3">
+      <code>$out</code>
+      <code>Server::get('REMOTE_ADDR')</code>
+      <code>Server::get('REMOTE_ADDR')</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="3">
+      <code>$out</code>
+      <code>Server::get('REMOTE_ADDR')</code>
+      <code>Server::get('REMOTE_ADDR')</code>
+    </PossiblyInvalidCast>
+    <PossiblyInvalidOperand occurrences="1">
+      <code>Server::get('SERVER_ADDR')</code>
+    </PossiblyInvalidOperand>
+    <PossiblyNullArgument occurrences="1">
+      <code>$out</code>
+    </PossiblyNullArgument>
+    <PossiblyUndefinedIntArrayOffset occurrences="4">
+      <code>$exploded[1]</code>
+      <code>$records[0]</code>
+      <code>$records[0]</code>
+      <code>$tmp[0]</code>
+    </PossiblyUndefinedIntArrayOffset>
+    <PossiblyUndefinedStringArrayOffset occurrences="2">
+      <code>$data['error']</code>
+      <code>$records[0]['ip']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <PossiblyUndefinedVariable occurrences="1">
+      <code>$ip</code>
+    </PossiblyUndefinedVariable>
+    <PossiblyUnusedMethod occurrences="2">
+      <code>arrayMergeSaveNumericKeys</code>
+      <code>dateValidate</code>
+    </PossiblyUnusedMethod>
+    <RiskyCast occurrences="1">
+      <code>$response_code</code>
+    </RiskyCast>
+  </file>
+  <file src="lib/Cleantalk/Common/Http/Request.php">
+    <PossiblyInvalidArgument occurrences="5">
+      <code>$this-&gt;presets</code>
+      <code>$this-&gt;presets</code>
+      <code>$this-&gt;presets</code>
+      <code>$this-&gt;url</code>
+      <code>$this-&gt;url</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="1">
+      <code>$this-&gt;url</code>
+    </PossiblyInvalidCast>
+    <PossiblyInvalidIterator occurrences="1">
+      <code>$this-&gt;presets</code>
+    </PossiblyInvalidIterator>
+    <PossiblyInvalidMethodCall occurrences="1">
+      <code>getError</code>
+    </PossiblyInvalidMethodCall>
+    <PossiblyUndefinedIntArrayOffset occurrences="3">
+      <code>$this-&gt;options[CURLOPT_TIMEOUT]</code>
+      <code>$this-&gt;options[CURLOPT_URL]</code>
+      <code>$this-&gt;options[CURLOPT_URL]</code>
+    </PossiblyUndefinedIntArrayOffset>
+  </file>
+  <file src="lib/Cleantalk/Common/Http/Response.php">
+    <PossiblyUnusedMethod occurrences="2">
+      <code>getContentRaw</code>
+      <code>getInfo</code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Cleantalk/Common/Localize/Localize.php">
+    <PossiblyUnusedMethod occurrences="1">
+      <code>__construct</code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Cleantalk/Common/Mloader/Mloader.php">
+    <ArgumentTypeCoercion occurrences="1">
+      <code>$common_class</code>
+    </ArgumentTypeCoercion>
+  </file>
+  <file src="lib/Cleantalk/Common/Queue/Queue.php">
+    <PossiblyUnusedMethod occurrences="2">
+      <code>executeStage</code>
+      <code>isQueueFinished</code>
+    </PossiblyUnusedMethod>
+    <UndefinedClass occurrences="3">
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/RateLimiter/RateLimiter.php">
+    <PossiblyUnusedProperty occurrences="1">
+      <code>$process_ok</code>
+    </PossiblyUnusedProperty>
+  </file>
+  <file src="lib/Cleantalk/Common/RemoteCalls/RemoteCalls.php">
+    <PossiblyUndefinedIntArrayOffset occurrences="1">
+      <code>$matches[0]</code>
+    </PossiblyUndefinedIntArrayOffset>
+    <PossiblyUndefinedStringArrayOffset occurrences="3">
+      <code>$params['spbc_remote_call_action']</code>
+      <code>$params['spbc_remote_call_action']</code>
+      <code>$params['spbc_remote_call_action']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <PossiblyUnusedMethod occurrences="1">
+      <code>process</code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedProperty occurrences="1">
+      <code>$rc_running</code>
+    </PossiblyUnusedProperty>
+    <PossiblyUnusedReturnValue occurrences="1">
+      <code>bool</code>
+    </PossiblyUnusedReturnValue>
+    <RedundantCast occurrences="1">
+      <code>(string)$path</code>
+    </RedundantCast>
+  </file>
+  <file src="lib/Cleantalk/Common/RemoteCalls/tests/RemoteCalls/RemoteCallsGetSiteUrlTest.php">
+    <UnusedClass occurrences="1">
+      <code>RemoteCallsGetSiteUrlTest</code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/RemoteCalls/tests/RemoteCalls/RemoteCallsTest.php">
+    <ArgumentTypeCoercion occurrences="1">
+      <code>'\Cleantalk\Common\StorageHandler\StorageHandler'</code>
+    </ArgumentTypeCoercion>
+    <PossiblyFalseArgument occurrences="1">
+      <code>$api_key</code>
+    </PossiblyFalseArgument>
+    <UndefinedThisPropertyAssignment occurrences="1">
+      <code>$this-&gt;rc</code>
+    </UndefinedThisPropertyAssignment>
+    <UndefinedThisPropertyFetch occurrences="1">
+      <code>$this-&gt;rc</code>
+    </UndefinedThisPropertyFetch>
+    <UnusedClass occurrences="1">
+      <code>RemoteCallsTest</code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/RemoteCalls/tests/RemoteCalls/RemoteCallsTestWrongRequest.php">
+    <ArgumentTypeCoercion occurrences="1">
+      <code>'\Cleantalk\Common\StorageHandler\StorageHandler'</code>
+    </ArgumentTypeCoercion>
+    <UndefinedThisPropertyAssignment occurrences="1">
+      <code>$this-&gt;rc</code>
+    </UndefinedThisPropertyAssignment>
+    <UndefinedThisPropertyFetch occurrences="2">
+      <code>$this-&gt;rc</code>
+      <code>$this-&gt;rc</code>
+    </UndefinedThisPropertyFetch>
+    <UnusedClass occurrences="1">
+      <code>RemoteCallsTestWrongRequest</code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/StorageHandler/StorageHandler.php">
+    <PossiblyUnusedMethod occurrences="1">
+      <code>deleteSetting</code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Cleantalk/Common/Templates/Dto.php">
+    <PossiblyUnusedMethod occurrences="1">
+      <code>getArray</code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Cleantalk/Common/Variables/Cookie.php">
+    <PossiblyInvalidArgument occurrences="1">
+      <code>$value</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="1">
+      <code>$value</code>
+    </PossiblyInvalidCast>
+  </file>
+  <file src="lib/Cleantalk/Common/Variables/Get.php">
+    <PossiblyInvalidArgument occurrences="1">
+      <code>$value</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="1">
+      <code>$value</code>
+    </PossiblyInvalidCast>
+  </file>
+  <file src="lib/Cleantalk/Common/Variables/Post.php">
+    <PossiblyInvalidArgument occurrences="1">
+      <code>$value</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="1">
+      <code>$value</code>
+    </PossiblyInvalidCast>
+    <UnusedClass occurrences="1">
+      <code>Post</code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Cleantalk/Common/Variables/Server.php">
+    <PossiblyInvalidArgument occurrences="4">
+      <code>$value</code>
+      <code>$value</code>
+      <code>$value</code>
+      <code>self::get('HTTP_HOST')</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="2">
+      <code>$value</code>
+      <code>self::get('HTTP_HOST')</code>
+    </PossiblyInvalidCast>
+  </file>
+  <file src="lib/Cleantalk/Common/Variables/ServerVariables.php">
+    <InvalidReturnType occurrences="1">
+      <code>mixed|string</code>
+    </InvalidReturnType>
+    <PossiblyInvalidArgument occurrences="1">
+      <code>self::get($var)</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="1">
+      <code>self::get($var)</code>
+    </PossiblyInvalidCast>
+  </file>
+  <file src="lib/Cleantalk/Custom/AltCookies.php">
+    <InvalidArgument occurrences="2">
+      <code>$values</code>
+    </InvalidArgument>
+    <PossiblyInvalidOperand occurrences="2">
+      <code>$db-&gt;quote($name)</code>
+      <code>$db-&gt;quote($value)</code>
+    </PossiblyInvalidOperand>
+  </file>
+  <file src="lib/Cleantalk/Custom/ConnectionReports.php">
+    <PossiblyUndefinedStringArrayOffset occurrences="4">
+      <code>$connection_reports['negative']</code>
+      <code>$connection_reports['negative']</code>
+      <code>$connection_reports['success']</code>
+      <code>$connection_reports['success']</code>
+    </PossiblyUndefinedStringArrayOffset>
+  </file>
+  <file src="lib/Cleantalk/Custom/Db/Db.php">
+    <ImplementedParamTypeMismatch occurrences="1">
+      <code>$query</code>
+    </ImplementedParamTypeMismatch>
+    <InvalidScalarArgument occurrences="1">
+      <code>$query</code>
+    </InvalidScalarArgument>
+    <MoreSpecificImplementedParamType occurrences="2">
+      <code>$response_type</code>
+      <code>$response_type</code>
+    </MoreSpecificImplementedParamType>
+    <PossiblyInvalidOperand occurrences="1">
+      <code>$db-&gt;quote($table_name)</code>
+    </PossiblyInvalidOperand>
+    <PossiblyNullPropertyAssignmentValue occurrences="1">
+      <code>\JFactory::getDBO()-&gt;setQuery($query)-&gt;loadAssoc()</code>
+    </PossiblyNullPropertyAssignmentValue>
+    <UnusedClass occurrences="1">
+      <code>Db</code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Cleantalk/Custom/FindSpam/UsersChecker/UsersChecker.php">
+    <InvalidArgument occurrences="3">
+      <code>$data</code>
+      <code>$values</code>
+      <code>$values</code>
+    </InvalidArgument>
+    <InvalidScalarArgument occurrences="1">
+      <code>$date</code>
+    </InvalidScalarArgument>
+    <PossiblyInvalidIterator occurrences="1">
+      <code>$result</code>
+    </PossiblyInvalidIterator>
+    <PossiblyNullArgument occurrences="1">
+      <code>$values</code>
+    </PossiblyNullArgument>
+    <PossiblyUndefinedVariable occurrences="1">
+      <code>$output</code>
+    </PossiblyUndefinedVariable>
+    <UndefinedClass occurrences="2">
+      <code>new $storage_handler_class()</code>
+      <code>new $storage_handler_class()</code>
+    </UndefinedClass>
+    <UnusedVariable occurrences="1">
+      <code>$output</code>
+    </UnusedVariable>
+  </file>
+  <file src="lib/Cleantalk/Custom/Helper/Helper.php">
+    <InvalidDocblock occurrences="1">
+      <code>private static function getSiteUrl()</code>
+    </InvalidDocblock>
+    <InvalidReturnStatement occurrences="1">
+      <code>$value</code>
+    </InvalidReturnStatement>
+    <InvalidReturnType occurrences="2">
+      <code>bool</code>
+      <code>string</code>
+    </InvalidReturnType>
+    <PossiblyFalseReference occurrences="2">
+      <code>load</code>
+      <code>load</code>
+    </PossiblyFalseReference>
+    <PossiblyUndefinedArrayOffset occurrences="1">
+      <code>$_SERVER['HTTP_HOST']</code>
+    </PossiblyUndefinedArrayOffset>
+    <PossiblyUndefinedStringArrayOffset occurrences="2">
+      <code>$fw_stats['firewall_updating_id']</code>
+      <code>$fw_stats['firewall_updating_last_start']</code>
+    </PossiblyUndefinedStringArrayOffset>
+    <PossiblyUndefinedVariable occurrences="1">
+      <code>$nickname_str</code>
+    </PossiblyUndefinedVariable>
+    <RedundantCondition occurrences="3">
+      <code>!is_array($value)</code>
+      <code>is_array($fields_exclusions)</code>
+      <code>is_array($fields_exclusions) &amp;&amp; !empty($fields_exclusions)</code>
+    </RedundantCondition>
+    <UnusedClass occurrences="1">
+      <code>Helper</code>
+    </UnusedClass>
+    <UnusedVariable occurrences="1">
+      <code>$value</code>
+    </UnusedVariable>
+  </file>
+  <file src="lib/Cleantalk/Custom/RateLimiter/RateLimiter.php">
+    <InvalidArgument occurrences="1">
+      <code>'default_ua'</code>
+    </InvalidArgument>
+    <PossiblyInvalidArgument occurrences="1">
+      <code>$result</code>
+    </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="1">
+      <code>Server::get('HTTP_USER_AGENT', 'default_ua')</code>
+    </PossiblyInvalidCast>
+    <PossiblyNullPropertyAssignmentValue occurrences="1">
+      <code>$helper_class::ipGet()</code>
+    </PossiblyNullPropertyAssignmentValue>
+    <UndefinedConstant occurrences="1">
+      <code>APBCT_RATE_LIMITS</code>
+    </UndefinedConstant>
+  </file>
+  <file src="lib/Cleantalk/Custom/RemoteCalls/RemoteCalls.php">
+    <UndefinedConstant occurrences="2">
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+      <code>APBCT_TBL_FIREWALL_DATA_PERSONAL</code>
+    </UndefinedConstant>
+    <UnusedClass occurrences="1">
+      <code>RemoteCalls</code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Cleantalk/Custom/StorageHandler/RemoveSetting.php">
+    <PossiblyInvalidArrayAccess occurrences="1">
+      <code>$parent[$nodes[$i]]</code>
+    </PossiblyInvalidArrayAccess>
+    <PossiblyNullArrayAccess occurrences="1">
+      <code>$parent[$nodes[$i]]</code>
+    </PossiblyNullArrayAccess>
+    <UnusedClass occurrences="1">
+      <code>RemoveSetting</code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Cleantalk/Custom/StorageHandler/StorageHandler.php">
+    <UndefinedConstant occurrences="2">
+      <code>APBCT_DIR_PATH</code>
+      <code>APBCT_TBL_STORAGE</code>
+    </UndefinedConstant>
+    <UnusedClass occurrences="1">
+      <code>StorageHandler</code>
+    </UnusedClass>
+  </file>
+  <file src="updater.php">
+    <PossiblyUndefinedVariable occurrences="1">
+      <code>$params</code>
+    </PossiblyUndefinedVariable>
+    <TooManyArguments occurrences="1">
+      <code>getTableList</code>
+    </TooManyArguments>
+    <UndefinedClass occurrences="1">
+      <code>new $storage_handler_class()</code>
+    </UndefinedClass>
+    <UndefinedInterfaceMethod occurrences="1">
+      <code>query</code>
+    </UndefinedInterfaceMethod>
+    <UnusedClass occurrences="1">
+      <code>plgsystemcleantalkantispamInstallerScript</code>
+    </UnusedClass>
+  </file>
+</files>
