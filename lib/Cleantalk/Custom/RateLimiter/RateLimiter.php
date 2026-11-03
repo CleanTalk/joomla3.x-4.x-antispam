@@ -21,7 +21,7 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
     public function __construct(RateLimiterConfig $config)
     {
         parent::__construct($config);
-        /** @var \Cleantalk\Common\Db\Db $db_class */
+        /** @var class-string<\Cleantalk\Common\Db\Db> $db_class */
         $db_class = Mloader::get('Db');
         $this->db_object = $db_class::getInstance();
         $this->table_name = $this->db_object->prefix . APBCT_RATE_LIMITS;
@@ -33,7 +33,7 @@ class RateLimiter extends \Cleantalk\Common\RateLimiter\RateLimiter
      */
     protected function setIP(): void
     {
-        /** @var \Cleantalk\Common\Helper\Helper $helper_class */
+        /** @var class-string<\Cleantalk\Common\Helper\Helper> $helper_class */
         $helper_class = Mloader::get('Helper');
         $this->ip = $helper_class::ipGet();
     }

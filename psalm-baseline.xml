@@ -4,42 +4,14 @@
     <ComplexMethod occurrences="1">
       <code>onAfterRoute</code>
     </ComplexMethod>
-    <InvalidArgument occurrences="5">
+    <InvalidArgument occurrences="3">
       <code>$data</code>
       <code>$values</code>
       <code>$values</code>
-      <code>'member-registration'</code>
-      <code>'userForm'</code>
     </InvalidArgument>
-    <InvalidClass occurrences="2">
-      <code>JUri</code>
-      <code>JUri</code>
-    </InvalidClass>
-    <InvalidDocblock occurrences="2">
-      <code>private function ct_cookies_test()</code>
-      <code>public function onValidateContact(&amp;$contact, &amp;$data)</code>
-    </InvalidDocblock>
-    <InvalidNullableReturnType occurrences="1">
-      <code>string</code>
-    </InvalidNullableReturnType>
-    <InvalidReturnStatement occurrences="2">
+    <InvalidReturnStatement occurrences="1">
       <code>$output</code>
-      <code>['success' =&gt; 'The notice dismissing was remembered']</code>
     </InvalidReturnStatement>
-    <InvalidScalarArgument occurrences="3">
-      <code>$date</code>
-      <code>1</code>
-      <code>1</code>
-    </InvalidScalarArgument>
-    <NullableReturnStatement occurrences="1">
-      <code>null</code>
-    </NullableReturnStatement>
-    <PossiblyFalsePropertyAssignmentValue occurrences="1">
-      <code>$this-&gt;get_sender_info()</code>
-    </PossiblyFalsePropertyAssignmentValue>
-    <PossiblyFalseReference occurrences="1">
-      <code>load</code>
-    </PossiblyFalseReference>
     <PossiblyInvalidArgument occurrences="9">
       <code>$_GET['q']</code>
       <code>$_GET['searchword']</code>
@@ -76,10 +48,8 @@
       <code>$message</code>
       <code>$message</code>
     </PossiblyInvalidOperand>
-    <PossiblyNullArgument occurrences="3">
+    <PossiblyNullArgument occurrences="1">
       <code>$values</code>
-      <code>var_export('Exception: ' . $exception-&gt;getMessage(), 1)</code>
-      <code>var_export('RC error: ' . $exception-&gt;getMessage(),1)</code>
     </PossiblyNullArgument>
     <PossiblyNullArrayAccess occurrences="17">
       <code>$ctResponse['allow']</code>
@@ -214,13 +184,8 @@
       <code>(string) $_SERVER['HTTP_REFERER']</code>
       <code>(string) $_SERVER['HTTP_USER_AGENT']</code>
     </RedundantCast>
-    <RedundantCondition occurrences="6">
-      <code>$get_cms_tag</code>
-      <code>$get_cms_tag</code>
-      <code>$get_cms_tag &amp;&amp; is_array($get_cms_tag)</code>
-      <code>$get_cms_tag &amp;&amp; is_array($get_cms_tag) &amp;&amp; count($get_cms_tag) &gt; 0</code>
+    <RedundantCondition occurrences="1">
       <code>$keys &amp;&amp; is_array($keys) &amp;&amp; !empty($keys)</code>
-      <code>is_array($get_cms_tag)</code>
     </RedundantCondition>
     <RiskyCast occurrences="2">
       <code>$_POST['amount']</code>
@@ -229,29 +194,16 @@
     <TypeDoesNotContainType occurrences="1">
       <code>count($data) == 0</code>
     </TypeDoesNotContainType>
-    <UndefinedClass occurrences="7">
+    <UndefinedClass occurrences="1">
       <code>JFilterInput</code>
-      <code>new $cron_class</code>
-      <code>new $cron_class</code>
-      <code>new $cron_class()</code>
-      <code>new $remote_calls_class( $apikey, new $storage_handler() )</code>
-      <code>new $storage_handler()</code>
-      <code>new $storage_handler_class()</code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="6">
+    <UndefinedDocblockClass occurrences="4">
       <code>JCommentsDB</code>
       <code>JInstaller</code>
       <code>OrderEshop</code>
       <code>OrderEshop</code>
-      <code>type</code>
-      <code>type</code>
     </UndefinedDocblockClass>
-    <UndefinedMethod occurrences="7">
-      <code>$helper_class::get_fields_any($_POST, $this-&gt;params-&gt;get('fields_exclusions'))</code>
-      <code>$helper_class::get_fields_any($_POST, $this-&gt;params-&gt;get('fields_exclusions'))</code>
-      <code>$helper_class::get_fields_any($form_data, $this-&gt;params-&gt;get('fields_exclusions'))</code>
-      <code>$helper_class::get_fields_any($post_processed, $this-&gt;params-&gt;get('fields_exclusions'))</code>
-      <code>$helper_class::print_form($_POST, '')</code>
+    <UndefinedMethod occurrences="2">
       <code>isAdmin</code>
       <code>isSite</code>
     </UndefinedMethod>
@@ -373,11 +325,6 @@
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Cleantalk/Common/Cron/Cron.php">
-    <PossiblyUnusedMethod occurrences="3">
-      <code>checkTasks</code>
-      <code>runTasks</code>
-      <code>serveCronActions</code>
-    </PossiblyUnusedMethod>
     <UndefinedClass occurrences="7">
       <code>new $storage_handler_class()</code>
       <code>new $storage_handler_class()</code>
@@ -797,9 +744,6 @@
       <code>$params['spbc_remote_call_action']</code>
       <code>$params['spbc_remote_call_action']</code>
     </PossiblyUndefinedStringArrayOffset>
-    <PossiblyUnusedMethod occurrences="1">
-      <code>process</code>
-    </PossiblyUnusedMethod>
     <PossiblyUnusedProperty occurrences="1">
       <code>$rc_running</code>
     </PossiblyUnusedProperty>
@@ -916,98 +860,6 @@
       <code>$db-&gt;quote($value)</code>
     </PossiblyInvalidOperand>
   </file>
-  <file src="lib/Cleantalk/Custom/ConnectionReports.php">
-    <PossiblyUndefinedStringArrayOffset occurrences="4">
-      <code>$connection_reports['negative']</code>
-      <code>$connection_reports['negative']</code>
-      <code>$connection_reports['success']</code>
-      <code>$connection_reports['success']</code>
-    </PossiblyUndefinedStringArrayOffset>
-  </file>
-  <file src="lib/Cleantalk/Custom/Db/Db.php">
-    <ImplementedParamTypeMismatch occurrences="1">
-      <code>$query</code>
-    </ImplementedParamTypeMismatch>
-    <InvalidScalarArgument occurrences="1">
-      <code>$query</code>
-    </InvalidScalarArgument>
-    <MoreSpecificImplementedParamType occurrences="2">
-      <code>$response_type</code>
-      <code>$response_type</code>
-    </MoreSpecificImplementedParamType>
-    <PossiblyInvalidOperand occurrences="1">
-      <code>$db-&gt;quote($table_name)</code>
-    </PossiblyInvalidOperand>
-    <PossiblyNullPropertyAssignmentValue occurrences="1">
-      <code>\JFactory::getDBO()-&gt;setQuery($query)-&gt;loadAssoc()</code>
-    </PossiblyNullPropertyAssignmentValue>
-    <UnusedClass occurrences="1">
-      <code>Db</code>
-    </UnusedClass>
-  </file>
-  <file src="lib/Cleantalk/Custom/FindSpam/UsersChecker/UsersChecker.php">
-    <InvalidArgument occurrences="3">
-      <code>$data</code>
-      <code>$values</code>
-      <code>$values</code>
-    </InvalidArgument>
-    <InvalidScalarArgument occurrences="1">
-      <code>$date</code>
-    </InvalidScalarArgument>
-    <PossiblyInvalidIterator occurrences="1">
-      <code>$result</code>
-    </PossiblyInvalidIterator>
-    <PossiblyNullArgument occurrences="1">
-      <code>$values</code>
-    </PossiblyNullArgument>
-    <PossiblyUndefinedVariable occurrences="1">
-      <code>$output</code>
-    </PossiblyUndefinedVariable>
-    <UndefinedClass occurrences="2">
-      <code>new $storage_handler_class()</code>
-      <code>new $storage_handler_class()</code>
-    </UndefinedClass>
-    <UnusedVariable occurrences="1">
-      <code>$output</code>
-    </UnusedVariable>
-  </file>
-  <file src="lib/Cleantalk/Custom/Helper/Helper.php">
-    <InvalidDocblock occurrences="1">
-      <code>private static function getSiteUrl()</code>
-    </InvalidDocblock>
-    <InvalidReturnStatement occurrences="1">
-      <code>$value</code>
-    </InvalidReturnStatement>
-    <InvalidReturnType occurrences="2">
-      <code>bool</code>
-      <code>string</code>
-    </InvalidReturnType>
-    <PossiblyFalseReference occurrences="2">
-      <code>load</code>
-      <code>load</code>
-    </PossiblyFalseReference>
-    <PossiblyUndefinedArrayOffset occurrences="1">
-      <code>$_SERVER['HTTP_HOST']</code>
-    </PossiblyUndefinedArrayOffset>
-    <PossiblyUndefinedStringArrayOffset occurrences="2">
-      <code>$fw_stats['firewall_updating_id']</code>
-      <code>$fw_stats['firewall_updating_last_start']</code>
-    </PossiblyUndefinedStringArrayOffset>
-    <PossiblyUndefinedVariable occurrences="1">
-      <code>$nickname_str</code>
-    </PossiblyUndefinedVariable>
-    <RedundantCondition occurrences="3">
-      <code>!is_array($value)</code>
-      <code>is_array($fields_exclusions)</code>
-      <code>is_array($fields_exclusions) &amp;&amp; !empty($fields_exclusions)</code>
-    </RedundantCondition>
-    <UnusedClass occurrences="1">
-      <code>Helper</code>
-    </UnusedClass>
-    <UnusedVariable occurrences="1">
-      <code>$value</code>
-    </UnusedVariable>
-  </file>
   <file src="lib/Cleantalk/Custom/RateLimiter/RateLimiter.php">
     <InvalidArgument occurrences="1">
       <code>'default_ua'</code>
@@ -1061,9 +913,6 @@
     <TooManyArguments occurrences="1">
       <code>getTableList</code>
     </TooManyArguments>
-    <UndefinedClass occurrences="1">
-      <code>new $storage_handler_class()</code>
-    </UndefinedClass>
     <UndefinedInterfaceMethod occurrences="1">
       <code>query</code>
     </UndefinedInterfaceMethod>

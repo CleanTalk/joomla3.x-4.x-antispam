@@ -2,6 +2,14 @@
 
 namespace Cleantalk\Custom;
 
+/**
+ * @psalm-type ConnectionReportData = array{
+ *     success: int,
+ *     negative: int,
+ *     success_report: array,
+ *     negative_report: array
+ * }
+ */
 final class ConnectionReports
 {
     const REPORT_LIFE_DAYS = 7;
@@ -11,7 +19,7 @@ final class ConnectionReports
      * @param array $connection_reports
      * @param bool $success
      * @param string $lib_report
-     * @return array
+     * @return ConnectionReportData
      */
     static function add($connection_reports, $success, $lib_report = 'no lib report')
     {
@@ -104,6 +112,10 @@ final class ConnectionReports
         }
     }
 
+    /**
+     * @param ConnectionReportData $connection_reports
+     * @return string
+     */
     static function prepareEmailBody($connection_reports)
     {
         $first_success = time();
@@ -171,7 +183,7 @@ final class ConnectionReports
                         </thead>
                         <tbody>';
 
-            foreach ($connection_reports['negative_report'] as $key => $report) {
+            foreach (array_values($connection_reports['negative_report']) as $key => $report) {
                 $message .= "
                             <tr>
                                 <td>" . ($key + 1) . ".</td>
@@ -195,8 +207,8 @@ final class ConnectionReports
     }
 
     /**
-     * @param $connection_reports
-     * @return array
+     * @param array{success_report: array, negative_report: array} $connection_reports
+     * @return ConnectionReportData
      */
     static function filter($connection_reports)
     {
@@ -233,7 +245,7 @@ final class ConnectionReports
     }
 
     /**
-     * @return array
+     * @return ConnectionReportData
      */
     static function getClearReports()
     {
@@ -247,7 +259,7 @@ final class ConnectionReports
 
     /**
      * @param array|null $connection_reports
-     * @return array
+     * @return ConnectionReportData
      */
     static function validate($connection_reports)
     {

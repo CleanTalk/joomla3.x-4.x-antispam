@@ -231,7 +231,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
     private function checkIsPaid($ct_api_key = '', $force_check = false)
     {
-        /** @var \Cleantalk\Common\Helper\Helper $helper */
+        /** @var class-string<\Cleantalk\Custom\Helper\Helper> $helper */
         $helper = Mloader::get('Helper');
 
         $api_key = trim($ct_api_key);
@@ -243,7 +243,7 @@ class plgSystemCleantalkantispam extends JPlugin
             $save_params = array();
             $result = null;
             if ($key_is_valid){
-                /** @var \Cleantalk\Common\Api\Api $api_class */
+                /** @var class-string<\Cleantalk\Common\Api\Api> $api_class */
                 $api_class = Mloader::get('Api');
                 $result      = $api_class::methodNoticePaidTill($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
                 $ct_key_is_ok = (empty($result['error']) && $result['valid']) ? 1 : 0;
@@ -340,7 +340,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
             $this->saveCTConfig($save_params);
 
-            /** @var \Cleantalk\Common\Api\Api $api_class */
+            /** @var class-string<\Cleantalk\Common\Api\Api> $api_class */
             $api_class = Mloader::get('Api');
 
             // Getting key automatically
@@ -376,19 +376,19 @@ class plgSystemCleantalkantispam extends JPlugin
             return;
         }
 
-        /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $remote_calls_class */
+        /** @var class-string<\Cleantalk\Common\RemoteCalls\RemoteCalls> $remote_calls_class */
         $remote_calls_class = Mloader::get('RemoteCalls');
 
         // Check for RC parameters first - RC must be processed regardless of admin area
         if ( $remote_calls_class::check() ) {
-            /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler */
+            /** @var class-string<\Cleantalk\Common\StorageHandler\StorageHandler> $storage_handler */
             $storage_handler = Mloader::get('StorageHandler');
 
             $remote_calls = new $remote_calls_class( $apikey, new $storage_handler() );
             try {
                 die ($remote_calls->process());
             } catch ( \Cleantalk\Common\RemoteCalls\Exceptions\RemoteCallsException $exception ) {
-                error_log(var_export('RC error: ' . $exception->getMessage(),1));
+                error_log(var_export('RC error: ' . $exception->getMessage(),true));
                 die ('FAIL ' . json_encode(array('error' => $exception->getMessage())));
             }
         }
@@ -396,7 +396,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
     /**
      * Getting key automatically
-     * @param \Cleantalk\Common\Api\Api $api_class
+     * @param class-string<\Cleantalk\Common\Api\Api> $api_class
      * @return array|string
      */
     private function gettingKeyAutomatically($api_class)
@@ -420,7 +420,7 @@ class plgSystemCleantalkantispam extends JPlugin
             return $output;
 
         } catch ( \Exception $exception ) {
-            error_log(var_export('Exception: ' . $exception->getMessage(), 1));
+            error_log(var_export('Exception: ' . $exception->getMessage(), true));
             return array('error_message' => $exception->getMessage());
         }
     }
@@ -472,13 +472,13 @@ class plgSystemCleantalkantispam extends JPlugin
     private function serveCronActions()
     {
         if (isset($_POST['ct_serve_run_cron_sfw_send_logs']) && $_POST['ct_serve_run_cron_sfw_send_logs'] === 'yes') {
-            /** @var \Cleantalk\Common\Cron\Cron $cron_class */
+            /** @var class-string<\Cleantalk\Common\Cron\Cron> $cron_class */
             $cron_class = Mloader::get('Cron');
             $cron_class = new $cron_class;
             $cron_class->serveCronActions('sfw_send_logs', time() + 120);
         }
         if (isset($_POST['ct_serve_run_cron_sfw_update']) && $_POST['ct_serve_run_cron_sfw_update'] === 'yes') {
-            /** @var \Cleantalk\Common\Cron\Cron $cron_class */
+            /** @var class-string<\Cleantalk\Common\Cron\Cron> $cron_class */
             $cron_class = Mloader::get('Cron');
             $cron_class = new $cron_class;
             $cron_class->serveCronActions('sfw_update', time() + 120);
@@ -981,7 +981,7 @@ class plgSystemCleantalkantispam extends JPlugin
         if ($_SERVER['REQUEST_METHOD'] == 'POST' || $isBreezingFormSubmit)
         {
             $this->ct_direct_post = 1;
-            /** @var \Cleantalk\Common\Helper\Helper $helper_class */
+            /** @var class-string<\Cleantalk\Custom\Helper\Helper> $helper_class */
             $helper_class = Mloader::get('Helper');
 
             /*
@@ -1463,10 +1463,10 @@ class plgSystemCleantalkantispam extends JPlugin
      * onValidateContact trigger - used by com_contact
      * @access public
      *
-     * @param &$contact
-     * @param &$data
+     * @param mixed $contact
+     * @param mixed $data
      *
-     * @return Exception|void
+     * @return void
      * @throws Exception
      * @since  1.5
      */
@@ -1552,7 +1552,7 @@ class plgSystemCleantalkantispam extends JPlugin
     /**
      * onJCommentsFormAfterDisplay trigger
      * @access public
-     * @return string html code to insert after JComments form (id="comments-form")
+     * @return null
      * @since  1.5
      */
     public function onJCommentsFormAfterDisplay()
@@ -1663,7 +1663,7 @@ class plgSystemCleantalkantispam extends JPlugin
     /**
      * The spot to handle all ajax request for the plugin
      *
-     * @return string
+     * @return array{success: string}|array{error: string}|string|false
      *
      * @throws Exception
      * @since version
@@ -1676,8 +1676,10 @@ class plgSystemCleantalkantispam extends JPlugin
         if ( isset($data['action']) ) {
             switch ($data['action']) {
                 case 'dismiss_notice' :
-                    $this->setNoticeDismissed($data['data']);
-                    // @ToDo add an error handling here
+                    $notice_params = $this->getNoticeDismissalParams($data['data']);
+                    if ($notice_params !== null && !$this->saveCTConfig($notice_params)) {
+                        return ['error' => 'Unable to save the CleanTalk notice settings.'];
+                    }
                     return ['success' => 'The notice dismissing was remembered'];
 	            case 'usersChecker' :
 		            // Security check: Only allow administrators to use usersChecker
@@ -1727,10 +1729,11 @@ class plgSystemCleantalkantispam extends JPlugin
     // Private methods
 
     /**
-     * Store the notice dismissed flag
+     * Prepare the notice dismissed flag for storage
      * @param array $notice_info
+     * @return array<string, int>|null
      */
-    private function setNoticeDismissed($notice_info)
+    private function getNoticeDismissalParams($notice_info)
     {
         if ( ! isset($notice_info['notice_type']) ) {
             // @ToDo add an error throwing here
@@ -1745,7 +1748,7 @@ class plgSystemCleantalkantispam extends JPlugin
         $notice_uid   = $notice . '_' . $uid;
         $current_date = time();
 
-        $this->saveCTConfig(['cleantalk_' . $notice_uid . '_dismissed' => $current_date]);
+        return ['cleantalk_' . $notice_uid . '_dismissed' => $current_date];
     }
 
     /**
@@ -1777,12 +1780,12 @@ class plgSystemCleantalkantispam extends JPlugin
     /**
      * Include in head adn fill form
      *
-     * @param   type  $form_id
-     * @param   type  $data
+     * @param   string  $form_id
+     * @param   array|null  $data
      *
      * @return string
      */
-    private function fillRegisterFormScriptHTML($form_id, $data = null, $onLoad = true)
+    private function fillRegisterFormScriptHTML($form_id, $data = null)
     {
         if ($data === null)
         {
@@ -1926,7 +1929,7 @@ class plgSystemCleantalkantispam extends JPlugin
                         $app = JFactory::getApplication();
                         $app->enqueueMessage($ctResponse['comment'], 'error');
 
-                        $uri      = JUri::getInstance();
+                        $uri      = JURI::getInstance();
                         $redirect = $uri->toString();
 
                         // OPC
@@ -2103,7 +2106,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 $ct_request->$k = $v;
             }
 
-            /** @var \Cleantalk\Common\Helper\Helper $helper_class */
+            /** @var class-string<\Cleantalk\Custom\Helper\Helper> $helper_class */
             $helper_class = Mloader::get('Helper');
 
             $ct_request->auth_key        = $this->params->get('apikey');
@@ -2112,7 +2115,12 @@ class plgSystemCleantalkantispam extends JPlugin
             $ct_request->sender_ip       = $helper_class::ipGet('real', false);
             $ct_request->x_forwarded_for = $helper_class::ipGet('x_forwarded_for', false);
             $ct_request->x_real_ip       = $helper_class::ipGet('x_real_ip', false);
-            $ct_request->sender_info     = $this->get_sender_info();
+            try {
+                $ct_request->sender_info = $this->get_sender_info();
+            } catch (\RuntimeException $exception) {
+                error_log('CleanTalk: Sender metadata omitted: ' . $exception->getMessage());
+                $ct_request->sender_info = '{}';
+            }
             $ct_request->js_on           = $this->get_ct_checkjs($_COOKIE);
             $ct_request->event_token     = $this->getBotDetectorEventToken();
 
@@ -2249,7 +2257,8 @@ class plgSystemCleantalkantispam extends JPlugin
 
     /**
      * Inner function - Default data array for senders
-     * @return false|string
+     * @return string
+     * @throws \RuntimeException
      */
     private function get_sender_info()
     {
@@ -2258,7 +2267,7 @@ class plgSystemCleantalkantispam extends JPlugin
         $first_key_timestamp = $this->ct_getcookie('ct_fkp_timestamp');
         $pointer_data        = $this->ct_getcookie('ct_pointer_data');
         $get_cms_tag         = explode('-', JFactory::getLanguage()->getTag());
-        $cms_lang            = ($get_cms_tag && is_array($get_cms_tag) && count($get_cms_tag) > 0) ? strtolower($get_cms_tag[0]) : '';
+        $cms_lang            = strtolower($get_cms_tag[0]);
 
         $params = $this->params->toArray();
 
@@ -2267,6 +2276,11 @@ class plgSystemCleantalkantispam extends JPlugin
         }
 
         unset($params['connection_reports']);
+
+        $encoded_params = json_encode($params, JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($encoded_params === false) {
+            throw new \RuntimeException('Unable to encode sender options: ' . json_last_error_msg());
+        }
 
         $sender_info = array(
             'REFFERRER'              => (isset($_SERVER['HTTP_REFERER'])) ? htmlspecialchars((string) $_SERVER['HTTP_REFERER']) : null,
@@ -2278,14 +2292,19 @@ class plgSystemCleantalkantispam extends JPlugin
             'page_set_timestamp'     => $page_set_timestamp,
             'direct_post'            => $this->ct_direct_post,
             'cookies_enabled'        => $this->ct_cookies_test(),
-            'ct_options'             => json_encode($params),
+            'ct_options'             => $encoded_params,
             'REFFERRER_PREVIOUS'     => $this->ct_getcookie('apbct_prev_referer'),
             'fields_number'          => sizeof($_POST),
             'cms_lang'               => $cms_lang,
             'apbct_visible_fields'   => $this->ct_visibile_fields__process($this->ct_getcookie('ct_visible_fields')),
         );
 
-        return json_encode($sender_info);
+        $encoded_sender_info = json_encode($sender_info, JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($encoded_sender_info === false) {
+            throw new \RuntimeException('Unable to encode sender info: ' . json_last_error_msg());
+        }
+
+        return $encoded_sender_info;
     }
 
     /**
@@ -2359,7 +2378,7 @@ class plgSystemCleantalkantispam extends JPlugin
 
     /**
      * Cookies test for sender
-     * @return null|0|1;
+     * @return null|0|1
      */
     private function ct_cookies_test()
     {
@@ -2425,7 +2444,7 @@ class plgSystemCleantalkantispam extends JPlugin
         $last_id        = $offset;
         $jtable         = $db->loadAssocList();
 
-        /** @var \Cleantalk\Common\Api\Api $api_class */
+        /** @var class-string<\Cleantalk\Common\Api\Api> $api_class */
         $api_class = Mloader::get('Api');
 
         if (empty($jtable))
@@ -2474,7 +2493,7 @@ class plgSystemCleantalkantispam extends JPlugin
                         foreach ($data as $date => $values)
                         {
                             $values = implode(',', $values);
-                            $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values, $date);
+                            $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values, (string)$date);
                         }
                     }
                     else
@@ -2561,14 +2580,14 @@ class plgSystemCleantalkantispam extends JPlugin
     }
     private function apbct_run_cron()
     {
-        /** @var \Cleantalk\Common\Cron\Cron $cron_class */
+        /** @var class-string<\Cleantalk\Common\Cron\Cron> $cron_class */
         $cron_class = Mloader::get('Cron');
         $cron = new $cron_class();
 
-        /** @var \Cleantalk\Common\RemoteCalls\RemoteCalls $rc_class */
+        /** @var class-string<\Cleantalk\Common\RemoteCalls\RemoteCalls> $rc_class */
         $rc_class = Mloader::get('RemoteCalls');
 
-        /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+        /** @var class-string<\Cleantalk\Common\StorageHandler\StorageHandler> $storage_handler_class */
         $storage_handler_class = Mloader::get('StorageHandler');
         $storage_handler_class = new $storage_handler_class();
 
@@ -2624,19 +2643,34 @@ class plgSystemCleantalkantispam extends JPlugin
 
         return true;
     }
+    /**
+     * @param array $params
+     * @return bool
+     */
     private function saveCTConfig($params)
     {
         if (count($params) > 0)
         {
             $table = JTable::getInstance('extension');
-            $table->load($this->_id);
+            if ($table === false) {
+                error_log('CleanTalk: Unable to create the Joomla extension table instance.');
+                return false;
+            }
+            if (!$table->load($this->_id)) {
+                error_log('CleanTalk: Unable to load the Joomla extension settings.');
+                return false;
+            }
             $jparams = new JRegistry($table->params);
             foreach ($params as $k => $v){
                 $jparams->set($k, $v);
             }
             $table->params = $jparams->toString();
-            $table->store();
+            if (!$table->store()) {
+                error_log('CleanTalk: Unable to store the Joomla extension settings.');
+                return false;
+            }
         }
+        return true;
     }
 
     static private function _cleantalk_user_has_role_id($role_id)
@@ -2776,7 +2810,7 @@ class plgSystemCleantalkantispam extends JPlugin
      * @since version
      */
     private function isPluginSettingsPage() {
-        $uri = JUri::getInstance();
+        $uri = JURI::getInstance();
         $layout = $uri->getVar('layout');
         $ext_id = $uri->getVar('extension_id');
         if ( isset($layout, $ext_id) && $layout === 'edit' && $ext_id == $this->_id ) {

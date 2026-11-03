@@ -133,7 +133,7 @@ class plgsystemcleantalkantispamInstallerScript
         if (!$new_table_ok || empty($current_data)) {
             $result = false;
         } else {
-            /** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+            /** @var class-string<\Cleantalk\Common\StorageHandler\StorageHandler> $storage_handler_class */
             $storage_handler_class = Mloader::get('StorageHandler');
             $storage = new $storage_handler_class();
             if ($storage_handler_class) {

@@ -10,7 +10,7 @@ class StorageHandler implements \Cleantalk\Common\StorageHandler\StorageHandler
     private $table_name;
     public function __construct()
     {
-        /** @var \Cleantalk\Common\Db\Db $db_class */
+        /** @var class-string<\Cleantalk\Common\Db\Db> $db_class */
         $db_class = Mloader::get('Db');
         $this->db_object = $db_class::getInstance();
         $this->table_name = $this->db_object->prefix . APBCT_TBL_STORAGE;

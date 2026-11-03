@@ -64,7 +64,7 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
             return array('error' => 'PRIVATE_RECORD_ADD: Records must be a valid JSON array');
         }
 
-        /** @var \Cleantalk\Common\Db\Db $db_class */
+        /** @var class-string<\Cleantalk\Common\Db\Db> $db_class */
         $db_class = \Cleantalk\Common\Mloader\Mloader::get('Db');
         $db_obj = $db_class::getInstance();
         $table = $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL;
@@ -89,7 +89,7 @@ class RemoteCalls extends \Cleantalk\Common\RemoteCalls\RemoteCalls
             return array('error' => 'PRIVATE_RECORD_DELETE: Records must be a valid JSON array');
         }
 
-        /** @var \Cleantalk\Common\Db\Db $db_class */
+        /** @var class-string<\Cleantalk\Common\Db\Db> $db_class */
         $db_class = \Cleantalk\Common\Mloader\Mloader::get('Db');
         $db_obj = $db_class::getInstance();
         $table = $db_obj->prefix . APBCT_TBL_FIREWALL_DATA_PERSONAL;

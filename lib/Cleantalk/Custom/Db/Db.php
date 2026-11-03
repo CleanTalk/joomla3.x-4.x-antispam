@@ -2,6 +2,11 @@
 
 namespace Cleantalk\Custom\Db;
 
+/**
+ * Joomla database adapter resolved dynamically by Mloader.
+ *
+ * @psalm-suppress UnusedClass
+ */
 class Db extends \Cleantalk\Common\Db\Db
 {
     /**
@@ -31,27 +36,35 @@ class Db extends \Cleantalk\Common\Db\Db
      * May receive raw or prepared query.
      *
      * @param string $query
-     * @param bool $response_type
+     * @param bool|string $response_type
      *
-     * @return array|object|void|null
+     * @return array|null
      */
     public function fetch( $query = '', $response_type = false ) {
 		$query = $query ?: $this->getQuery();
-        $this->result = \JFactory::getDBO()->setQuery($query)->loadAssoc();
+        $result = \JFactory::getDBO()->setQuery($query)->loadAssoc();
+        $this->result = $result ?? array();
 
-        return $this->result;
+        return $result;
     }
 
     /**
      * Fetchs all result from query.
      * May receive raw or prepared query.
      *
-     * @param bool $query
-     * @param bool $response_type
+     * @param string|false $query
+     * @param bool|string $response_type
      *
      * @return array|object|null
      */
     public function fetchAll( $query = false, $response_type = false ) {
+        $query = $query ?: $this->getQuery();
+        if (!$query) {
+            error_log('CleanTalk: A SQL query must be provided or prepared before fetching rows.');
+            $this->result = array();
+            return null;
+        }
+
         $this->result = \JFactory::getDBO()->setQuery($query)->loadAssocList();
 
         return $this->result;
@@ -60,7 +73,7 @@ class Db extends \Cleantalk\Common\Db\Db
     /**
      * Checks if the table exists
      *
-     * @param $table_name
+     * @param string $table_name
      *
      * @return bool
      * @psalm-suppress PossiblyUnusedMethod

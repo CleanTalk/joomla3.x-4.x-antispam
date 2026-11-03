@@ -11,6 +11,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
      * @return array
      * @example array( 'firewall_updating' => false, 'firewall_updating_id' => md5(), 'firewall_update_percent' => 0, 'firewall_updating_last_start' => 0 )
      * @important This method must be overloaded in the CMS-based Helper class.
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function getFwStats()
     {
@@ -29,11 +30,22 @@ class Helper extends \Cleantalk\Common\Helper\Helper
      * Save fw stats on the storage.
      *
      * @param array $fw_stats
-     * @return bool
+     * @return void
      * @important This method must be overloaded in the CMS-based Helper class.
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function setFwStats( $fw_stats )
     {
+        if (
+            !array_key_exists('firewall_updating_id', $fw_stats) ||
+            !array_key_exists('firewall_updating_last_start', $fw_stats)
+        ) {
+            error_log(
+                'CleanTalk: Firewall statistics must include firewall_updating_id and firewall_updating_last_start.'
+            );
+            return;
+        }
+
         $db = \JFactory::getDBO();
 
         $query = $db->getQuery(true);
@@ -47,6 +59,10 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 
         if ($plg = $db->loadObject()) {
             $table = \JTable::getInstance('extension');
+            if ($table === false) {
+                error_log('CleanTalk: Unable to create the Joomla extension table instance.');
+                return;
+            }
             $table->load((int) $plg->extension_id);
             $params = array();
             $params['firewall_updating_id'] = $fw_stats['firewall_updating_id'];
@@ -64,6 +80,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
      * Implement here any actions after SFW updating finished.
      *
      * @return void
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function SfwUpdate_DoFinisnAction()
     {
@@ -80,6 +97,10 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 
         if ($plg = $db->loadObject()) {
             $table = \JTable::getInstance('extension');
+            if ($table === false) {
+                error_log('CleanTalk: Unable to create the Joomla extension table instance.');
+                return;
+            }
             $table->load((int) $plg->extension_id);
             $jparams = new \JRegistry($table->params);
             $jparams->set('sfw_last_check', time());
@@ -95,6 +116,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 	 * @param string $url
 	 *
 	 * @return array|mixed|string
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function http__request__get_response_code($url ){
 		return static::httpRequest( $url, array(), 'get_code');
@@ -107,6 +129,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 	 * @param string $url
 	 *
 	 * @return array|mixed|string
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function http__request__get_content($url ){
 		return static::httpRequest( $url, array(), 'get dont_split_to_array');
@@ -120,16 +143,24 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 	 * @param array $patterns
 	 * @return array|bool
 	 * @todo Have to replace this method to the new class like HttpHelper
+	 * @psalm-suppress PossiblyUnusedMethod
 	 */
 	public static function http__request__rc_to_host($rc_action, $request_params, $patterns = array() )
 	{
+		try {
+			$site_url = static::getSiteUrl();
+		} catch (\RuntimeException $exception) {
+			error_log('CleanTalk: Remote call skipped: ' . $exception->getMessage());
+			return array('error' => $exception->getMessage());
+		}
+
 		$request_params__default = array(
 			'spbc_remote_call_action' => $rc_action,
 			'plugin_name'             => 'apbct',
 		);
 
 		$result__rc_check_website = static::httpRequest(
-			static::getSiteUrl(),
+			$site_url,
 			array_merge( $request_params__default, $request_params, array( 'test' => 'test' ) ),
 			array( 'get', 'dont_split_to_array' )
 		);
@@ -139,7 +170,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 			if (is_string($result__rc_check_website) && preg_match('@^.*?OK$@', $result__rc_check_website)) {
 
 				static::httpRequest(
-					static::getSiteUrl(),
+					$site_url,
 					array_merge( $request_params__default, $request_params ),
 					array_merge( array( 'get', ), $patterns )
 				);
@@ -163,12 +194,19 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 	/**
 	 * Get site url for remote calls.
 	 *
-	 * @return string@important This method can be overloaded in the CMS-based Helper class.
+	 * @return string
+	 * @throws \RuntimeException
+	 * @important This method can be overloaded in the CMS-based Helper class.
 	 *
 	 */
 	private static function getSiteUrl()
 	{
-		return ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . ( isset($_SERVER['SCRIPT_URL'] ) ? $_SERVER['SCRIPT_URL'] : '' );
+		$host = $_SERVER['HTTP_HOST'] ?? '';
+		if ($host === '') {
+			throw new \RuntimeException('Unable to build the site URL: HTTP_HOST is not available.');
+		}
+
+		return ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $host . ( isset($_SERVER['SCRIPT_URL'] ) ? $_SERVER['SCRIPT_URL'] : '' );
 	}
 
 	/*
@@ -295,15 +333,13 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 					//Add custom exclusions
 					if( is_string($fields_exclusions) && !empty($fields_exclusions) ) {
 						$fields_exclusions = explode(",",$fields_exclusions);
-						if (is_array($fields_exclusions) && !empty($fields_exclusions)) {
-							foreach($fields_exclusions as &$fields_exclusion) {
-								if( preg_match('/\[*\]/', $fields_exclusion ) ) {
-									// I have to do this to support exclusions like 'submitted[name]'
-									$fields_exclusion = str_replace( array( '[', ']' ), array( '_', '' ), $fields_exclusion );
-								}
+						foreach($fields_exclusions as &$fields_exclusion) {
+							if( preg_match('/\[*\]/', $fields_exclusion ) ) {
+								// I have to do this to support exclusions like 'submitted[name]'
+								$fields_exclusion = str_replace( array( '[', ']' ), array( '_', '' ), $fields_exclusion );
 							}
-							$skip_fields_with_strings = array_merge($skip_fields_with_strings, $fields_exclusions);
 						}
+						$skip_fields_with_strings = array_merge($skip_fields_with_strings, $fields_exclusions);
 					}
 					if (in_array($key, $skip_params, true) && $key != 0 && $key != '' || preg_match("/^ct_checkjs/", $key))
 						$contact = false;
@@ -336,7 +372,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 					{
 						if (strpos($key, $needle) !== false)
 						{
-							$value = self::obfuscate_param($value);
+							self::obfuscate_param($value);
 							continue(2);
 						}
 					}
@@ -415,6 +451,7 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 		//If top iteration, returns compiled name field. Example: "Nickname Firtsname Lastname".
 		if ($prev_name === '')
 		{
+			$nickname_str = null;
 			if (!empty($nickname))
 			{
 				$nickname_str = '';
@@ -439,23 +476,27 @@ class Helper extends \Cleantalk\Common\Helper\Helper
 	}
 
 	/**
-	 * Masks a value with asterisks (*) Needed by the getFieldsAny()
-	 * @return string
+	 * Masks a scalar value with asterisks (*), preserving null.
+	 * @return string|null
+	 * @psalm-suppress PossiblyUnusedReturnValue
 	 */
 	static public function obfuscate_param($value = null)
 	{
-		if ($value && (!is_object($value) || !is_array($value)))
-		{
-			$length = strlen($value);
-			$value  = str_repeat('*', $length);
+		if ($value === null) {
+			return null;
 		}
 
-		return $value;
+		if (!is_scalar($value)) {
+			error_log('CleanTalk: Only scalar values or null can be masked.');
+			return null;
+		}
+
+		return str_repeat('*', strlen((string) $value));
 	}
 
 	/**
 	 * Print html form for external forms()
-	 * @return string
+	 * @return void
 	 */
 	static public function print_form($arr, $k)
 	{

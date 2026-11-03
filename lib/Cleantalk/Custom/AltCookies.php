@@ -132,7 +132,7 @@ class AltCookies
 	 */
 	private static function getId()
 	{
-		/** @var \Cleantalk\Common\Helper\Helper $helper_class */
+		/** @var class-string<\Cleantalk\Common\Helper\Helper> $helper_class */
 		$helper_class = Mloader::get('Helper');
 
 		$id = $helper_class::ipGet()

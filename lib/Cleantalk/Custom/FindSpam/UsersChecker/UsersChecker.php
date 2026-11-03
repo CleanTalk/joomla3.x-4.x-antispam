@@ -222,7 +222,7 @@ class UsersChecker
 
 	private function getCheckingStatus()
 	{
-		/** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+		/** @var class-string<\Cleantalk\Common\StorageHandler\StorageHandler> $storage_handler_class */
 		$storage_handler_class = Mloader::get('StorageHandler');
 		$storage_handler_class = new $storage_handler_class();
 		$last_users_check_info = $storage_handler_class->getSetting('cleantalk_last_users_check');
@@ -242,15 +242,17 @@ class UsersChecker
 
 	private function scan($data)
 	{
+		$output = [];
 		if( ! $this->api_key ) {
 			$output['html']   = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_CHECKUSERS_BADKEY');
 			$output['success'] = false;
 			$output['end'] = true;
+			return json_encode($output);
 		}
 
-		/** @var \Cleantalk\Common\Api\Api $api_class */
+		/** @var class-string<\Cleantalk\Common\Api\Api> $api_class */
 		$api_class = Mloader::get('Api');
-		/** @var \Cleantalk\Common\StorageHandler\StorageHandler $storage_handler_class */
+		/** @var class-string<\Cleantalk\Common\StorageHandler\StorageHandler> $storage_handler_class */
 		$storage_handler_class = Mloader::get('StorageHandler');
 		$storage_handler_class = new $storage_handler_class();
 
@@ -269,8 +271,8 @@ class UsersChecker
 			$storage_handler_class->saveSetting('cleantalk_last_users_check', $scan_info);
 		}
 
-		$output = [];
 		$data = [];
+		$data_by_date = [];
 		$spam = [];
 
 		$usersToCheck = $this->model->getUsersToCheck($limit);
@@ -280,13 +282,14 @@ class UsersChecker
 			if ($improved_check)
 			{
 				$curr_date          = substr($user['registerDate'], 0, 10) ?: '';
-				$data[$curr_date][] = ! empty($user['email']) ? $user['email'] : null;
+				$data_by_date[$curr_date][] = ! empty($user['email']) ? $user['email'] : null;
 			} else {
 				$data[] = !empty($user['email']) ? $user['email'] : null;
 			}
 		}
 
-		if ( count($data) === 0 )
+		$checking_count = $improved_check ? count($data_by_date) : count($data);
+		if ( $checking_count === 0 )
 		{
 			$last_users_check_info = $storage_handler_class->getSetting('cleantalk_last_users_check');
 			$stored_checking_count = isset($last_users_check_info['checking_count']) ? $last_users_check_info['checking_count'] : 0;
@@ -298,17 +301,16 @@ class UsersChecker
 			$output['checkingCount'] = $stored_checking_count;
 			$output['foundedSpam'] = $stored_found_spam;
 		} else {
+			$result = false;
 			if ( $improved_check ) {
-				foreach ( $data as $date => $values ) {
-					$values = implode(',', $values);
-					$result = $api_class::methodSpamCheckCms($this->api_key, $values, $date);
+				foreach ( $data_by_date as $date => $values ) {
+					$result = $api_class::methodSpamCheckCms($this->api_key, $values, (string)$date);
 				}
 			} else {
-				$values = implode(',', $data);
-				$result = $api_class::methodSpamCheckCms($this->api_key, $values);
+				$result = $api_class::methodSpamCheckCms($this->api_key, $data);
 			}
 
-			if ( $result ) {
+			if ( $result && is_array($result) ) {
 				if ( isset($result['error_message']) ) {
 					$output['html']   = 'API error: ' . $result['error_message'];
 					$output['success'] = false;
@@ -335,7 +337,7 @@ class UsersChecker
 
 					$scan_info = [
 						'checking_date'  => date('M m, Y'),
-						'checking_count' => $stored_checking_count + count($data),
+						'checking_count' => $stored_checking_count + $checking_count,
 						'found_spam'     => $stored_found_spam + count($spam),
 					];
 

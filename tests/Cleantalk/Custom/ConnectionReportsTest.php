@@ -36,6 +36,32 @@ class ConnectionReportsTest extends TestCase
         $this->assertEquals(0, $data['negative']);
     }
 
+    public function testValidateReportsInitializesMissingAndInvalidFields()
+    {
+        $data = ConnectionReports::validate([
+            'success' => 'invalid',
+            'negative_report' => 'invalid',
+        ]);
+
+        $this->assertSame(0, $data['success']);
+        $this->assertSame(0, $data['negative']);
+        $this->assertSame([], $data['success_report']);
+        $this->assertSame([], $data['negative_report']);
+    }
+
+    public function testValidateReportsConvertsNumericCountersToIntegers()
+    {
+        $data = ConnectionReports::validate([
+            'success' => '1',
+            'negative' => '0',
+            'success_report' => [['date' => time()]],
+            'negative_report' => [],
+        ]);
+
+        $this->assertSame(1, $data['success']);
+        $this->assertSame(0, $data['negative']);
+    }
+
     public function testAddSuccess()
     {
         $data = ConnectionReports::getClearReports();
@@ -238,6 +264,7 @@ class ConnectionReportsTest extends TestCase
         $html = ConnectionReports::prepareEmailBody($data);
 
         $this->assertStringContainsString('No negative reports', $html);
+        $this->assertStringContainsString('2 calls, where 2 were success and 0 were negative', $html);
     }
 
     public function testPrepareEmailBodyMaxCountFormatting()
@@ -257,7 +284,35 @@ class ConnectionReportsTest extends TestCase
 
         $html = ConnectionReports::prepareEmailBody($data);
 
-        $this->assertStringContainsString('+', $html);
+        $this->assertStringContainsString('20+ calls, where 10+ were success and 10+ were negative', $html);
+    }
+
+    public function testPrepareEmailBodyNumbersReportsIndependentlyOfArrayKeys()
+    {
+        foreach ([['first', 'second'], [5, 12]] as $keys) {
+            $data = ConnectionReports::getClearReports();
+            $data['negative'] = 2;
+            $data['negative_report'] = [
+                $keys[0] => [
+                    'date' => time(),
+                    'page_url' => '/first',
+                    'lib_report' => 'first error',
+                ],
+                $keys[1] => [
+                    'date' => time(),
+                    'page_url' => '/second',
+                    'lib_report' => 'second error',
+                ],
+            ];
+
+            $html = ConnectionReports::prepareEmailBody($data);
+
+            preg_match_all('/<td>(\d+)\.<\/td>/', $html, $matches);
+            $this->assertSame(['1', '2'], $matches[1]);
+            preg_match_all('/<td>(\/first|\/second)<\/td>/', $html, $matches);
+            $this->assertSame(['/first', '/second'], $matches[1]);
+            $this->assertSame($keys, array_keys($data['negative_report']));
+        }
     }
 
     public function testPrepareEmailBodyEscaping()
