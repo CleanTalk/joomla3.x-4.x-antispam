@@ -1,4 +1,14 @@
 var close_animate=true, on_page=20,off=0;
+
+// "base" points to /administrator, so the request reaches the administrator application
+function ctAdminAjaxUrl(format)
+{
+	const paths = (typeof Joomla !== 'undefined' && Joomla.getOptions) ? Joomla.getOptions('system.paths') : null;
+	const query = 'index.php?option=com_ajax&plugin=cleantalkantispam&format=' + format;
+
+	return (paths && typeof paths.base === 'string') ? paths.base + '/' + query : query;
+}
+
 function ct_getCookie(name) {
 	var matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
@@ -209,7 +219,7 @@ function dispatchApbctJoomlaNotice(element) {
 					}
 				};
 				Joomla.request({
-					url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=json',
+					url: ctAdminAjaxUrl('json'),
 					method: 'POST',
 					data: JSON.stringify(data),
 					headers: {
