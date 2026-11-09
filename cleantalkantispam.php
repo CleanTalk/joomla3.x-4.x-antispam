@@ -689,7 +689,8 @@ class plgSystemCleantalkantispam extends JPlugin
 	        // Add inline data
 	        $document->addScriptDeclaration('
 				const ctPublicData = {
-					typeOfCookie: "' . $type_of_cookie . '"
+					typeOfCookie: "' . $type_of_cookie . '",
+					siteRoot: ' . json_encode(Uri::root(true)) . '
 				}
 			');
 
@@ -887,7 +888,8 @@ class plgSystemCleantalkantispam extends JPlugin
 	        // Add inline data
 	        $document->addScriptDeclaration('
 				const ctPublicData = {
-					typeOfCookie: "' . $type_of_cookie . '"
+					typeOfCookie: "' . $type_of_cookie . '",
+					siteRoot: ' . json_encode(Uri::root(true)) . '
 				}
 			');
 

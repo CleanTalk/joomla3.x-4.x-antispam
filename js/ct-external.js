@@ -35,7 +35,7 @@ function ct_check_external(){
                     if (!window.location.origin){
                         window.location.origin = window.location.protocol + "//" + window.location.hostname;
                     }
-                    document.forms[i].action = window.location.origin;
+                    document.forms[i].action = ((typeof ctPublicData !== 'undefined' && typeof ctPublicData.siteRoot === 'string') ? ctPublicData.siteRoot : window.location.origin) + '/';
                 }
             }
         }
