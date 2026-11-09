@@ -344,7 +344,7 @@ function ct_attach_event_token(){
 function ctAjaxUrl()
 {
     var paths = (typeof Joomla !== 'undefined' && Joomla.getOptions) ? Joomla.getOptions('system.paths') : null;
-    var root = (paths && typeof paths.root === 'string') ? paths.root : '';
+    var root = (paths && typeof paths.root === 'string') ? paths.root : window.location.origin;
 
     return root + '/index.php?option=com_ajax&plugin=cleantalkantispam&format=raw';
 }
