@@ -1702,6 +1702,7 @@ class plgSystemCleantalkantispam extends JPlugin
 	            case 'set_alt_cookies' :
 		            unset($data['action']);
 		            AltCookies::removeOld();
+					Factory::getApplication()->setHeader('Status', '204 No Content', true);
 					return AltCookies::setFromRemote($data);
 	            case 'check_ajax':
                     $ctResponse = $this->ctSendRequest('check_newuser', array());
