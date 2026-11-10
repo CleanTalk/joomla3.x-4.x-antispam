@@ -341,13 +341,21 @@ function ct_attach_event_token(){
     return false;
 }
 
+function ctAjaxUrl()
+{
+    const paths = (typeof Joomla !== 'undefined' && Joomla.getOptions) ? Joomla.getOptions('system.paths') : null;
+    const root = (paths && typeof paths.root === 'string') ? paths.root : window.location.origin;
+
+    return root + '/index.php?option=com_ajax&plugin=cleantalkantispam&format=raw';
+}
+
 // Setting alt-cookies from array
 function ctSetAltCookies(altCookies)
 {
     altCookies.action = 'set_alt_cookies';
 
     Joomla.request({
-        url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
+        url: ctAjaxUrl(),
         method: 'POST',
         data: JSON.stringify(altCookies),
         headers: {
@@ -369,7 +377,7 @@ function ctCheckAjax(target, allow, forbidden)
     data.action = 'check_ajax';
 
     Joomla.request({
-        url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
+        url: ctAjaxUrl(),
         method: 'POST',
         data: JSON.stringify(data),
         headers: {

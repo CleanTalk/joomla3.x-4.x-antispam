@@ -1626,14 +1626,15 @@ class plgSystemCleantalkantispam extends JPlugin
                         }
                     }
 
-                    $data['api_key'] = $this->params->get('apikey');
-                    $users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
-                    return $users_checker->getResponse();
-                case 'set_alt_cookies':
-                    unset($data['action']);
-                    AltCookies::removeOld();
-                    return AltCookies::setFromRemote($data);
-                case 'check_ajax':
+		            $data['api_key'] = $this->params->get('apikey');
+					$users_checker = new \Cleantalk\Custom\FindSpam\UsersChecker\UsersChecker($data);
+					return $users_checker->getResponse();
+	            case 'set_alt_cookies' :
+		            unset($data['action']);
+		            AltCookies::removeOld();
+					Factory::getApplication()->setHeader('Status', '204 No Content', true);
+					return AltCookies::setFromRemote($data);
+	            case 'check_ajax':
                     $ctResponse = $this->ctSendRequest('check_newuser', array());
 
                     if ($ctResponse['allow'] == 0) {
