@@ -217,8 +217,10 @@ class plgSystemCleantalkantispam extends JPlugin
 
     /*
     * Checks if auth_key is paid or not
+     * @param string $ct_api_key
+     * @param bool $force_check
+     * @return array|null
     */
-
     private function checkIsPaid($ct_api_key = '', $force_check = false)
     {
         /** @var class-string<\Cleantalk\Custom\Helper\Helper> $helper */
@@ -229,37 +231,58 @@ class plgSystemCleantalkantispam extends JPlugin
         if (($this->params->get('acc_status_last_check') && ($this->params->get('acc_status_last_check') < time() - 86400)) || $force_check || !$this->params->get('ct_key_is_ok')) {
             $ct_key_is_ok = 0;
             $key_is_valid = $helper::isApikeyCorrect($api_key);
-            $save_params = array();
             $result = null;
+            $no_error = false;
             if ($key_is_valid) {
                 /** @var class-string<\Cleantalk\Common\Api\Api> $api_class */
                 $api_class = Mloader::get('Api');
                 $result      = $api_class::methodNoticePaidTill($api_key, preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
-                $ct_key_is_ok = (empty($result['error']) && $result['valid']) ? 1 : 0;
+                $no_error = is_array($result) && (
+                        isset($result['error']) && $result['error'] === '' || !isset($result['error'])
+                    );
+                $ct_key_is_ok = ($no_error && !empty($result['valid'])) ? 1 : 0;
             }
 
-            $save_params['ct_key_is_ok']            = $ct_key_is_ok;
-            $save_params['acc_status_last_check']   = time();
-            $save_params['show_notice']             = (empty($result['error']) && isset($result['show_notice'])) ? $result['show_notice'] : 0;
-            $save_params['renew']                   = (empty($result['error']) && isset($result['renew'])) ? $result['renew'] : 0;
-            $save_params['trial']                   = (empty($result['error']) && isset($result['trial'])) ? $result['trial'] : 0;
-            $save_params['user_token']              = (empty($result['error']) && isset($result['user_token'])) ? $result['user_token'] : '';
-            $save_params['spam_count']              = (empty($result['error']) && isset($result['spam_count'])) ? $result['spam_count'] : 0;
-            $save_params['moderate_ip']             = (empty($result['error']) && isset($result['moderate_ip'])) ? $result['moderate_ip'] : 0;
-            $save_params['moderate']                = (empty($result['error']) && isset($result['moderate'])) ? $result['moderate'] : 0;
-            $save_params['show_review']             = (empty($result['error']) && isset($result['show_review'])) ? $result['show_review'] : 0;
-            $save_params['service_id']              = (empty($result['error']) && isset($result['service_id'])) ? $result['service_id'] : '';
-            $save_params['license_trial']           = (empty($result['error']) && isset($result['license_trial'])) ? $result['license_trial'] : 0;
-            $save_params['account_name_ob']         = (empty($result['error']) && isset($result['account_name_ob'])) ? $result['account_name_ob'] : '';
-            $save_params['valid']                   = (empty($result['error']) && isset($result['valid'])) ? $result['valid'] : 0;
-            $save_params['auto_update_app']         = (empty($result['error']) && isset($result['auto_update_app'])) ? $result['auto_update_app'] : 0;
-            $save_params['show_auto_update_notice'] = (empty($result['error']) && isset($result['show_auto_update_notice'])) ? $result['show_auto_update_notice'] : 0;
-            $save_params['ip_license']              = (empty($result['error']) && isset($result['ip_license'])) ? $result['ip_license'] : 0;
+            //default state
+            $save_params = [
+                'ct_key_is_ok'             => $ct_key_is_ok,
+                'acc_status_last_check'    => time(),
+                'show_notice'              => 0,
+                'renew'                    => 0,
+                'spam_count'               => 0,
+                'moderate_ip'              => 0,
+                'moderate'                 => 0,
+                'service_id'               => 0,
+                'license_trial'            => 0,
+                'account_name_ob'          => '',
+                'valid'                    => 0,
+                'auto_update_app'          => 0,
+                'show_auto_update_notice'  => 0,
+                'ip_license'               => 0,
+            ];
+
+            if (is_array($result) && $no_error) {
+                $save_params['show_notice']             = $result['show_notice'] ?? 0;
+                $save_params['renew']                   = $result['renew'] ?? 0;
+                $save_params['trial']                   = $result['trial'] ?? 0;
+                $save_params['user_token']              = $result['user_token'] ?? '';
+                $save_params['spam_count']              = $result['spam_count'] ?? 0;
+                $save_params['moderate_ip']             = $result['moderate_ip'] ?? 0;
+                $save_params['moderate']                = $result['moderate'] ?? 0;
+                $save_params['show_review']             = $result['show_review'] ?? 0;
+                $save_params['service_id']              = $result['service_id'] ?? '';
+                $save_params['license_trial']           = $result['license_trial'] ?? 0;
+                $save_params['account_name_ob']         = $result['account_name_ob'] ?? '';
+                $save_params['valid']                   = $result['valid'] ?? 0;
+                $save_params['auto_update_app']         = $result['auto_update_app'] ?? 0;
+                $save_params['show_auto_update_notice'] = $result['show_auto_update_notice'] ?? 0;
+                $save_params['ip_license']              = $result['ip_license'] ?? 0;
+            }
 
             $this->saveCTConfig($save_params);
         }
 
-        return isset($save_params) ? $save_params : null;
+        return $save_params;
     }
 
     /**
@@ -393,7 +416,9 @@ class plgSystemCleantalkantispam extends JPlugin
     {
         try {
             $output = $api_class::methodGetApiKey('antispam', JFactory::getConfig()->get('mailfrom'), $_SERVER['HTTP_HOST'], 'joomla3');
-
+            if (!is_array($output)) {
+                throw new \Exception('Invalid response from the server');
+            }
             if (empty($output['auth_key'])) {
                 if (isset($output['account_exists']) && $output['account_exists'] == 1) {
                     $output['error_message'] = 'Please, get the Access Key from the CleanTalk Control Panel (https://cleantalk.org/my/?cp_mode=antispam) and insert it in the Access Key field.';
@@ -401,8 +426,8 @@ class plgSystemCleantalkantispam extends JPlugin
             } else {
                 if (empty($output['user_token'])) {
                     $result_tmp = $api_class::methodNoticePaidTill($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
-                    if (empty($result_tmp['error'])) {
-                        $output['user_token'] = $result_tmp['user_token'];
+                    if (is_array($result_tmp) && empty($result_tmp['error'])) {
+                        $output['user_token'] = $result_tmp['user_token'] ?? null;
                     }
                 }
             }
@@ -421,8 +446,8 @@ class plgSystemCleantalkantispam extends JPlugin
     private function checkSpamComments()
     {
         $improved_check = isset($_POST['improved_check']) && $_POST['improved_check'] === 'true';
-        $offset  = isset($_POST['offset']) ? (int) $_POST['offset'] : 0;
-        $on_page = isset($_POST['amount']) ? (int) $_POST['amount'] : 2;
+        $offset  = isset($_POST['offset']) && is_scalar($_POST['offset']) ? (int) $_POST['offset'] : 0;
+        $on_page = isset($_POST['amount']) && is_scalar($_POST['amount']) ? (int) $_POST['amount'] : 2;
 
         return $this->get_spam_comments($offset, $on_page, $improved_check);
     }
@@ -561,7 +586,8 @@ class plgSystemCleantalkantispam extends JPlugin
         $module_cmd = JFactory::getApplication()->input->get('module');
         $method_cmd = JFactory::getApplication()->input->get('method');
 
-        if ((@$_GET['option'] == 'com_mijoshop' && @$_GET['route'] == 'api/customer') ||
+        if (
+            ($option_cmd == 'com_mijoshop' && isset($_GET['route']) && $_GET['route'] == 'api/customer') ||
             ($option_cmd == 'com_virtuemart' && $task_cmd == 'add') ||
             $option_cmd == 'com_jcomments' ||
             ($option_cmd == 'com_contact' && $task_cmd != 'contact.submit') ||
@@ -922,7 +948,9 @@ class plgSystemCleantalkantispam extends JPlugin
                 $post_info['comment_type'] = 'site_search_joomla34';
                 $sender_email              = JFactory::getUser()->email;
                 $sender_nickname           = JFactory::getUser()->username;
-                $message                   = isset($_GET['searchword']) ? trim($_GET['searchword']) : trim($_GET['q']);
+                $searchword = isset($_GET['searchword']) && is_string($_GET['searchword']) ? trim($_GET['searchword']) : null;
+                $querystring = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
+                $message                   = $searchword ?? $querystring;
                 $ctResponse                = $this->ctSendRequest(
                     'check_message',
                     array(
@@ -932,15 +960,12 @@ class plgSystemCleantalkantispam extends JPlugin
                         'post_info'       => json_encode($post_info),
                     )
                 );
-                if ($ctResponse) {
-                    if (!empty($ctResponse) && is_array($ctResponse)) {
-                        if ($ctResponse['errno'] != 0) {
-                            $this->sendAdminEmail("CleanTalk. Can't verify search form!", $ctResponse['comment']);
-                        } else {
-                            if ($ctResponse['allow'] == 0) {
-                                $this->doBlockPage($ctResponse['comment']);
-                            }
-                        }
+                if (!empty($ctResponse) && is_array($ctResponse)) {
+                    $responseMessage = $this->getResponseComment($ctResponse);
+                    if (isset($ctResponse['errno']) && $ctResponse['errno'] != 0) {
+                        $this->sendAdminEmail("CleanTalk. Can't verify search form!", $responseMessage);
+                    } elseif (isset($ctResponse['allow']) && $ctResponse['allow'] == 0) {
+                        $this->doBlockPage($responseMessage);
                     }
                 }
             }
@@ -978,29 +1003,29 @@ class plgSystemCleantalkantispam extends JPlugin
                 $post_info['comment_type'] = 'order';
             }
             //Rapid
-            if (isset($_POST['rp_email'])) {
+            if (isset($_POST['rp_email']) && is_string($_POST['rp_email'])) {
                 $sender_email = $_POST['rp_email'];
 
-                if (isset($_POST["rp_subject"])) {
+                if (isset($_POST["rp_subject"]) && is_string($_POST["rp_subject"])) {
                     $message = $_POST["rp_subject"];
                 }
 
-                if (isset($_POST['rp_message'])) {
+                if (isset($_POST['rp_message']) && is_string($_POST['rp_message'])) {
                     $message .= ' ' . $_POST['rp_message'];
                 }
                 $post_info['comment_type'] = 'contact_form_joomla_rapid';
-            } elseif (isset($_POST["vcontact_email"])) {
+            } elseif (isset($_POST["vcontact_email"]) && is_string($_POST["vcontact_email"])) {
                 //VTEM Contact
                 $sender_email = $_POST['vcontact_email'];
-                if (isset($_POST["vcontact_subject"])) {
+                if (isset($_POST["vcontact_subject"]) && is_string($_POST["vcontact_subject"])) {
                     $message = $_POST["vcontact_subject"];
                 }
 
-                if (isset($_POST["vcontact_message"])) {
+                if (isset($_POST["vcontact_message"]) && is_string($_POST["vcontact_message"])) {
                     $message .= ' ' . $_POST["vcontact_message"];
                 }
 
-                if (isset($_POST["vcontact_name"])) {
+                if (isset($_POST["vcontact_name"]) && is_string($_POST["vcontact_name"])) {
                     $sender_nickname = $_POST["vcontact_name"];
                 }
                 $post_info['comment_type'] = 'contact_form_joomla_vtem';
@@ -1042,8 +1067,8 @@ class plgSystemCleantalkantispam extends JPlugin
                     'from_email',
                 ];
                 $post_processed = array();
-                if (isset($_POST['data'])) {
-                    foreach ( $_POST['data'] as $item => $value ) {
+                if (isset($_POST['data']) && is_iterable($_POST['data'])) {
+                    foreach ( $_POST['data'] as $_item => $value ) {
                         // These are the service fields
                         if (isset($value['name']) && isset($value['value'])) {
                             if ( in_array($value['name'], $excluded_fields) ) {
@@ -1073,10 +1098,10 @@ class plgSystemCleantalkantispam extends JPlugin
                 // Creative Contact Form
                 //Prepare data for checking
                 $form_data = [];
-                if ( $_POST['creativecontactform_fields'] ) {
+                if ( isset($_POST['creativecontactform_fields']) && is_iterable($_POST['creativecontactform_fields']) ) {
                     foreach ( $_POST['creativecontactform_fields'] as $element => $key ) {
                         $field_name = 'creativecontactform_fields' . '_' . $element . '_' . '0';
-                        $form_data[$field_name] = $key[0];
+                        $form_data[$field_name] = $key[0] ?? '';
                     }
                 } else {
                     $form_data = $_POST;
@@ -1192,145 +1217,154 @@ class plgSystemCleantalkantispam extends JPlugin
                     )
                 );
 
-                if ($ctResponse) {
-                    if (!empty($ctResponse) && is_array($ctResponse)) {
-                        if ($ctResponse['errno'] != 0) {
-                            $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $ctResponse['comment']);
-                        } else {
-                            if ($ctResponse['allow'] == 0) {
-                                if ($app->input->get('option') == 'com_baforms') {
-                                    if (!headers_sent()) {
-                                        header('Content-Type: application/json; charset=UTF-8');
-                                    }
-                                    echo json_encode(array(
-                                        'status'        => false,
-                                        'message'       => strip_tags($ctResponse['comment']),
-                                        'isClosed'      => false,
-                                        'closedMessage' => '',
-                                    ));
-                                    die();
-                                } elseif (JFactory::getApplication()->input->get('option') == 'com_igallery' && JFactory::getApplication()->input->get('task') == 'imagefront.addComment') {
-                                    $output = array(
-                                        'success' => 0,
-                                        'message' => $ctResponse['comment']
-                                    );
-                                    print json_encode($output);
-                                    die();
-                                } elseif (JFactory::getApplication()->input->get('option') == 'com_contactenhanced' && JFactory::getApplication()->input->get('task') == 'contact.submit') {
-                                    $output = array(
-                                        'statusText' => strip_tags($ctResponse['comment']),
-                                        'status' => 403
-                                    );
-                                    print json_encode($output);
-                                    die();
-                                } elseif (
-                                    JFactory::getApplication()->input->get('module') == 'jdsimplecontactform' &&
-                                    JFactory::getApplication()->input->get('method') == 'submitForm' &&
-                                    JFactory::getApplication()->input->get('option') == 'com_ajax'
-                                ) {
-                                    // JD Simple Contact Form ajax output
-                                    if ( ! headers_sent() ) {
-                                        header('Content-Type: application/json');
-                                        header('Access-Control-Allow-Origin: *');
-                                    }
-                                    $return = array(
-                                        'status' => '\O_o/',
-                                        'message' => $ctResponse['comment'],
-                                    );
-                                    echo \json_encode($return);
-                                    die();
-                                } elseif (
-                                    $app->input->get('option') === 'com_sppagebuilder' &&
-                                    !isset($app->input->get('form')['formId']) &&
-                                    (
-                                        JFactory::getApplication()->input->get('option') === 'com_ajax' ||
-                                        JFactory::getApplication()->input->get('option') === 'com_sppagebuilder' //https://app.doboard.com/1/task/48828
-                                    )
-                                ) {
-                                    $output['status'] = false;
-                                    $output['content'] = '<span class="sppb-text-danger">' . $ctResponse['comment'] . '</span>';
-                                    echo \json_encode(
+                if (is_array($ctResponse) && isset($ctResponse['allow'])) {
+                    $responseMessage = $this->getResponseComment($ctResponse);
+                    if (isset($ctResponse['errno']) && $ctResponse['errno'] != 0) {
+                        $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $responseMessage);
+                    } elseif ($ctResponse['allow'] == 0) {
+                        $responseMessage = empty($responseMessage) ? 'Request blocked. Unknown block reason.' : $responseMessage;
+                        $plainMessage = strip_tags($responseMessage);
+                        if ($app->input->get('option') == 'com_baforms') {
+                            if (!headers_sent()) {
+                                header('Content-Type: application/json; charset=UTF-8');
+                            }
+                            echo json_encode(array(
+                                'status'        => false,
+                                'message'       => $plainMessage,
+                                'isClosed'      => false,
+                                'closedMessage' => '',
+                            ));
+                            die();
+                        } elseif (JFactory::getApplication()->input->get('option') == 'com_igallery' && JFactory::getApplication()->input->get('task') == 'imagefront.addComment') {
+                            $output = array(
+                                'success' => 0,
+                                'message' => $plainMessage
+                            );
+                            print json_encode($output);
+                            die();
+                        } elseif (JFactory::getApplication()->input->get('option') == 'com_contactenhanced' && JFactory::getApplication()->input->get('task') == 'contact.submit') {
+                            $output = array(
+                                'statusText' => $plainMessage,
+                                'status' => 403
+                            );
+                            print json_encode($output);
+                            die();
+                        } elseif (
+                            JFactory::getApplication()->input->get('module') == 'jdsimplecontactform' &&
+                            JFactory::getApplication()->input->get('method') == 'submitForm' &&
+                            JFactory::getApplication()->input->get('option') == 'com_ajax'
+                        ) {
+                            // JD Simple Contact Form ajax output
+                            if ( ! headers_sent() ) {
+                                header('Content-Type: application/json');
+                                header('Access-Control-Allow-Origin: *');
+                            }
+                            $return = array(
+                                'status' => '\O_o/',
+                                'message' => $plainMessage,
+                            );
+                            echo \json_encode($return);
+                            die();
+                        } elseif (
+                            $app->input->get('option') === 'com_sppagebuilder' &&
+                            !isset($app->input->get('form')['formId']) &&
+                            (
+                                JFactory::getApplication()->input->get('option') === 'com_ajax' ||
+                                JFactory::getApplication()->input->get('option') === 'com_sppagebuilder' //https://app.doboard.com/1/task/48828
+                            )
+                        ) {
+                            $output['status'] = false;
+                            $output['content'] = '<span class="sppb-text-danger">' . $plainMessage . '</span>';
+                            echo \json_encode(
+                                array(
+                                    'data' => \json_encode($output),
+                                )
+                            );
+                            die();
+                        } elseif (($option_cmd === 'com_virtuemart' && !empty($ctask_cmd) && $ctask_cmd === 'savebtaddress')) {
+                            echo \json_encode(
+                                array(
+                                    'error' => 1,
+                                    'msg' => $plainMessage
+                                )
+                            );
+                            die;
+                        } elseif (($option_cmd === 'com_convertforms' && !empty($task_cmd) && $task_cmd === 'submit')) {
+                            echo \json_encode(
+                                array(
+                                    'success' => false,
+                                    'error' => $plainMessage
+                                )
+                            );
+                            die;
+                        } elseif ( $app->input->get('option') === 'com_komento' ) {
+                            echo \json_encode(
+                                array (
+                                    0 =>
                                         array(
-                                            'data' => \json_encode($output),
-                                        )
-                                    );
-                                    die();
-                                } elseif (($option_cmd === 'com_virtuemart' && !empty($ctask_cmd) && $ctask_cmd === 'savebtaddress')) {
-                                    echo \json_encode(
-                                        array(
-                                            'error' => 1,
-                                            'msg' => $ctResponse['comment']
-                                        )
-                                    );
-                                    die;
-                                } elseif (($option_cmd === 'com_convertforms' && !empty($task_cmd) && $task_cmd === 'submit')) {
-                                    echo \json_encode(
-                                        array(
-                                            'success' => false,
-                                            'error' => $ctResponse['comment']
-                                        )
-                                    );
-                                    die;
-                                } elseif ( $app->input->get('option') === 'com_komento' ) {
-                                    echo \json_encode(
-                                        array (
-                                            0 =>
-                                                array(
-                                                    'type' => 'reject',
-                                                    'data' =>
-                                                        array (
-                                                            0 => $ctResponse['comment'],
-                                                        ),
+                                            'type' => 'reject',
+                                            'data' =>
+                                                array (
+                                                    0 => $plainMessage,
                                                 ),
-                                        )
-                                    );
-                                    die();
-                                } elseif (
-                                    JFactory::getApplication()->input->get('module') == 'pwebcontact' &&
-                                    JFactory::getApplication()->input->get('method') == 'sendEmail' &&
-                                    JFactory::getApplication()->input->get('option') == 'com_ajax'
-                                ) {
-                                    //PWEB AJAX CONTACT FORMS integration
-                                    $json_msg = array(
-                                        'debug' => 'CAPTCHA check failed',
-                                        'message' => $ctResponse['comment'],
-                                        'success' => false
-                                    );
-                                    print json_encode($json_msg);
-                                    die();
-                                } elseif (
-                                    isset($_POST['ct_action'])
-                                    && strpos($_POST['ct_action'], 'nicepagesrv') !== false
-                                ) {
-                                    // Nice Page AJAX CONTACT FORMS integration
-                                    $output['success'] = false;
-                                    echo \json_encode($output);
-                                    die();
-                                } elseif ( $post_info['comment_type'] === 'contact_form_joomla_creative_contact_form' ) {
-                                    echo '[{"invalid":"problem_sending_email"}]';
-                                    die();
-                                } else {
-                                    $this->doBlockPage($ctResponse['comment']);
-                                }
-                            } elseif ($ctResponse['allow'] == 1 && $this->params->get('ct_check_external') && isset($_POST['ct_action'], $_POST['ct_method']) && strpos($_POST['ct_action'], 'paypal.com') === false) {
-                                // Nice Page AJAX CONTACT FORMS integration
-                                if (
-                                    isset($_POST['ct_action'])
-                                    && strpos($_POST['ct_action'], 'nicepagesrv') !== false
-                                ) {
-                                    $output['success'] = true;
-                                    echo \json_encode($output);
-                                    die();
-                                }
+                                        ),
+                                )
+                            );
+                            die();
+                        } elseif (
+                            JFactory::getApplication()->input->get('module') == 'pwebcontact' &&
+                            JFactory::getApplication()->input->get('method') == 'sendEmail' &&
+                            JFactory::getApplication()->input->get('option') == 'com_ajax'
+                        ) {
+                            //PWEB AJAX CONTACT FORMS integration
+                            $json_msg = array(
+                                'debug' => 'CAPTCHA check failed',
+                                'message' => $plainMessage,
+                                'success' => false
+                            );
+                            print json_encode($json_msg);
+                            die();
+                        } elseif (
+                            isset($_POST['ct_action'])
+                            && is_string($_POST['ct_action'])
+                            && strpos($_POST['ct_action'], 'nicepagesrv') !== false
+                        ) {
+                            // Nice Page AJAX CONTACT FORMS integration
+                            $output['success'] = false;
+                            echo \json_encode($output);
+                            die();
+                        } elseif ( $post_info['comment_type'] === 'contact_form_joomla_creative_contact_form' ) {
+                            echo '[{"invalid":"problem_sending_email"}]';
+                            die();
+                        } else {
+                            $this->doBlockPage($responseMessage);
+                        }
+                    } elseif (
+                        $ctResponse['allow'] == 1 &&
+                        $this->params->get('ct_check_external') &&
+                        isset($_POST['ct_action'], $_POST['ct_method']) &&
+                        is_string($_POST['ct_action']) &&
+                        is_string($_POST['ct_method']) &&
+                        strpos($_POST['ct_action'], 'paypal.com') === false
+                    ) {
+                        // Nice Page AJAX CONTACT FORMS integration
+                        if (
+                            isset($_POST['ct_action'])
+                            && strpos($_POST['ct_action'], 'nicepagesrv') !== false
+                        ) {
+                            $output['success'] = true;
+                            echo \json_encode($output);
+                            die();
+                        }
 
-                                $form_action = $_POST['ct_action'];
-                                $form_method = $_POST['ct_method'];
-                                unset($_POST['ct_action']);
-                                unset($_POST['ct_method']);
-                                print "<html><body><form method='$form_method' action='$form_action'>";
-                                $helper_class::print_form($_POST, '');
-                                print "</form></body></html>";
-                                print "<script>
+                        $form_action = $_POST['ct_action'];
+                        $form_method = $_POST['ct_method'];
+                        unset($_POST['ct_action']);
+                        unset($_POST['ct_method']);
+                        print "<html><body><form method='$form_method' action='$form_action'>";
+                        $helper_class::print_form($_POST, '');
+                        print "</form></body></html>";
+                        print "<script>
 									if(document.forms[0].submit != 'undefined'){
 										var objects = document.getElementsByName('submit');
 										if(objects.length > 0)
@@ -1338,9 +1372,7 @@ class plgSystemCleantalkantispam extends JPlugin
 									}
 									document.forms[0].submit();
 								</script>";
-                                die();
-                            }
-                        }
+                        die();
                     }
                 }
             }
@@ -1370,9 +1402,10 @@ class plgSystemCleantalkantispam extends JPlugin
                 'post_info'       => json_encode($post_info),
             )
         );
+        $comment = is_array($ctResponse) ? $this->getResponseComment($ctResponse, 'No response message provided.') : 'No response message provided.';
         if ( isset($ctResponse['allow']) && $ctResponse['allow'] == 0  ) {
             $this->apbctEshopIsSpam = true;
-            $this->apbctBlockComment = $ctResponse['comment'];
+            $this->apbctBlockComment = $comment;
         }
     }
 
@@ -1449,15 +1482,12 @@ class plgSystemCleantalkantispam extends JPlugin
                 'post_info'       => $post_info,
             )
         );
-        if ($ctResponse) {
-            if (!empty($ctResponse) && is_array($ctResponse)) {
-                if ($ctResponse['errno'] != 0) {
-                    $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $ctResponse['comment']);
-                } else {
-                    if ($ctResponse['allow'] == 0) {
-                        $this->doBlockPage($ctResponse['comment']);
-                    }
-                }
+        if (is_array($ctResponse) && isset($ctResponse['allow'])) {
+            $responseMessage = $this->getResponseComment($ctResponse, 'No message provided.');
+            if (isset($ctResponse['errno']) && $ctResponse['errno'] != 0) {
+                $this->sendAdminEmail("CleanTalk. Can't verify feedback message!", $responseMessage);
+            } elseif ($ctResponse['allow'] == 0) {
+                $this->doBlockPage($responseMessage);
             }
         }
     }
@@ -1564,22 +1594,21 @@ class plgSystemCleantalkantispam extends JPlugin
                 'post_info'       => $post_info,
             )
         );
-        if ($ctResponse) {
-            if (!empty($ctResponse) && is_array($ctResponse)) {
-                if ($ctResponse['allow'] == 0) {
-                    if ($this->params->get('ct_jcomments_unpublished_nofications')) {
-                        JComments::sendNotification($comment, true);
-                    }
-                    if ($ctResponse['stop_queue'] === 1 || !$this->params->get('ct_jcomments_automod')) {
-                        JCommentsAJAX::showErrorMessage($ctResponse['comment'], 'comment');
+        if (!empty($ctResponse) && is_array($ctResponse) && isset($ctResponse['allow'])) {
+            $response_comment = $this->getResponseComment($ctResponse, 'No response message provided.');
+            if ($ctResponse['allow'] == 0) {
+                if ($this->params->get('ct_jcomments_unpublished_nofications')) {
+                    JComments::sendNotification($comment, true);
+                }
+                if ((isset($ctResponse['stop_queue']) && $ctResponse['stop_queue'] === 1) || !$this->params->get('ct_jcomments_automod')) {
+                    JCommentsAJAX::showErrorMessage($response_comment, 'comment');
 
-                        return false;
-                    }
+                    return false;
+                }
+                $comment->published = false;
+            } else {
+                if (isset($ctResponse['stop_words']) && $ctResponse['stop_words'] === 1) {
                     $comment->published = false;
-                } else {
-                    if ($ctResponse['stop_words'] === 1) {
-                        $comment->published = false;
-                    }
                 }
             }
         }
@@ -1604,7 +1633,7 @@ class plgSystemCleantalkantispam extends JPlugin
         if ( isset($data['action']) ) {
             switch ($data['action']) {
                 case 'dismiss_notice':
-                    $notice_params = $this->getNoticeDismissalParams($data['data']);
+                    $notice_params = !empty($data['data']) && is_array($data['data']) ? $this->getNoticeDismissalParams($data['data']) : null;
                     if ($notice_params !== null && !$this->saveCTConfig($notice_params)) {
                         return ['error' => 'Unable to save the CleanTalk notice settings.'];
                     }
@@ -1636,14 +1665,20 @@ class plgSystemCleantalkantispam extends JPlugin
                     return AltCookies::setFromRemote($data);
                 case 'check_ajax':
                     $ctResponse = $this->ctSendRequest('check_newuser', array());
-
-                    if ($ctResponse['allow'] == 0) {
-                        return json_encode(['allow' => 0, 'msg' => $ctResponse['comment']]);
+                    if (isset($ctResponse['allow'])) {
+                        if ($ctResponse['allow'] == 0) {
+                            return json_encode(
+                                [
+                                    'allow' => 0,
+                                    'msg' => $ctResponse['comment'] ?? 'Request blocked. Unknown block reason.'
+                                ]
+                            );
+                        }
+                        if ($ctResponse['allow'] == 1) {
+                            return json_encode(['allow' => 1, 'msg' => '']);
+                        }
                     }
 
-                    if ($ctResponse['allow'] == 1) {
-                        return json_encode(['allow' => 1, 'msg' => '']);
-                    }
 
                     return json_encode(['error' => 'Not working']);
 
@@ -1807,70 +1842,81 @@ class plgSystemCleantalkantispam extends JPlugin
                 'sender_nickname' => $post_username,
             )
         );
-        if ($ctResponse) {
-            if (!empty($ctResponse) && is_array($ctResponse)) {
-                if ($ctResponse['allow'] == 0) {
-                    if ($ctResponse['errno'] != 0) {
-                        $this->sendAdminEmail("CleanTalk plugin", $ctResponse['comment']);
-                    } else {
-                        $app = JFactory::getApplication();
-
-                        if (
-                            $app->input->get('option') === 'com_eshop' &&
-                            $app->input->get('task') === 'checkout.register'
-                        ) {
-                            $out['error']['username'] = $ctResponse['comment'];
-                            die(json_encode($out));
-                        }
-                        // JoomShopping integration
-                        // @ToDo make it better
-                        if ( 'registersave' == $app->input->get('task') ) {
-                            die($ctResponse['comment']);
-                        }
-
-                        // Custom register plugin integration
-                        if (
-                            JFactory::getApplication()->input->get('option') === 'com_ajax' &&
-                            JFactory::getApplication()->input->get('plugin') === 'registration'
-                        ) {
-                            return false;
-                        }
-
-                        $session->set('ct_register_form_data', $post);
-
-                        $app = JFactory::getApplication();
-                        $app->enqueueMessage($ctResponse['comment'], 'error');
-
-                        $uri      = JURI::getInstance();
-                        $redirect = $uri->toString();
-
-                        // OPC
-                        if (isset($_POST['return'])) {
-                            $redirect_opc = base64_decode($_POST['return']);
-                            $u            =& JURI::getInstance($redirect);
-                            $u_opc        =& JURI::getInstance($redirect_opc);
-
-                            if ($u->getHost() == $u_opc->getHost()) {
-                                $app->redirect(base64_decode($_POST['return']));
-                                die;
-                            }
-                        }
-
-                        if (version_compare($this->cms_version, '4.0.0') < 0) {
-                            $redirect = str_replace('?task=registration.register', '', $redirect);
-                        }
-
-                        $app->redirect($redirect);
-                        die();
-                    }
+        if (is_array($ctResponse) && isset($ctResponse['allow'])) {
+            if ($ctResponse['allow'] == 0) {
+                $message = $this->getResponseComment($ctResponse);
+                if (isset($ctResponse['errno']) && $ctResponse['errno'] != 0) {
+                    $this->sendAdminEmail("CleanTalk plugin", $message);
                 } else {
-                    $session->set('register_username', $post_username);
-                    $session->set('register_email', $post_email);
-                    $session->set('ct_request_id', $ctResponse['id']);
-                    return true;
+                    $app = JFactory::getApplication();
+
+                    if (
+                        $app->input->get('option') === 'com_eshop' &&
+                        $app->input->get('task') === 'checkout.register'
+                    ) {
+                        $out['error']['username'] = $message;
+                        die(json_encode($out));
+                    }
+                    // JoomShopping integration
+                    // @ToDo make it better
+                    if ( 'registersave' == $app->input->get('task') ) {
+                        die($message);
+                    }
+
+                    // Custom register plugin integration
+                    if (
+                        JFactory::getApplication()->input->get('option') === 'com_ajax' &&
+                        JFactory::getApplication()->input->get('plugin') === 'registration'
+                    ) {
+                        return false;
+                    }
+
+                    $session->set('ct_register_form_data', $post);
+
+                    $app = JFactory::getApplication();
+                    $app->enqueueMessage($message, 'error');
+
+                    $uri      = JURI::getInstance();
+                    $redirect = $uri->toString();
+
+                    // OPC
+                    if (isset($_POST['return']) && is_string($_POST['return'])) {
+                        $redirect_opc = base64_decode($_POST['return']);
+                        $u            =& JURI::getInstance($redirect);
+                        $u_opc        =& JURI::getInstance($redirect_opc);
+
+                        if ($u->getHost() == $u_opc->getHost()) {
+                            $app->redirect(base64_decode($_POST['return']));
+                            die;
+                        }
+                    }
+
+                    if (version_compare($this->cms_version, '4.0.0') < 0) {
+                        $redirect = str_replace('?task=registration.register', '', $redirect);
+                    }
+
+                    $app->redirect($redirect);
+                    die();
                 }
+            } else {
+                $session->set('register_username', $post_username);
+                $session->set('register_email', $post_email);
+                $session->set('ct_request_id', $ctResponse['id'] ?? null);
+                return true;
             }
         }
+    }
+
+    /**
+     * @param array $response
+     * @param string $fallback
+     * @return string
+     */
+    private function getResponseComment(array $response, $fallback = '')
+    {
+        $comment = $response['comment'] ?? null;
+
+        return is_string($comment) ? $comment : $fallback;
     }
 
 
@@ -1946,7 +1992,7 @@ class plgSystemCleantalkantispam extends JPlugin
             }
 
             // Additional check for com_baforms
-            if (strpos($_SERVER['REQUEST_URI'], 'option=com_baforms') !== false && isset($_REQUEST['page-url'])) {
+            if (strpos($_SERVER['REQUEST_URI'], 'option=com_baforms') !== false && isset($_REQUEST['page-url']) && is_string($_REQUEST['page-url'])) {
                 if ($this->isUrlInSimpleExclusions($_REQUEST['page-url'], $url_exclusion) ||
                     $this->isUrlInRegexExclusions($_REQUEST['page-url'], $url_exclusion_regex)) {
                     return;
@@ -2104,10 +2150,11 @@ class plgSystemCleantalkantispam extends JPlugin
      * $ct_work_url
      * $ct_server_ttl
      * $ct_server_changed
-     * @return null
+     * @return void
      */
     private function dbSetServer($ct_work_url, $ct_server_ttl, $ct_server_changed)
     {
+        $save_params = array();
         $save_params['work_url']       = $ct_work_url;
         $save_params['server_ttl']     = $ct_server_ttl;
         $save_params['server_changed'] = $ct_server_changed;
@@ -2392,7 +2439,7 @@ class plgSystemCleantalkantispam extends JPlugin
                         $values = implode(',', $data);
                         $result = $api_class::methodSpamCheckCms($this->params->get('apikey'), $values);
                     }
-                    if ($result) {
+                    if (!empty($result)) {
                         if (isset($result['error_message'])) {
                             if ($result['error_message'] == 'Access key unset.' || $result['error_message'] == 'Unknown access key.') {
                                 $output['data'] = JText::_('PLG_SYSTEM_CLEANTALKANTISPAM_JS_PARAM_SPAMCHECK_BADKEY');
@@ -2486,7 +2533,7 @@ class plgSystemCleantalkantispam extends JPlugin
                 ( defined('DOING_CRON') && DOING_CRON !== true )
             )
         ) {
-            $cron_res = $cron->runTasks($tasks_to_run);
+            $cron->runTasks($tasks_to_run);
             // Handle the $cron_res for errors here.
         }
     }
@@ -2524,7 +2571,7 @@ class plgSystemCleantalkantispam extends JPlugin
         }
 
         $firewall = new \Cleantalk\Common\Firewall\Firewall($access_key, APBCT_TBL_FIREWALL_LOG);
-        $result = $firewall->sendLogs();
+        $firewall->sendLogs();
 
         return true;
     }

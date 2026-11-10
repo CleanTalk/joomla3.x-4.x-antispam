@@ -9,67 +9,15 @@
       <code>$values</code>
       <code>$values</code>
     </InvalidArgument>
-    <InvalidReturnStatement occurrences="1">
-      <code>$output</code>
-    </InvalidReturnStatement>
-    <PossiblyInvalidArgument occurrences="9">
-      <code>$_GET['q']</code>
-      <code>$_GET['searchword']</code>
-      <code>$_POST['ct_action']</code>
-      <code>$_POST['ct_action']</code>
-      <code>$_POST['ct_action']</code>
-      <code>$_POST['return']</code>
-      <code>$_POST['return']</code>
-      <code>$_REQUEST['page-url']</code>
-      <code>$_REQUEST['page-url']</code>
-    </PossiblyInvalidArgument>
     <PossiblyInvalidArrayOffset occurrences="1">
       <code>$output['data']['spam_comments']</code>
     </PossiblyInvalidArrayOffset>
-    <PossiblyInvalidCast occurrences="9">
-      <code>$_POST['ct_action']</code>
-      <code>$_POST['ct_action']</code>
-      <code>$_POST['ct_action']</code>
-      <code>$_POST['return']</code>
-      <code>$_POST['return']</code>
-      <code>$_REQUEST['page-url']</code>
-      <code>$_REQUEST['page-url']</code>
-      <code>$form_action</code>
-      <code>$form_method</code>
-    </PossiblyInvalidCast>
-    <PossiblyInvalidIterator occurrences="3">
-      <code>$_POST['creativecontactform_fields']</code>
-      <code>$_POST['data']</code>
+    <PossiblyInvalidIterator occurrences="1">
       <code>$result</code>
     </PossiblyInvalidIterator>
-    <PossiblyInvalidOperand occurrences="4">
-      <code>$_POST["vcontact_message"]</code>
-      <code>$_POST['rp_message']</code>
-      <code>$message</code>
-      <code>$message</code>
-    </PossiblyInvalidOperand>
     <PossiblyNullArgument occurrences="1">
       <code>$values</code>
     </PossiblyNullArgument>
-    <PossiblyNullArrayAccess occurrences="17">
-      <code>$ctResponse['allow']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$result['account_name_ob']</code>
-      <code>$result['auto_update_app']</code>
-      <code>$result['ip_license']</code>
-      <code>$result['license_trial']</code>
-      <code>$result['moderate']</code>
-      <code>$result['moderate_ip']</code>
-      <code>$result['renew']</code>
-      <code>$result['service_id']</code>
-      <code>$result['show_auto_update_notice']</code>
-      <code>$result['show_notice']</code>
-      <code>$result['show_review']</code>
-      <code>$result['spam_count']</code>
-      <code>$result['trial']</code>
-      <code>$result['user_token']</code>
-      <code>$result['valid']</code>
-    </PossiblyNullArrayAccess>
     <PossiblyNullPropertyAssignmentValue occurrences="2">
       <code>$helper_class::ipGet('real', false)</code>
       <code>$this-&gt;get_ct_checkjs($_COOKIE)</code>
@@ -90,61 +38,11 @@
       <code>$_SERVER['REQUEST_URI']</code>
       <code>$_SERVER['REQUEST_URI']</code>
     </PossiblyUndefinedArrayOffset>
-    <PossiblyUndefinedStringArrayOffset occurrences="54">
-      <code>$_GET['option']</code>
-      <code>$_GET['route']</code>
-      <code>$_POST['creativecontactform_fields']</code>
+    <PossiblyUndefinedStringArrayOffset occurrences="4">
       <code>$comment['date']</code>
       <code>$comment['email']</code>
       <code>$comment['ip']</code>
-      <code>$ctResponse['allow']</code>
-      <code>$ctResponse['allow']</code>
-      <code>$ctResponse['allow']</code>
-      <code>$ctResponse['allow']</code>
-      <code>$ctResponse['allow']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['comment']</code>
-      <code>$ctResponse['errno']</code>
-      <code>$ctResponse['errno']</code>
-      <code>$ctResponse['errno']</code>
-      <code>$ctResponse['errno']</code>
-      <code>$ctResponse['id']</code>
-      <code>$data['data']</code>
       <code>$out['error']</code>
-      <code>$result['account_name_ob']</code>
-      <code>$result['auto_update_app']</code>
-      <code>$result['ip_license']</code>
-      <code>$result['license_trial']</code>
-      <code>$result['moderate']</code>
-      <code>$result['moderate_ip']</code>
-      <code>$result['renew']</code>
-      <code>$result['service_id']</code>
-      <code>$result['show_auto_update_notice']</code>
-      <code>$result['show_notice']</code>
-      <code>$result['show_review']</code>
-      <code>$result['spam_count']</code>
-      <code>$result['trial']</code>
-      <code>$result['user_token']</code>
-      <code>$result['valid']</code>
-      <code>$result['valid']</code>
-      <code>$result_tmp['user_token']</code>
     </PossiblyUndefinedStringArrayOffset>
     <PossiblyUndefinedVariable occurrences="14">
       <code>$out</code>
@@ -187,10 +85,6 @@
     <RedundantCondition occurrences="1">
       <code>$keys &amp;&amp; is_array($keys) &amp;&amp; !empty($keys)</code>
     </RedundantCondition>
-    <RiskyCast occurrences="2">
-      <code>$_POST['amount']</code>
-      <code>$_POST['offset']</code>
-    </RiskyCast>
     <TypeDoesNotContainType occurrences="1">
       <code>count($data) == 0</code>
     </TypeDoesNotContainType>
@@ -216,17 +110,11 @@
     <UnusedProperty occurrences="1">
       <code>$JCReady</code>
     </UnusedProperty>
-    <UnusedReturnValue occurrences="1">
-      <code>null</code>
-    </UnusedReturnValue>
-    <UnusedVariable occurrences="14">
+    <UnusedVariable occurrences="11">
       <code>$contact_form</code>
       <code>$contact_form</code>
-      <code>$cron_res</code>
-      <code>$item</code>
       <code>$js_post_value</code>
       <code>$post_name</code>
-      <code>$result</code>
       <code>$result</code>
       <code>$sender_email</code>
       <code>$sent</code>
@@ -325,6 +213,9 @@
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Cleantalk/Common/Cron/Cron.php">
+    <PossiblyUnusedReturnValue occurrences="1">
+      <code>void|array</code>
+    </PossiblyUnusedReturnValue>
     <UndefinedClass occurrences="7">
       <code>new $storage_handler_class()</code>
       <code>new $storage_handler_class()</code>
@@ -419,6 +310,9 @@
     <PossiblyUnusedMethod occurrences="1">
       <code>temporarySkip</code>
     </PossiblyUnusedMethod>
+    <PossiblyUnusedReturnValue occurrences="1">
+      <code>array|bool</code>
+    </PossiblyUnusedReturnValue>
     <PropertyTypeCoercion occurrences="1">
       <code>new $localize_class(__DIR__ . '/lang', $locale)</code>
     </PropertyTypeCoercion>
