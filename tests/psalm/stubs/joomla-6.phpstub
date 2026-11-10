@@ -145,6 +145,14 @@ namespace Joomla\CMS\Application {
         public function setBody($content) {}
 
         /**
+         * @param string $name
+         * @param string $value
+         * @param bool $replace
+         * @return $this
+         */
+        public function setHeader($name, $value, $replace = false) {}
+
+        /**
          * @param string $url
          * @param int $status
          * @return void
