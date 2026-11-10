@@ -265,7 +265,6 @@ class plgSystemCleantalkantispam extends JPlugin
                 $save_params['show_notice']             = $result['show_notice'] ?? 0;
                 $save_params['renew']                   = $result['renew'] ?? 0;
                 $save_params['trial']                   = $result['trial'] ?? 0;
-                $save_params['user_token']              = $result['user_token'] ?? '';
                 $save_params['spam_count']              = $result['spam_count'] ?? 0;
                 $save_params['moderate_ip']             = $result['moderate_ip'] ?? 0;
                 $save_params['moderate']                = $result['moderate'] ?? 0;
@@ -422,13 +421,6 @@ class plgSystemCleantalkantispam extends JPlugin
             if (empty($output['auth_key'])) {
                 if (isset($output['account_exists']) && $output['account_exists'] == 1) {
                     $output['error_message'] = 'Please, get the Access Key from the CleanTalk Control Panel (https://cleantalk.org/my/?cp_mode=antispam) and insert it in the Access Key field.';
-                }
-            } else {
-                if (empty($output['user_token'])) {
-                    $result_tmp = $api_class::methodNoticePaidTill($output['auth_key'], preg_replace('/http[s]?:\/\//', '', $_SERVER['HTTP_HOST'], 1));
-                    if (is_array($result_tmp) && empty($result_tmp['error'])) {
-                        $output['user_token'] = $result_tmp['user_token'] ?? null;
-                    }
                 }
             }
 
@@ -745,6 +737,9 @@ class plgSystemCleantalkantispam extends JPlugin
                 $ct_ip_license      = $config->get('ip_license') ? $config->get('ip_license') : 0;
                 $ct_moderate_ip     = $config->get('moderate_ip') ? $config->get('moderate_ip') : 0;
                 $ct_user_token      = $config->get('user_token') ? $config->get('user_token') : '';
+                $ct_user_token_query = is_string($ct_user_token) && $ct_user_token !== ''
+                    ? '&user_token=' . rawurlencode($ct_user_token)
+                    : '';
                 $ct_service_id      = $config->get('service_id') ? $config->get('service_id') : 0;
                 $ct_account_name_ob = $config->get('account_name_ob') ? $config->get('account_name_ob') : '';
                 $ct_account_name_ob = ! $ct_account_name_ob && isset($result['account_name_ob']) ? $result['account_name_ob'] : $ct_account_name_ob;
@@ -755,13 +750,13 @@ class plgSystemCleantalkantispam extends JPlugin
 
                 if ($show_notice == 1 && $trial == 1) {
                     if ( ! $this->isDismissedNotice('trial_' . $user->id) || $this->isPluginSettingsPage() ) {
-                        $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_TRIAL', $config->get('user_token'));
+                        $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_TRIAL', $ct_user_token_query);
                     }
                 }
 
                 if ($show_notice == 1 && $renew == 1) {
                     if ( ! $this->isDismissedNotice('renew_' . $user->id) || $this->isPluginSettingsPage() ) {
-                        $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $config->get('user_token'));
+                        $notice = JText::sprintf('PLG_SYSTEM_CLEANTALKANTISPAM_NOTICE_RENEW', $ct_user_token_query);
                     }
                 }
 

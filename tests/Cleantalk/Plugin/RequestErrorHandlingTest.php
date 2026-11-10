@@ -33,6 +33,7 @@ namespace Cleantalk\Tests\Plugin {
                 'JTable' => TableStub::class,
                 'JSession' => SessionStub::class,
                 'JFilterInput' => FilterStub::class,
+                'Cleantalk\Common\Api\Api' => ApiStub::class,
                 'Cleantalk\Custom\Helper\Helper' => IpHelperStub::class,
                 'Cleantalk\Common\Antispam\Cleantalk' => ClientStub::class,
             ] as $alias => $class) {
@@ -322,6 +323,48 @@ namespace Cleantalk\Tests\Plugin {
             $this->assertSame('', $this->log());
         }
 
+        public function testPaidStatusWithoutUserTokenPreservesSavedToken()
+        {
+            $this->plugin->params->set('apikey', 'testkey');
+            $this->plugin->params->set('user_token', 'saved-user-token');
+            TableStub::$instance->params = json_encode([
+                'apikey' => 'testkey',
+                'user_token' => 'saved-user-token',
+            ]);
+            ApiStub::$noticeResponse = ['valid' => 1, 'service_id' => 123];
+
+            $this->invoke('checkIsPaid', ['testkey', true]);
+
+            $saved = json_decode(TableStub::$instance->savedParams, true);
+            $this->assertSame('saved-user-token', $saved['user_token']);
+            $this->assertSame(1, $saved['ct_key_is_ok']);
+            $this->assertSame(['notice_paid_till'], ApiStub::$calls);
+            $this->assertSame('', $this->log());
+        }
+
+        /**
+         * @dataProvider automaticKeyResponseProvider
+         */
+        public function testAutomaticKeyPreservesResponseWithoutPaidStatusRequest($response)
+        {
+            ApiStub::$keyResponse = $response;
+
+            $this->assertSame(
+                $response,
+                $this->invoke('gettingKeyAutomatically', [ApiStub::class])
+            );
+            $this->assertSame(['get_api_key'], ApiStub::$calls);
+            $this->assertSame('', $this->log());
+        }
+
+        public function automaticKeyResponseProvider()
+        {
+            return [
+                'with token' => [['auth_key' => 'autokey', 'user_token' => 'auto-user-token']],
+                'without token' => [['auth_key' => 'autokey']],
+            ];
+        }
+
         public function testEmptySettingsDoNotRequireTable()
         {
             TableStub::$instance = false;
@@ -410,6 +453,11 @@ namespace Cleantalk\Tests\Plugin {
         public static function getApplication()
         {
             return self::$application;
+        }
+
+        public static function getConfig()
+        {
+            return new RegistryStub(['mailfrom' => 'admin@example.com']);
         }
 
         public static function getUser()
@@ -526,6 +574,27 @@ namespace Cleantalk\Tests\Plugin {
         public static function ipGet($ip_type_to_get = 'real', $v4_only = true, $headers = [])
         {
             return '203.0.113.8';
+        }
+    }
+
+    class ApiStub
+    {
+        public static $keyResponse = [];
+        public static $noticeResponse = [];
+        public static $calls = [];
+
+        public static function methodGetApiKey($product, $email, $host, $platform)
+        {
+            self::$calls[] = 'get_api_key';
+
+            return self::$keyResponse;
+        }
+
+        public static function methodNoticePaidTill($api_key, $host)
+        {
+            self::$calls[] = 'notice_paid_till';
+
+            return self::$noticeResponse;
         }
     }
 

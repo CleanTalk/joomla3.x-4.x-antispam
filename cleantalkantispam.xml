@@ -43,6 +43,7 @@
 					   description="PLG_SYSTEM_CLEANTALKANTISPAM_PARAM_KEY_CONTROL_DESCRIPTION"
 					   class="cleantalk_key_control display_none"
 				/>
+				<field name="user_token" type="hidden" default="" filter="string" />
 
 				<!-- Forms protections group -->
 				<field type="spacer"
