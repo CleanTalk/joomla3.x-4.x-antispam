@@ -310,7 +310,7 @@ window.apbct = window.apbct || {};
     usersChecker.ajaxRequest = (data) => {
         return new Promise((resolve, reject) => {
             Joomla.request({
-                url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
+                url: ctAdminAjaxUrl('raw'), // defined in ct-settings.js, loaded on the same admin page
                 method: 'POST',
                 data: JSON.stringify(data),
                 headers: {
