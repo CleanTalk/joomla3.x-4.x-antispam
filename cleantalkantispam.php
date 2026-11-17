@@ -152,8 +152,6 @@ class plgSystemCleantalkantispam extends JPlugin
                 $this->params->loadString($config['params']);
             }
         }
-        $this->loadLanguage();
-
         $this->cms_version = $this->getCmsVersion();
     }
     private function getId()
@@ -305,6 +303,8 @@ class plgSystemCleantalkantispam extends JPlugin
 
     public function onAfterInitialise()
     {
+        $this->loadLanguage();
+
         $app = JFactory::getApplication();
 
         $apikey = is_null($this->params->get('apikey')) ? '' : trim($this->params->get('apikey'));
