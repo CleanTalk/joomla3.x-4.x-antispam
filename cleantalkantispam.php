@@ -940,7 +940,9 @@ class plgSystemCleantalkantispam extends JPlugin
         // Search form
         if ($_SERVER['REQUEST_METHOD'] == 'GET' && $this->params->get('ct_check_search')) {
             if ($option_cmd === 'com_search' && isset($_GET['searchword']) && $_GET['searchword'] !== '' ||
-                $option_cmd === 'com_finder' && isset($_GET['q']) && $_GET['q'] !== ''
+                $option_cmd === 'com_finder' &&
+                !in_array($task_cmd, array('suggestions.suggest', 'suggestions.opensearchsuggest'), true) &&
+                isset($_GET['q']) && $_GET['q'] !== ''
             ) {
                 $post_info['comment_type'] = 'site_search_joomla34';
                 $sender_email              = JFactory::getUser()->email;
