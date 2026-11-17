@@ -279,7 +279,7 @@ class plgSystemCleantalkantispam extends JPlugin
             $this->saveCTConfig($save_params);
         }
 
-        return $save_params;
+        return $save_params ?? null;
     }
 
     /**
