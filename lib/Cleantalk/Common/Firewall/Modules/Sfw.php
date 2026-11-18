@@ -171,13 +171,14 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
             $needles = array_unique($needles);
 
             $query = $this->db->sfwGetFromBlacklist($this->db__table__data, $this->db__table__data_personal, $needles, $current_ip_v4);
+
             $db_results = $this->db->fetchAll($query);
 
             $test_status = 1;
             if ( !empty($db_results) ) {
                 // Personal lists have priority over common lists
                 // Sort: personal entries first
-                usort($db_results, function($a, $b) {
+                usort($db_results, function ($a, $b) {
                     return (int)$b['is_personal'] - (int)$a['is_personal'];
                 });
 
@@ -738,7 +739,6 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
      * @param $db
      * @param $db__table__data
      * @param null|string $file_url File URL with SFW data.
-     * @param bool $include_source Whether to include the 'source' column in the INSERT (false for personal table).
      *
      * @return array|int array('error' => STRING)
      */
@@ -778,7 +778,6 @@ class Sfw extends \Cleantalk\Common\Firewall\FirewallModule
                             $ip = preg_replace('/[^\d]*/', '', $entry[0]);
                             $mask = preg_replace('/[^\d]*/', '', $entry[1]);
                             $status = isset($entry[2]) ? $entry[2] : 0;
-
                             if ( $include_source ) {
                                 $source = isset($entry[3]) ? (int)$entry[3] : 'NULL';
                                 $values[] = "($ip, $mask, $status, $source)";

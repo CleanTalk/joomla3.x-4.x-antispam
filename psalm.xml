@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<psalm
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    autoloader="tests/bootstrap.php"
+    errorLevel="3"
+    phpVersion="7.2"
+    findUnusedCode="true"
+    ensureArrayStringOffsetsExist="true"
+    ensureArrayIntOffsetsExist="true"
+    allowNamedArgumentCalls="false"
+    hoistConstants="true"
+    limitMethodComplexity="true"
+    hideExternalErrors="true"
+    errorBaseline="psalm-baseline.xml"
+>
+    <projectFiles>
+        <directory name="."/>
+        <ignoreFiles allowMissingFiles="true">
+            <directory name="tests"/>
+            <directory name="**/tests"/>
+            <directory name="vendor"/>
+            <directory name="**/vendor"/>
+            <directory name="node_modules"/>
+            <directory name="**/node_modules"/>
+            <file name="lib/Cleantalk/Common/Templates/Singleton.php"/>
+        </ignoreFiles>
+    </projectFiles>
+    <stubs>
+        <file name="tests/psalm/stubs/joomla-6.phpstub" preloadClasses="true"/>
+        <file name="tests/psalm/stubs/framework.phpstub" preloadClasses="true"/>
+        <file name="tests/psalm/stubs/aliases.phpstub" preloadClasses="true"/>
+    </stubs>
+</psalm>

@@ -1,0 +1,229 @@
+<?php
+
+// Used API from the framework libraries bundled with Joomla 6.2.0.
+// Source: https://github.com/joomla/joomla-cms/releases/tag/6.2.0
+
+namespace Joomla\Registry {
+    class Registry
+    {
+        /** @var \stdClass */
+        protected $data;
+        /** @var string */
+        protected $separator = '.';
+
+        /** @param mixed $data */
+        public function __construct($data = null, string $separator = '.') {}
+
+        /**
+         * @param string $path
+         * @param mixed $default
+         * @return mixed
+         */
+        public function get($path, $default = null) {}
+
+        /**
+         * @param string $path
+         * @param mixed $value
+         * @return mixed
+         */
+        public function set($path, $value) {}
+
+        /**
+         * @param string $data
+         * @param string $format
+         * @return $this
+         */
+        public function loadString($data, $format = 'JSON', array $options = []) {}
+
+        /**
+         * @param string $path
+         * @return mixed
+         */
+        public function remove($path) {}
+
+        /** @return array<array-key, mixed> */
+        public function toArray() {}
+
+        /**
+         * @param string $format
+         * @return string
+         */
+        public function toString($format = 'JSON', array $options = []) {}
+    }
+}
+
+namespace Joomla\Input {
+    /**
+     * @property-read Input $get
+     * @property-read Input $post
+     * @property-read Input $request
+     * @property-read Input $server
+     * @property-read Input $env
+     * @property-read Json $json
+     * @method string getString(string $name, mixed $default = null)
+     * @method int getInt(string $name, mixed $default = null)
+     * @method string getCmd(string $name, mixed $default = null)
+     * @psalm-seal-properties
+     * @psalm-seal-methods
+     */
+    class Input
+    {
+        /**
+         * @param string $name
+         * @return Input
+         */
+        public function __get($name) {}
+
+        /**
+         * @param string $name
+         * @param mixed $default
+         * @param string $filter
+         * @return mixed
+         */
+        public function get($name, $default = null, $filter = 'cmd') {}
+
+        /**
+         * @param mixed $datasource
+         * @return array<array-key, mixed>
+         */
+        public function getArray(array $vars = [], $datasource = null) {}
+    }
+
+    class Json extends Input {}
+}
+
+namespace Joomla\Database {
+    interface QueryInterface
+    {
+        /** @return string */
+        public function __toString();
+
+        /**
+         * @param string|string[] $columns
+         * @return $this
+         */
+        public function select($columns);
+
+        /**
+         * @param string $table
+         * @return $this
+         */
+        public function from($table);
+
+        /**
+         * @param string|string[] $conditions
+         * @param string $glue
+         * @return $this
+         */
+        public function where($conditions, $glue = 'AND');
+
+        /**
+         * @param string|null $table
+         * @return $this
+         */
+        public function delete($table = null);
+
+        /**
+         * @param string $table
+         * @param bool $incrementField
+         * @return $this
+         */
+        public function insert($table, $incrementField = false);
+
+        /**
+         * @param string|string[] $columns
+         * @return $this
+         */
+        public function columns($columns);
+
+        /**
+         * @param string|string[] $values
+         * @return $this
+         */
+        public function values($values);
+    }
+
+    interface DatabaseInterface
+    {
+        /** @return bool */
+        public function execute();
+
+        /** @return int */
+        public function getAffectedRows();
+
+        /** @return string */
+        public function getPrefix();
+
+        /**
+         * @param bool $new
+         * @return QueryInterface
+         */
+        public function getQuery($new = false);
+
+        /** @return string[] */
+        public function getTableList();
+
+        /**
+         * @param string|QueryInterface $query
+         * @param int $offset
+         * @param int $limit
+         * @return $this
+         */
+        public function setQuery($query, $offset = 0, $limit = 0);
+
+        /**
+         * @param string|string[] $text
+         * @param bool $escape
+         * @return ($text is array ? array<array-key, string> : string)
+         */
+        public function quote($text, $escape = true);
+
+        /**
+         * @param string|string[] $name
+         * @param string|string[]|null $as
+         * @return ($name is array ? array<array-key, string> : string)
+         */
+        public function quoteName($name, $as = null);
+
+        /** @return array<string, mixed>|null */
+        public function loadAssoc();
+
+        /**
+         * @param string|null $key
+         * @param string|null $column
+         * @return ($column is null ? array<array-key, array<string, mixed>> : array<array-key, mixed>)
+         */
+        public function loadAssocList($key = null, $column = null);
+
+        /**
+         * @param int $offset
+         * @return list<mixed>
+         */
+        public function loadColumn($offset = 0);
+
+        /**
+         * @template T of object
+         * @param class-string<T> $class
+         * @return T|null
+         */
+        public function loadObject($class = \stdClass::class);
+
+        /**
+         * @template T of object
+         * @param string $key
+         * @param class-string<T> $class
+         * @return array<array-key, T>
+         */
+        public function loadObjectList($key = '', $class = \stdClass::class);
+
+        /** @return mixed */
+        public function loadResult();
+
+        /** @return list<mixed>|null */
+        public function loadRow();
+    }
+}
+
+namespace Joomla\Event {
+    interface DispatcherInterface {}
+}

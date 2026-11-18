@@ -2,6 +2,14 @@
 
 namespace Cleantalk\Custom;
 
+/**
+ * @psalm-type ConnectionReportData = array{
+ *     success: int,
+ *     negative: int,
+ *     success_report: array,
+ *     negative_report: array
+ * }
+ */
 final class ConnectionReports
 {
     const REPORT_LIFE_DAYS = 7;
@@ -11,9 +19,9 @@ final class ConnectionReports
      * @param array $connection_reports
      * @param bool $success
      * @param string $lib_report
-     * @return array
+     * @return ConnectionReportData
      */
-    static function add($connection_reports, $success, $lib_report = 'no lib report')
+    public static function add($connection_reports, $success, $lib_report = 'no lib report')
     {
         $connection_reports = self::validate($connection_reports);
         $connection_reports = self::filter($connection_reports);
@@ -66,7 +74,7 @@ final class ConnectionReports
         }
 
         // Sort by date descending and take first N
-        usort($reports, function($a, $b) {
+        usort($reports, function ($a, $b) {
             return (int)$b['date'] - (int)$a['date'];
         });
 
@@ -82,7 +90,7 @@ final class ConnectionReports
      * @param callable $mail_provider
      * @return bool
      */
-    static function sendMail($connection_reports, $mailfrom, $mail_provider = null)
+    public static function sendMail($connection_reports, $mailfrom, $mail_provider = null)
     {
         $connection_reports = self::validate($connection_reports);
         if (empty($connection_reports['negative_report'])) {
@@ -104,7 +112,11 @@ final class ConnectionReports
         }
     }
 
-    static function prepareEmailBody($connection_reports)
+    /**
+     * @param ConnectionReportData $connection_reports
+     * @return string
+     */
+    public static function prepareEmailBody($connection_reports)
     {
         $first_success = time();
         if (
@@ -171,7 +183,7 @@ final class ConnectionReports
                         </thead>
                         <tbody>';
 
-            foreach ($connection_reports['negative_report'] as $key => $report) {
+            foreach (array_values($connection_reports['negative_report']) as $key => $report) {
                 $message .= "
                             <tr>
                                 <td>" . ($key + 1) . ".</td>
@@ -195,10 +207,10 @@ final class ConnectionReports
     }
 
     /**
-     * @param $connection_reports
-     * @return array
+     * @param array{success_report: array, negative_report: array} $connection_reports
+     * @return ConnectionReportData
      */
-    static function filter($connection_reports)
+    public static function filter($connection_reports)
     {
         $at_least = time() - self::REPORT_LIFE_DAYS * 24 * 60 * 60;
 
@@ -233,9 +245,9 @@ final class ConnectionReports
     }
 
     /**
-     * @return array
+     * @return ConnectionReportData
      */
-    static function getClearReports()
+    public static function getClearReports()
     {
         return array(
             'success' => 0,
@@ -247,9 +259,9 @@ final class ConnectionReports
 
     /**
      * @param array|null $connection_reports
-     * @return array
+     * @return ConnectionReportData
      */
-    static function validate($connection_reports)
+    public static function validate($connection_reports)
     {
         if (empty($connection_reports) || !is_array($connection_reports)) {
             return self::getClearReports();

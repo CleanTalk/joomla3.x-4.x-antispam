@@ -1,4 +1,14 @@
 var close_animate=true, on_page=20,off=0;
+
+// "base" points to /administrator, so the request reaches the administrator application
+function ctAdminAjaxUrl(format)
+{
+	const paths = (typeof Joomla !== 'undefined' && Joomla.getOptions) ? Joomla.getOptions('system.paths') : null;
+	const query = 'index.php?option=com_ajax&plugin=cleantalkantispam&format=' + format;
+
+	return (paths && typeof paths.base === 'string') ? paths.base + '/' + query : query;
+}
+
 function ct_getCookie(name) {
 	var matches = document.cookie.match(new RegExp(
 		"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
@@ -209,7 +219,7 @@ function dispatchApbctJoomlaNotice(element) {
 					}
 				};
 				Joomla.request({
-					url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=json',
+					url: ctAdminAjaxUrl('json'),
 					method: 'POST',
 					data: JSON.stringify(data),
 					headers: {
@@ -239,6 +249,12 @@ function dispatchApbctJoomlaNotice(element) {
 jQuery(document).ready(function(){
 	var ct_auth_key = jQuery('.cleantalk_auth_key').prop('value'),
 		ct_notice_cookie = ct_getCookie('ct_notice_cookie');
+
+	jQuery('.cleantalk_auth_key').on('input change', function () {
+		if (jQuery(this).val().trim() !== ct_auth_key.trim()) {
+			jQuery('#jform_params_user_token').val('');
+		}
+	});
 
 	//notice exclusions - know more
 	let excl_fields_more_link = document.createElement('a');
@@ -290,7 +306,7 @@ jQuery(document).ready(function(){
 				.html('')
 				.append("<div id='key_buttons_wrapper'></div>").children()
 				.append("<a target='_blank'></a>").children('a')
-				.attr('href', 'https://cleantalk.org/my/stat?service_id='+ct_service_id+'&user_token='+ct_user_token)
+				.attr('href', 'https://cleantalk.org/my/stat?service_id='+encodeURIComponent(ct_service_id)+(ct_user_token ? '&user_token='+encodeURIComponent(ct_user_token) : ''))
 				.append("<button class='btn btn-success' id='ct_cp_button' type='button'><span class='icon-bars'></span>"+ct_statlink_label+"</button>")
 				.append("<a target='_blank'></a>").children('a')
 				.attr('href', 'https://cleantalk.org/my/support/open')
@@ -412,7 +428,9 @@ jQuery(document).ready(function(){
 			} else if (msg.auth_key) {
 
 				jQuery('.cleantalk_auth_key').val(msg.auth_key);
-				jQuery('#jform_params_user_token').val(msg.user_token);
+				ct_auth_key = jQuery('.cleantalk_auth_key').val();
+				var userToken = typeof msg.user_token === 'string' ? msg.user_token : '';
+				jQuery('#jform_params_user_token').val(userToken);
 
 				var $successAlert = jQuery('<div class="alert alert-success"><h4 class="alert-heading">Success!</h4><p></p></div>');
 				$successAlert.prepend(jQuery('<button type="button" class="close" data-dismiss="alert">×</button>'));
@@ -649,4 +667,3 @@ function ct_serve_buttons() {
 		});
 	});
 }
-

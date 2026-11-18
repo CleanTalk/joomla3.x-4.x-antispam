@@ -10,7 +10,7 @@ class StorageHandler implements \Cleantalk\Common\StorageHandler\StorageHandler
     private $table_name;
     public function __construct()
     {
-        /** @var \Cleantalk\Common\Db\Db $db_class */
+        /** @var class-string<\Cleantalk\Common\Db\Db> $db_class */
         $db_class = Mloader::get('Db');
         $this->db_object = $db_class::getInstance();
         $this->table_name = $this->db_object->prefix . APBCT_TBL_STORAGE;
@@ -46,13 +46,13 @@ class StorageHandler implements \Cleantalk\Common\StorageHandler\StorageHandler
         return $this->db_object->execute($this->db_object->getQuery());
     }
 
-	public static function getUpdatingFolder()
-	{
-		return APBCT_DIR_PATH . DIRECTORY_SEPARATOR . 'cleantalk_fw_files' . DIRECTORY_SEPARATOR;
-	}
+    public static function getUpdatingFolder()
+    {
+        return APBCT_DIR_PATH . DIRECTORY_SEPARATOR . 'cleantalk_fw_files' . DIRECTORY_SEPARATOR;
+    }
 
-	public static function getJsLocation()
-	{
-		return \JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js";
-	}
+    public static function getJsLocation()
+    {
+        return \JURI::root(true) . "/plugins/system/cleantalkantispam/js/ct-functions.js";
+    }
 }

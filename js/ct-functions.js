@@ -150,31 +150,35 @@ function ct_ready(){
         ct_ps_timestamp: Math.floor(new Date().getTime()/1000),
         ct_fkp_timestamp: 0,
         ct_pointer_data: 0,
-        ct_timezone: new Date().getTimezoneOffset()/60*(-1),
-        ct_visible_fields: 0,
-        ct_visible_fields_count: 0
+        ct_timezone: new Date().getTimezoneOffset()/60*(-1)
     }
 
     ctSetCookies(cookies);
 
-    setTimeout(function(){
-        for(var i = 0; i < document.forms.length; i++){
-            var form = document.forms[i];
+    for(var i = 0; i < document.forms.length; i++){
+        var form = document.forms[i];
 
-            checkEasySocial(form);
+        checkEasySocial(form);
 
-            if (!form.name && !form.id) {
-                continue;
-            }
+        if (!form.name && !form.id) {
+            continue;
+        }
 
-            // Exclude `cbactivity` plugin: has conflicted.
-            if ( form.classList.contains('streamItemForm') ) {
-                continue;
-            }
+        // Exclude `cbactivity` plugin: has conflicted.
+        if ( form.classList.contains('streamItemForm') ) {
+            continue;
+        }
 
-            // Exclude hikashop updatecart form
-            if ( form.action.indexOf('updatecart') !== -1 ) {
-                continue;
+        // Exclude hikashop updatecart form
+        if ( form.action.indexOf('updatecart') !== -1 ) {
+            continue;
+        }
+
+        form.onsubmit_prev = form.onsubmit;
+
+        form.onsubmit = function(event) {
+            if (event === undefined) {
+                return;
             }
 
             // Get only fields
@@ -195,7 +199,6 @@ function ct_ready(){
                     getComputedStyle(elem).opacity    === "0" ||      // hidden
                     elem.getAttribute("type")         === "hidden" || // type == hidden
                     elem.getAttribute("type")         === "submit" || // type == submit
-                    elem.value                        === ""       || // empty value
                     elem.getAttribute('name')         === null
                 ){
                     return false;
@@ -224,33 +227,26 @@ function ct_ready(){
             });
             visible_fields = visible_fields.trim();
 
-            form.onsubmit_prev = form.onsubmit;
+            if (typeof ctPublicData !== 'undefined' && ctPublicData.typeOfCookie && ctPublicData.typeOfCookie === 'alt_cookies') {
+                ctSetAltCookies({
+                    ct_pointer_data: apbctLocalStorage.get('ct_pointer_data'),
+                    ct_visible_fields: visible_fields,
+                    ct_visible_fields_count: visible_fields_count
+                });
+            } else {
+                ctSetCookie("ct_visible_fields", visible_fields);
+                ctSetCookie("ct_visible_fields_count", visible_fields_count);
+            }
 
-            form.onsubmit = function(event, visible_fields, visible_fields_count) {
-                if (event === undefined) {
-                    return;
-                }
-                if (typeof ctPublicData !== 'undefined' && ctPublicData.typeOfCookie && ctPublicData.typeOfCookie === 'alt_cookies') {
-                    const cookies = {
-                        ct_pointer_data: apbctLocalStorage.get('ct_pointer_data'),
-                        ct_visible_fields: visible_fields,
-                        ct_visible_fields_count: visible_fields_count
-                    }
-                    ctSetAltCookies(cookies);
-                } else {
-                    ctSetCookie("ct_visible_fields", visible_fields);
-                    ctSetCookie("ct_visible_fields_count", visible_fields_count);
-                }
-
-                // Call previous submit action
-                if (event.target.onsubmit_prev instanceof Function && !ct_is_excluded_forms(event.target)) {
-                    setTimeout(function() {
-                        event.target.onsubmit_prev.call(event.target, event);
-                    }, 500);
-                }
+            // Call previous submit action
+            if (event.target.onsubmit_prev instanceof Function && !ct_is_excluded_forms(event.target)) {
+                setTimeout(function() {
+                    event.target.onsubmit_prev.call(event.target, event);
+                }, 500);
             }
         }
-    }, 1000);
+    }
+
 }
 
 function checkEasySocial(form) {
@@ -341,13 +337,20 @@ function ct_attach_event_token(){
     return false;
 }
 
+function ctAjaxUrl()
+{
+    const root = (typeof ctPublicData !== 'undefined' && typeof ctPublicData.siteRoot === 'string') ? ctPublicData.siteRoot : window.location.origin;
+
+    return root + '/index.php?option=com_ajax&plugin=cleantalkantispam&format=raw';
+}
+
 // Setting alt-cookies from array
 function ctSetAltCookies(altCookies)
 {
     altCookies.action = 'set_alt_cookies';
 
     Joomla.request({
-        url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
+        url: ctAjaxUrl(),
         method: 'POST',
         data: JSON.stringify(altCookies),
         headers: {
@@ -369,7 +372,7 @@ function ctCheckAjax(target, allow, forbidden)
     data.action = 'check_ajax';
 
     Joomla.request({
-        url: 'index.php?option=com_ajax&plugin=cleantalkantispam&format=raw',
+        url: ctAjaxUrl(),
         method: 'POST',
         data: JSON.stringify(data),
         headers: {

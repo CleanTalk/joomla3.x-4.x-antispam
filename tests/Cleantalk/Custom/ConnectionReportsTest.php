@@ -1,9 +1,11 @@
 <?php
 
+namespace Cleantalk\Tests\Custom;
+
 use PHPUnit\Framework\TestCase;
 use Cleantalk\Custom\ConnectionReports;
 
-class TestConnectionReports extends TestCase
+class ConnectionReportsTest extends TestCase
 {
     protected function setUp(): void
     {
@@ -32,6 +34,32 @@ class TestConnectionReports extends TestCase
 
         $this->assertEquals(0, $data['success']);
         $this->assertEquals(0, $data['negative']);
+    }
+
+    public function testValidateReportsInitializesMissingAndInvalidFields()
+    {
+        $data = ConnectionReports::validate([
+            'success' => 'invalid',
+            'negative_report' => 'invalid',
+        ]);
+
+        $this->assertSame(0, $data['success']);
+        $this->assertSame(0, $data['negative']);
+        $this->assertSame([], $data['success_report']);
+        $this->assertSame([], $data['negative_report']);
+    }
+
+    public function testValidateReportsConvertsNumericCountersToIntegers()
+    {
+        $data = ConnectionReports::validate([
+            'success' => '1',
+            'negative' => '0',
+            'success_report' => [['date' => time()]],
+            'negative_report' => [],
+        ]);
+
+        $this->assertSame(1, $data['success']);
+        $this->assertSame(0, $data['negative']);
     }
 
     public function testAddSuccess()
@@ -197,11 +225,13 @@ class TestConnectionReports extends TestCase
         $data = ConnectionReports::getClearReports();
         $data = ConnectionReports::add($data, false, '<b>bad</b>');
 
-        ob_start();
-        ConnectionReports::sendMail($data, 'test@example.com');
-        $output = ob_get_clean();
+        $mail = function ($arguments) {
+            $this->assertStringContainsString('&lt;script&gt;', $arguments[2]);
+            $this->assertStringContainsString('&lt;b&gt;bad&lt;/b&gt;', $arguments[2]);
+            return true;
+        };
 
-        $this->assertTrue(true); // важно: просто покрытие htmlspecialchars
+        $this->assertTrue(ConnectionReports::sendMail($data, 'test@example.com', $mail));
     }
 
     public function testPrepareEmailBodyBasic()
@@ -234,6 +264,7 @@ class TestConnectionReports extends TestCase
         $html = ConnectionReports::prepareEmailBody($data);
 
         $this->assertStringContainsString('No negative reports', $html);
+        $this->assertStringContainsString('2 calls, where 2 were success and 0 were negative', $html);
     }
 
     public function testPrepareEmailBodyMaxCountFormatting()
@@ -253,7 +284,35 @@ class TestConnectionReports extends TestCase
 
         $html = ConnectionReports::prepareEmailBody($data);
 
-        $this->assertStringContainsString('+', $html);
+        $this->assertStringContainsString('20+ calls, where 10+ were success and 10+ were negative', $html);
+    }
+
+    public function testPrepareEmailBodyNumbersReportsIndependentlyOfArrayKeys()
+    {
+        foreach ([['first', 'second'], [5, 12]] as $keys) {
+            $data = ConnectionReports::getClearReports();
+            $data['negative'] = 2;
+            $data['negative_report'] = [
+                $keys[0] => [
+                    'date' => time(),
+                    'page_url' => '/first',
+                    'lib_report' => 'first error',
+                ],
+                $keys[1] => [
+                    'date' => time(),
+                    'page_url' => '/second',
+                    'lib_report' => 'second error',
+                ],
+            ];
+
+            $html = ConnectionReports::prepareEmailBody($data);
+
+            preg_match_all('/<td>(\d+)\.<\/td>/', $html, $matches);
+            $this->assertSame(['1', '2'], $matches[1]);
+            preg_match_all('/<td>(\/first|\/second)<\/td>/', $html, $matches);
+            $this->assertSame(['/first', '/second'], $matches[1]);
+            $this->assertSame($keys, array_keys($data['negative_report']));
+        }
     }
 
     public function testPrepareEmailBodyEscaping()
